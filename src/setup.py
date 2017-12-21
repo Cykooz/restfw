@@ -44,8 +44,8 @@ def cli_cmd(app_name, command_name, func_name=None):
     return tpl.format(cmd=command_name, app=app_name, func=func_name)
 
 
-README = open(os.path.join(HERE, 'README.txt')).read()
-CHANGES = open(os.path.join(HERE, 'CHANGES.txt')).read()
+README = open(os.path.join(HERE, 'README.rst')).read()
+CHANGES = open(os.path.join(HERE, 'CHANGES.rst')).read()
 
 
 setup(

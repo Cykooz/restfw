@@ -51,7 +51,7 @@ __email__ = 'cykooz@gmail.com'
 __all__ = ('get_version',)
 
 
-CHANGES_FILE = 'CHANGES.txt'
+CHANGES_FILE = 'CHANGES.rst'
 RELEASE_VERSION_FILE = 'RELEASE-VERSION'
 
 # http://legacy.python.org/dev/peps/pep-0440/
