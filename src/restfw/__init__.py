@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+"""
+:Authors: cykooz
+:Date: 03.08.2017
+"""
+
+
+def includeme(config):
+    """
+    :type config: pyramid.config.Configurator
+    """
+    from .authorization import RestACLAuthorizationPolicy
+    from .predicates import TestingPredicate
+    from .viewderivers import register_view_derivers
+
+    config.include('pyramid_tm')
+    config.include('pyramid_retry')
+    config.include('pyramid_zodbconn')
+    config.include('pyramid_jinja2')
+
+    config.set_authorization_policy(RestACLAuthorizationPolicy())
+    config.set_root_factory('restfw.root.root_factory')
+    config.add_renderer(None, 'restfw.renderers.json_renderer')
+    config.add_view_predicate('testing', TestingPredicate)
+
+    register_view_derivers(config)
+
+    from .utils import scan_ignore
+    config.scan(ignore=scan_ignore(config.registry))
