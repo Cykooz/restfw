@@ -16,7 +16,7 @@ if [ $1 ]
 then
     VERSION=$1
 fi
-VERSION=`python version.py -u ${VERSION}`
+VERSION=`../bin/python version.py -u ${VERSION}`
 
 if [ -z "$VERSION" ]
 then
@@ -41,7 +41,7 @@ fi
 echo Make release
 rm -rf dist
 ../bin/python setup.py sdist bdist_wheel
-TWINE_REPOSITORY=${TWINE_REPOSITORY} ../bin/twine upload dist/*
+ TWINE_REPOSITORY=${TWINE_REPOSITORY} ../bin/twine upload dist/*
 rm -rf dist
 rm -rf build
 
