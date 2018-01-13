@@ -40,6 +40,14 @@ class IResource(ILocation):
         # type: () -> set
         """Returns a set of allowed HTTP methods for the resource."""
 
+    def http_head(request, params):
+        """This method may be used in derived classes to overwrite
+        a default implementation for HEAD request handler.
+        :type request: pyramid.request.Request
+        :type params: dict
+        :rtype: IResource
+        """
+
     def http_get(request, params):
         """Returns representation of the resource.
         :type request: pyramid.request.Request

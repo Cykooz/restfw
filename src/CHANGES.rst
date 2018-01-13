@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added method ``http_head`` into ``Resource``.
+
 0.1 (2017-12-21)
 ================
 

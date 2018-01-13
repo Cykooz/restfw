@@ -61,6 +61,15 @@ class Resource(object):
 
     options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.ResourceSchema)
 
+    def http_head(self, request, params):
+        """This method may be used in derived classes to overwrite
+        a default implementation for HEAD request handler.
+        :type request: pyramid.request.Request
+        :type params: dict
+        :rtype: IResource
+        """
+        return self.http_get(request, params)
+
     def http_get(self, request, params):
         return self
 

@@ -18,7 +18,6 @@ def call_resource_method(resource, request):
     """
     params = get_method_params(resource, request)
     request_method = request.method.lower()
-    request_method = 'get' if request_method == 'head' else request_method
     method = 'http_%s' % request_method
     method = getattr(resource, method)
     # We do not need to check the method, because it was do
