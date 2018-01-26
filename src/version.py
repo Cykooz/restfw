@@ -149,7 +149,7 @@ def main():
         return
 
     with open(CHANGES_FILE, 'rt') as f:
-        changes = f.read().decode('utf-8')
+        changes = f.read()
     find = 'Next release\n============\n'
     if find in changes:
         if args.version == 'auto':
@@ -161,8 +161,8 @@ def main():
         replace = '%s\n%s\n' % (replace, '=' * len(replace))
         new_changes = changes.replace(find, replace)
         if new_changes != changes:
-            with open(CHANGES_FILE, 'w') as f:
-                f.write(new_changes.encode('utf-8'))
+            with open(CHANGES_FILE, 'wt') as f:
+                f.write(new_changes)
             print(version)
 
 
