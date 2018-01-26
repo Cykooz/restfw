@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Fixed type hinting.
+
 0.2 (2018-01-13)
 ================
 

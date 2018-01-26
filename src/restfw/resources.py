@@ -53,7 +53,7 @@ class Resource(object):
 
     def get_request(self):
         """
-        :rtype: pyramid.registry.Registry
+        :rtype: pyramid.request.Request
         """
         root = find_root(self)
         if root is not self and root.request:
