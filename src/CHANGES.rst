@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of empty values for ``IntegerNode``.
+
 0.2.3 (2018-01-26)
 ==================
 

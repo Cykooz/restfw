@@ -77,8 +77,30 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
+class Integer(colander.Integer):
+
+    def __init__(self, allow_empty=False):
+        self.allow_empty = allow_empty
+
+    def serialize(self, node, appstruct):
+        if self.allow_empty and appstruct is None:
+            return appstruct
+        return super(Integer, self).serialize(node, appstruct)
+
+    def deserialize(self, node, cstruct):
+        if (cstruct == '' or cstruct is None) and self.allow_empty:
+            return None
+        return super(Integer, self).deserialize(node, cstruct)
+
+
 class IntegerNode(colander.SchemaNode):
-    schema_type = colander.Integer
+
+    def __init__(self, *args, **kwargs):
+        self.allow_empty = kwargs.pop('allow_empty', False)
+        super(IntegerNode, self).__init__(*args, **kwargs)
+
+    def schema_type(self):
+        return Integer(allow_empty=self.allow_empty)
 
 
 class UnsignedIntegerNode(colander.SchemaNode):
