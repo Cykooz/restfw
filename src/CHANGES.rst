@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Removed old code of generator of documentation.
+
 0.3 (2018-02-05)
 ================
 
