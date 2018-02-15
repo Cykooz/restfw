@@ -11,12 +11,12 @@ from persistent import Persistent
 import colander
 import transaction
 from mountbit.utils.testing import D
-from pyramid.security import Allow, Everyone, ALL_PERMISSIONS
+from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 
-from .. import schemas, interfaces
+from .. import interfaces, schemas
 from ..errors import ValidationError
-from ..hal import PersistentContainer, list_to_embedded_resources, HalResource, HalResourceWithEmbedded
-from ..resource_info import ParamsResult, ResourceInfo
+from ..hal import HalResource, HalResourceWithEmbedded, PersistentContainer, list_to_embedded_resources
+from ..resource_info import ResourceInfo
 from ..testing import assert_resource
 
 
@@ -110,31 +110,24 @@ class DummyResourceInfo(ResourceInfo):
             container['resource'] = resource
         return resource
 
-    @property
-    def get_requests(self):
+    def get_requests(self, send):
         result = self.resource.__json__(self.request)
-        return [
-            ParamsResult(result=result)
-        ]
+        send(result=result)
 
-    @property
-    def put_requests(self):
+    def put_requests(self, send):
         params = {
             'title': 'New title',
             'description': 'New description'
         }
         result = self.resource.__json__(self.request)
         result.update(params)
-        return [
-            ParamsResult(exception=ValidationError({'title': 'Required'})),
-            ParamsResult(params={'title': 'T' * 51},
-                         exception=ValidationError({'title': 'Longer than maximum length 50'})),
-            ParamsResult(params=params, result=result),
-        ]
+        send(exception=ValidationError({'title': 'Required'}))
+        send(params={'title': 'T' * 51},
+             exception=ValidationError({'title': 'Longer than maximum length 50'}))
+        send(params=params, result=result)
 
-    @property
-    def delete_requests(self):
-        return [ParamsResult(status=204)]
+    def delete_requests(self, send):
+        send(status=204)
 
 
 class DummyContainerInfo(ResourceInfo):
@@ -152,32 +145,26 @@ class DummyContainerInfo(ResourceInfo):
                 resource['res-%d' % i] = child
         return resource
 
-    @property
-    def get_requests(self):
-        return [
-            ParamsResult(
-                result=D({
-                    '_links': {'self': {'href': 'http://localhost/test_container/'}},
-                    '_embedded': {
-                        'items': [D()] * self.count_of_embedded
-                    }
-                })
-            )
-        ]
+    def get_requests(self, send):
+        send(
+            result=D({
+                '_links': {'self': {'href': 'http://localhost/test_container/'}},
+                '_embedded': {
+                    'items': [D()] * self.count_of_embedded
+                }
+            })
+        )
 
-    @property
-    def post_requests(self):
+    def post_requests(self, send):
         params = {
             'title': 'New title',
             'description': 'New description'
         }
         result = D(params)
-        return [
-            ParamsResult(exception=ValidationError({'title': 'Required'})),
-            ParamsResult(params={'title': 'T' * 51},
-                         exception=ValidationError({'title': 'Longer than maximum length 50'})),
-            ParamsResult(params=params, result=result, status=201),
-        ]
+        send(exception=ValidationError({'title': 'Required'}))
+        send(params={'title': 'T' * 51},
+             exception=ValidationError({'title': 'Longer than maximum length 50'}))
+        send(params=params, result=result, status=201)
 
 
 def test_resource(web_app):

@@ -7,11 +7,10 @@ import pytest
 from pyramid import testing
 from pyramid.authentication import BasicAuthAuthenticationPolicy
 from pyramid.config import Configurator
-from pyramid.interfaces import IRequestFactory, IRootFactory
-from pyramid.request import Request, apply_request_extensions
+from pyramid.request import Request
 from pyramid.scripting import prepare
-from pyramid.traversal import DefaultRootFactory
 
+from ..testing import open_pyramid_request
 from ..testing.webapp import WebApp
 
 
@@ -53,18 +52,8 @@ def app_config_fixture():
         request._process_finished_callbacks()
 
 
-@pytest.fixture(name='request')
-def request_fixture(app_config):
+@pytest.fixture(name='pyramid_request')
+def pyramid_request_fixture(app_config):
     app_config.include('restfw')
-    registry = app_config.registry
-    request_factory = registry.queryUtility(IRequestFactory, default=Request)
-    request = request_factory.blank('http://localhost')
-    request.registry = registry
-    apply_request_extensions(request)
-    # create pyramid root
-    root_factory = request.registry.queryUtility(IRootFactory, default=DefaultRootFactory)
-    root = root_factory(request)  # Initialise pyramid root
-    if hasattr(root, 'set_request'):
-        root.set_request(request)
-    request.root = root
-    return request
+    with open_pyramid_request(app_config) as request:
+        yield request

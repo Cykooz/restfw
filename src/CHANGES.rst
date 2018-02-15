@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- ``ResourceInfo`` properties replaced by methods with ``send`` argument.
+
 0.3.2 (2018-02-08)
 ==================
 

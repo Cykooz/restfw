@@ -5,28 +5,7 @@
 """
 from zope.interface import implementer, provider
 
-from .interfaces import IResourceInfo, IResourceInfoFabric
-
-
-DEFAULT = object()
-
-
-class ParamsResult(object):
-
-    def __init__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None):
-        # type: (dict, dict, dict, dict, pyramid.httpexceptions.HTTPException, int) -> None
-        self.params = params if params is not DEFAULT else {}
-        self.headers = headers
-        self.result = result
-        self.result_headers = result_headers
-        self.exception = exception
-        self.status = status
-
-    @property
-    def is_success_status(self):
-        status = self.exception.code if self.exception else self.status
-        return status is None or 200 <= status < 300
+from .interfaces import IResourceInfo, IResourceInfoFabric, ISendTestingRequest
 
 
 @provider(IResourceInfoFabric)
@@ -51,27 +30,22 @@ class ResourceInfo(object):
     def prepare_resource(self):
         return None
 
-    @property
-    def get_requests(self):
-        # type: () -> Iterable[ParamsResult]
-        return None
+    def get_requests(self, send):
+        # type: (ISendTestingRequest) -> None
+        raise NotImplementedError
 
-    @property
-    def put_requests(self):
-        # type: () -> Iterable[ParamsResult]
-        return None
+    def put_requests(self, send):
+        # type: (ISendTestingRequest) -> None
+        raise NotImplementedError
 
-    @property
-    def patch_requests(self):
-        # type: () -> Iterable[ParamsResult]
-        return None
+    def patch_requests(self, send):
+        # type: (ISendTestingRequest) -> None
+        raise NotImplementedError
 
-    @property
-    def post_requests(self):
-        # type: () -> Iterable[ParamsResult]
-        return None
+    def post_requests(self, send):
+        # type: (ISendTestingRequest) -> None
+        raise NotImplementedError
 
-    @property
-    def delete_requests(self):
-        # type: () -> Iterable[ParamsResult]
-        return None
+    def delete_requests(self, send):
+        # type: (ISendTestingRequest) -> None
+        raise NotImplementedError

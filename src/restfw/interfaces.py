@@ -162,16 +162,43 @@ class IRootCreated(IEvent):
 
 # Docs
 
+class ISendTestingRequest(Interface):
+
+    def __call__(params=None, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        """Send a testing request to resource"""
+
+
 class IResourceInfo(Interface):
 
     resource = Attribute('Resource instance')
     resource_url = Attribute('The resource url')
     allowed_methods = Attribute('Allowed HTTP methods')
-    get_requests = Attribute('Iterator with parameters of GET requests')
-    put_requests = Attribute('Iterator with parameters of PUT requests')
-    patch_requests = Attribute('Iterator with parameters of PATCH requests')
-    post_requests = Attribute('Iterator with parameters of POST requests')
-    delete_requests = Attribute('Iterator with parameters of DELETE requests')
+
+    def get_requests(send):
+        """Calls function 'send' with parameters of GET requests.
+        :type send: ISendTestingRequest
+        """
+
+    def put_requests(send):
+        """Calls function 'send' with parameters of PUT requests.
+        :type send: ISendTestingRequest
+        """
+
+    def patch_requests(send):
+        """Calls function 'send' with parameters of PATCH requests.
+        :type send: ISendTestingRequest
+        """
+
+    def post_requests(send):
+        """Calls function 'send' with parameters of POST requests.
+        :type send: ISendTestingRequest
+        """
+
+    def delete_requests(send):
+        """Calls function 'send' with parameters of DELETE requests.
+        :type send: ISendTestingRequest
+        """
 
 
 class IResourceInfoFabric(Interface):

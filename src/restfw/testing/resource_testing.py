@@ -4,16 +4,124 @@
 :Date: 06.12.2016
 """
 from copy import deepcopy
+from typing import Dict
 
-from pyramid.interfaces import IRootFactory
-from pyramid.request import Request
-from pyramid.threadlocal import get_current_request
-from pyramid.traversal import DefaultRootFactory
+from pyramid.httpexceptions import HTTPException
 from webtest.forms import Upload
+from zope.interface import implementer
 
 from ..errors import ValidationError
-from ..interfaces import IHalResourceWithEmbedded
+from ..interfaces import IHalResourceWithEmbedded, ISendTestingRequest
+from ..resource_info import ResourceInfo
 from ..schemas import LISTING_CONF
+
+
+DEFAULT = object()
+
+
+class RequestsTester(object):
+
+    def __init__(self, web_app, resource_url):
+        """
+        :type web_app: restfw.testing.webapp.WebApp
+        :type resource_url: str
+        """
+        self.web_app = web_app
+        self.resource_url = resource_url
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        raise NotImplementedError
+
+
+@implementer(ISendTestingRequest)
+class GetRequestsTester(RequestsTester):
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        params = params if params is not DEFAULT else {}
+        get_res = self.web_app.get(self.resource_url, params=params, headers=headers,
+                                   exception=exception, status=status)
+        if result is not None:
+            assert get_res.json_body == result
+        head_res = self.web_app.head(self.resource_url, params=params, headers=headers,
+                                     exception=exception, status=status)
+        assert head_res.headers == get_res.headers
+        assert head_res.body == b''
+
+
+@implementer(ISendTestingRequest)
+class PutRequestsTester(RequestsTester):
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        params = params if params is not DEFAULT else {}
+        put_method = self.web_app.put_json
+        if params and any(isinstance(v, Upload) for v in params.values()):
+            put_method = self.web_app.put
+        res = put_method(self.resource_url, params=params, headers=headers,
+                         exception=exception, status=status)
+        if status == 201:
+            assert 'Location' in res.headers
+            assert res.headers['Location']
+        if result is not None:
+            assert res.json_body == result
+
+
+@implementer(ISendTestingRequest)
+class PatchRequestsTester(RequestsTester):
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        params = params if params is not DEFAULT else {}
+        patch_method = self.web_app.patch_json
+        if params and any(isinstance(v, Upload) for v in params.values()):
+            patch_method = self.web_app.patch
+        res = patch_method(self.resource_url, params=params, headers=headers,
+                           exception=exception, status=status)
+        if status == 201:
+            assert 'Location' in res.headers
+            assert res.headers['Location']
+        if result is not None:
+            assert res.json_body == result
+
+
+@implementer(ISendTestingRequest)
+class PostRequestsTester(RequestsTester):
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        params = params if params is not DEFAULT else {}
+        post_method = self.web_app.post_json
+        if params and any(isinstance(v, Upload) for v in params.values()):
+            post_method = self.web_app.post
+        res = post_method(self.resource_url, params=params, headers=headers,
+                          exception=exception, status=status)
+        if status == 201:
+            assert 'Location' in res.headers
+            assert res.headers['Location']
+        if result is not None:
+            assert res.json_body == result
+
+
+@implementer(ISendTestingRequest)
+class DeleteRequestsTester(RequestsTester):
+
+    def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
+                 exception=None, status=None):
+        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        params = params if params is not DEFAULT else {}
+        res = self.web_app.delete_json(self.resource_url, params=params, headers=headers,
+                                       exception=exception, status=status)
+        if status == 204:
+            assert res.body == b''
+        if result is not None:
+            assert res.json_body == result
 
 
 def assert_resource(resource_info, web_app):
@@ -21,20 +129,10 @@ def assert_resource(resource_info, web_app):
     :type resource_info: restfw.resource_info.ResourceInfo
     :type web_app: restfw.testing.webapp.WebApp
     """
-    get_requests = resource_info.get_requests
-    if get_requests is None:
-        assert 'GET' not in resource_info.allowed_methods
-    else:
+    try:
+        send = GetRequestsTester(web_app, resource_info.resource_url)
+        resource_info.get_requests(send)
         assert 'GET' in resource_info.allowed_methods
-        for pr in get_requests:
-            get_res = web_app.get(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                                  exception=pr.exception, status=pr.status)
-            if pr.result is not None:
-                assert get_res.json_body == pr.result
-            head_res = web_app.head(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                                    exception=pr.exception, status=pr.status)
-            assert head_res.headers == get_res.headers
-            assert head_res.body == b''
 
         if IHalResourceWithEmbedded.providedBy(resource_info.resource) and resource_info.test_listing:
             orig_listing_conf = deepcopy(LISTING_CONF)
@@ -43,70 +141,36 @@ def assert_resource(resource_info, web_app):
             finally:
                 LISTING_CONF.clear()
                 LISTING_CONF.update(orig_listing_conf)
+    except NotImplementedError:
+        assert 'GET' not in resource_info.allowed_methods
 
-    put_requests = resource_info.put_requests
-    if put_requests is None:
-        assert 'PUT' not in resource_info.allowed_methods
-    else:
+    try:
+        send = PutRequestsTester(web_app, resource_info.resource_url)
+        resource_info.put_requests(send)
         assert 'PUT' in resource_info.allowed_methods
-        for pr in put_requests:
-            put_method = web_app.put_json
-            if pr.params and any(isinstance(v, Upload) for v in pr.params.values()):
-                put_method = web_app.put
-            res = put_method(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                             exception=pr.exception, status=pr.status)
-            if pr.status == 201:
-                assert 'Location' in res.headers
-                assert res.headers['Location']
-            if pr.result is not None:
-                assert res.json_body == pr.result
+    except NotImplementedError:
+        assert 'PUT' not in resource_info.allowed_methods
 
-    patch_requests = resource_info.patch_requests
-    if patch_requests is None:
-        assert 'PATCH' not in resource_info.allowed_methods
-    else:
+    try:
+        send = PatchRequestsTester(web_app, resource_info.resource_url)
+        resource_info.patch_requests(send)
         assert 'PATCH' in resource_info.allowed_methods
-        for pr in patch_requests:
-            patch_method = web_app.patch_json
-            if pr.params and any(isinstance(v, Upload) for v in pr.params.values()):
-                patch_method = web_app.patch
-            res = patch_method(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                               exception=pr.exception, status=pr.status)
-            if pr.status == 201:
-                assert 'Location' in res.headers
-                assert res.headers['Location']
-            if pr.result is not None:
-                assert res.json_body == pr.result
+    except NotImplementedError:
+        assert 'PATCH' not in resource_info.allowed_methods
 
-    post_requests = resource_info.post_requests
-    if post_requests is None:
-        assert 'POST' not in resource_info.allowed_methods
-    else:
+    try:
+        send = PostRequestsTester(web_app, resource_info.resource_url)
+        resource_info.post_requests(send)
         assert 'POST' in resource_info.allowed_methods
-        for pr in post_requests:
-            post_method = web_app.post_json
-            if pr.params and any(isinstance(v, Upload) for v in pr.params.values()):
-                post_method = web_app.post
-            res = post_method(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                              exception=pr.exception, status=pr.status)
-            if pr.status == 201:
-                assert 'Location' in res.headers
-                assert res.headers['Location']
-            if pr.result is not None:
-                assert res.json_body == pr.result
+    except NotImplementedError:
+        assert 'POST' not in resource_info.allowed_methods
 
-    delete_requests = resource_info.delete_requests
-    if delete_requests is None:
-        assert 'DELETE' not in resource_info.allowed_methods
-    else:
+    try:
+        send = DeleteRequestsTester(web_app, resource_info.resource_url)
+        resource_info.delete_requests(send)
         assert 'DELETE' in resource_info.allowed_methods
-        for pr in delete_requests:
-            res = web_app.delete_json(resource_info.resource_url, params=pr.params, headers=pr.headers,
-                                      exception=pr.exception, status=pr.status)
-            if pr.status == 204:
-                assert res.body == b''
-            if pr.result is not None:
-                assert res.json_body == pr.result
+    except NotImplementedError:
+        assert 'DELETE' not in resource_info.allowed_methods
 
 
 def assert_container_listing(resource_info, web_app):
@@ -176,20 +240,3 @@ def assert_container_listing(resource_info, web_app):
     web_app.get(resource_url, params={'offset': -1, 'limit': -1}, headers=headers,
                 exception=ValidationError({'limit': '-1 is less than minimum value 0',
                                            'offset': '-1 is less than minimum value 0'}))
-
-
-def get_root(request=None):
-    request = request or get_current_request()
-    if getattr(request, 'root', None) is None:
-        root_factory = request.registry.queryUtility(IRootFactory, default=DefaultRootFactory)
-        root = root_factory(request)  # Initialise pyramid root
-        root.set_request(request)
-        request.root = root
-    return request.root
-
-
-def get_root_and_request(registry):
-    request = Request.blank('http://localhost/')
-    request.registry = registry
-    root = get_root(request)
-    return root, request
