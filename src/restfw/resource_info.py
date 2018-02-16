@@ -32,20 +32,20 @@ class ResourceInfo(object):
 
     def get_requests(self, send):
         # type: (ISendTestingRequest) -> None
-        raise NotImplementedError
+        pass
 
     def put_requests(self, send):
         # type: (ISendTestingRequest) -> None
-        raise NotImplementedError
+        pass
 
     def patch_requests(self, send):
         # type: (ISendTestingRequest) -> None
-        raise NotImplementedError
+        pass
 
     def post_requests(self, send):
         # type: (ISendTestingRequest) -> None
-        raise NotImplementedError
+        pass
 
     def delete_requests(self, send):
         # type: (ISendTestingRequest) -> None
-        raise NotImplementedError
+        pass
