@@ -76,25 +76,7 @@ class WebApp(object):
                 'Response status is bad.',
                 response, method_name, url, **kwargs)
 
-    def _app_method(self, method_name, url, params=None,
-                    exception=None, headers=None,
-                    content_type=None, upload_files=None, status=None, **kwargs):
-        """
-        :rtype: webtest.TestResponse
-        """
-        if not url.startswith(('/', 'http://', 'https://')):
-            url = '/%s/%s' % (self.url_prefix, url.lstrip('/'))
-        headers = headers or {}
-        # if isinstance(params, dict):
-        #     if not method_name.endswith('_json'):
-        #         params = params if upload_files else urlencode(params)
-        kwargs['headers'] = headers
-
-        if content_type and method_name not in {'get', 'head', 'options'}:
-            kwargs['content_type'] = content_type
-        if upload_files:
-            kwargs['upload_files'] = upload_files
-
+    def _check_error_code(self, response, method_name, url, exception, **kwargs):
         code = description = detail = None
         if exception:
             status = exception.code
@@ -107,6 +89,37 @@ class WebApp(object):
                     detail = exception.detail
                 if code.startswith('HTTP'):
                     code = code[4:]
+
+        if code and method_name != 'head':
+            json_body = response.json_body
+            assert 'code' in json_body
+            assert json_body['code'] == code, self._format_error(
+                'Code of error is not equal to required.',
+                response, method_name, url, **kwargs)
+            assert json_body['description'] == description, self._format_error(
+                'Description of error is not equal to required.',
+                response, method_name, url, **kwargs)
+            if detail is not None:
+                assert json_body['detail'] == detail, self._format_error(
+                    'Detail of error is not equal to required.',
+                    response, method_name, url, **kwargs)
+
+    def _app_method(self, method_name, url, params=None,
+                    exception=None, headers=None,
+                    content_type=None, upload_files=None, status=None,
+                    check_response=True, **kwargs):
+        """
+        :rtype: webtest.TestResponse
+        """
+        if not url.startswith(('/', 'http://', 'https://')):
+            url = '/%s/%s' % (self.url_prefix, url.lstrip('/'))
+        headers = headers or {}
+        kwargs['headers'] = headers
+
+        if content_type and method_name not in {'get', 'head', 'options'}:
+            kwargs['content_type'] = content_type
+        if upload_files:
+            kwargs['upload_files'] = upload_files
 
         http_method = getattr(self.test_app, method_name, None)
         assert http_method is not None, 'Unknown HTTP method: %s' % method_name
@@ -125,20 +138,11 @@ class WebApp(object):
                 kwargs['params'] = params
             response = http_method(url, status='*', **kwargs)
 
-        self._check_status(response, method_name, url, status, **kwargs)
-        if code and method_name != 'head':
-            json_body = response.json_body
-            assert 'code' in json_body
-            assert json_body['code'] == code, self._format_error(
-                'Code of error is not equal to required.',
-                response, method_name, url, **kwargs)
-            assert json_body['description'] == description, self._format_error(
-                'Description of error is not equal to required.',
-                response, method_name, url, **kwargs)
-            if detail is not None:
-                assert json_body['detail'] == detail, self._format_error(
-                    'Detail of error is not equal to required.',
-                    response, method_name, url, **kwargs)
+        if check_response:
+            if exception:
+                status = exception.code
+            self._check_status(response, method_name, url, status, **kwargs)
+            self._check_error_code(response, method_name, url, exception, **kwargs)
         return response
 
     def head(self, url, params='', **kwargs):
@@ -246,8 +250,6 @@ class WebApp(object):
 
         if r.status_code >= 300:
             self._check_status(r, method, url, exception.code, params=None, headers=None)
-        # assert http_code == exception.code, \
-        #     "status code %s is not expected: %s. Body: %s" % (http_code, exception.code, r.text)
 
         try:
             res = r.json_body

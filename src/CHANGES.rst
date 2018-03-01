@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Refactored testing WebApp.
+
 1.0.2 (2018-03-01)
 ==================
 
