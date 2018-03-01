@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Added checking of type of view for make decision about applying view derivers to it.
+
 1.0 (2018-02-16)
 ================
 

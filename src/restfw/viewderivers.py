@@ -4,11 +4,10 @@
 :Date: 20.08.2016
 """
 import json
-from typing import Callable
 
 import colander
 from pyramid.httpexceptions import HTTPMethodNotAllowed
-from pyramid.viewderivers import INGRESS, VIEW
+from pyramid.viewderivers import INGRESS
 
 from .errors import ResultValidationError
 from .interfaces import IResource
@@ -21,6 +20,8 @@ def check_request_method_view(view, info):
     :type info: pyramid.interfaces.IViewDeriverInfo
     :rtype: object
     """
+    if info.exception_only:
+        return view
 
     def mapped_view(context, request):
         # type: (IResource, pyramid.request.Request) -> object
@@ -38,7 +39,13 @@ def check_request_method_view(view, info):
 
 
 def check_result_schema(view, info):
-    # type: (Callable[[object, object], pyramid.response.Response], pyramid.interfaces.IViewDeriverInfo) -> object
+    """
+    :type view: Callable[[object, object], object]
+    :type info: pyramid.interfaces.IViewDeriverInfo
+    :rtype: object
+    """
+    if info.exception_only:
+        return view
 
     def mapped_view(context, request):
         # type: (object, pyramid.request.Request) -> object
