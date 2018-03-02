@@ -103,7 +103,7 @@ setup(
         'ZEO',
         'pyramid_tm',
         'pyramid_retry',
-        'transaction',
+        'transaction>=2.0.0',
         'persistent',
         'mountbit.utils',
     ],

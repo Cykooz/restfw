@@ -20,7 +20,7 @@ Next release
 Changes
 -------
 
-- Refactored testing WebApp.
+- Refactored testing WebApp and ResourceInfo.
 
 1.0.2 (2018-03-01)
 ==================

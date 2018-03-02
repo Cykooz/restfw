@@ -242,21 +242,16 @@ class WebApp(object):
                   method='post', exception=httpexceptions.HTTPOk):
         file_upload_headers = headers.copy()
         if url.startswith('http://localhost/') or url.startswith('/%s/' % self.url_prefix):
-            r = self._send_file_to_local(file_path, url, params=params, headers=file_upload_headers,
-                                         method=method)
+            response = self._send_file_to_local(file_path, url, params=params, headers=file_upload_headers,
+                                                method=method)
         else:
-            r = self._send_file_to_external(file_path, url, params=params, headers=file_upload_headers,
-                                            method=method)
+            response = self._send_file_to_external(file_path, url, params=params, headers=file_upload_headers,
+                                                   method=method)
 
-        if r.status_code >= 300:
-            self._check_status(r, method, url, exception.code, params=None, headers=None)
+        if response.status_code >= 300:
+            self._check_status(response, method, url, exception.code, params=None, headers=None)
 
-        try:
-            res = r.json_body
-        except Exception:
-            res = None
-
-        return res
+        return response
 
     def download_file(self, url, exception=httpexceptions.HTTPOk, expected_headers=None):
         if url.startswith('http://localhost/'):

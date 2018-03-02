@@ -10,7 +10,6 @@ from pyramid.httpexceptions import HTTPException
 from webtest.forms import Upload
 from zope.interface import implementer
 
-from ..errors import ValidationError
 from ..interfaces import IHalResourceWithEmbedded, ISendTestingRequest
 from ..schemas import LISTING_CONF
 
@@ -269,6 +268,8 @@ def assert_container_listing(resource_info, web_app):
     res = web_app.get(resource_url, params={'embedded': False, 'total_count': True}, headers=headers)
     assert 'X-Total-Count' not in res.headers
     assert '_embedded' not in res.json_body
+
+    ValidationError = resource_info.ValidationError
 
     web_app.get(resource_url, params={'offset': 'off', 'limit': 'lim'}, headers=headers,
                 exception=ValidationError({'limit': '"lim" is not a number',

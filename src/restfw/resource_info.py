@@ -5,6 +5,7 @@
 """
 from zope.interface import implementer, provider
 
+from .errors import ValidationError
 from .interfaces import IResourceInfo, IResourceInfoFabric, ISendTestingRequest
 
 
@@ -12,6 +13,7 @@ from .interfaces import IResourceInfo, IResourceInfoFabric, ISendTestingRequest
 @implementer(IResourceInfo)
 class ResourceInfo(object):
 
+    ValidationError = ValidationError
     headers_for_listing = None
     test_listing = True
 
