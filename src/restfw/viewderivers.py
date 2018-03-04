@@ -62,12 +62,31 @@ def check_result_schema(view, info):
                     schema = output_schema().bind(request=request, context=context)
                     cstruct = json.loads(rendered)
                     appstruct = schema.deserialize(cstruct)
-                    result_keys = set(cstruct.keys())
-                    schema_keys = set(appstruct.keys())
-                    diff = result_keys.symmetric_difference(schema_keys)
-                    if diff:
-                        detail = {k: 'Not expected field' for k in diff}
-                        raise ResultValidationError(detail)
+                    if isinstance(appstruct, dict):
+                        if not isinstance(cstruct, dict):
+                            raise ResultValidationError(
+                                'Type of API result ({}) is not equal to expected type (dict)'.format(
+                                    cstruct.__class__.__name__,
+                                )
+                            )
+                        result_keys = set(cstruct.keys())
+                        schema_keys = set(appstruct.keys())
+                        detail = {}
+                        diff = result_keys - schema_keys
+                        for key in diff:
+                            detail[key] = {'Field from result is absent in the schema'}
+                        diff = schema_keys - result_keys
+                        for key in diff:
+                            detail[key] = {'Field from schema is absent in the result'}
+                        if detail:
+                            raise ResultValidationError(detail)
+                    elif isinstance(appstruct, (list, tuple)):
+                        if not isinstance(cstruct, (list, tuple)):
+                            raise ResultValidationError(
+                                'Type of API result ({}) is not equal to expected type (list)'.format(
+                                    cstruct.__class__.__name__,
+                                )
+                            )
                 except colander.Invalid as e:
                     raise ResultValidationError(e.asdict())
         return response

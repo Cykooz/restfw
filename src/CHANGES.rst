@@ -17,10 +17,16 @@ CHANGELOG
 Next release
 ============
 
+Features
+--------
+
+- Added into ``assert_container_listing`` support of any number of items great than 2 in container.
+
 Changes
 -------
 
 - Refactored testing WebApp and ResourceInfo.
+- Improved result validation.
 
 1.0.2 (2018-03-01)
 ==================

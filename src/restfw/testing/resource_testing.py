@@ -215,6 +215,11 @@ def assert_container_listing(resource_info, web_app):
     resource_url = resource_info.resource_url
     headers = resource_info.headers_for_listing
 
+    res = web_app.head(resource_url, params={'limit': 1, 'total_count': True}, headers=headers)
+    assert 'X-Total-Count' in res.headers
+    total_count = int(res.headers['X-Total-Count'])
+    assert total_count >= 3
+
     res = web_app.get(resource_url, headers=headers)
     assert 'X-Total-Count' not in res.headers
     res = res.json_body
@@ -225,41 +230,41 @@ def assert_container_listing(resource_info, web_app):
     assert 'X-Total-Count' not in res.headers
 
     res = web_app.get(resource_url, params={'total_count': True}, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     res = res.json_body
     embedded = list(res['_embedded'].values())[0]
     assert len(embedded) == 2
 
     next_link = res['_links']['next']['href']
     res = web_app.get(next_link, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     res = res.json_body
     embedded = list(res['_embedded'].values())[0]
-    assert len(embedded) == 1
+    assert len(embedded) == min(total_count - 2, 2)
 
     prev_link = res['_links']['prev']['href']
     res = web_app.get(prev_link, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     res = res.json_body
     embedded = list(res['_embedded'].values())[0]
     assert len(embedded) == 2
 
     # `limit` is less than `max_value_of_limit`
     res = web_app.get(resource_url, params={'limit': 1, 'total_count': True}, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
     assert len(embedded) == 1
 
     # `limit` is great than `max_value_of_limit`
     res = web_app.get(resource_url, params={'limit': 10, 'total_count': True}, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
     assert len(embedded) == 2
 
     res = web_app.get(resource_url, params={'offset': 2, 'total_count': True}, headers=headers)
-    assert res.headers['X-Total-Count'] == '3'
+    assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
-    assert len(embedded) == 1
+    assert len(embedded) == min(total_count - 2, 2)
 
     res = web_app.get(resource_url, params={'embedded': False}, headers=headers)
     assert 'X-Total-Count' not in res.headers
