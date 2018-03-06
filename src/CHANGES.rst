@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of body for DELETE requests.
+
 1.1 (2018-03-04)
 ================
 

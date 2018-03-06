@@ -54,7 +54,7 @@ def scan_ignore(registry):
     return result
 
 
-METHODS_WITH_BODY = {'POST', 'PUT', 'PATCH'}
+METHODS_WITH_BODY = {'POST', 'PUT', 'PATCH', 'DELETE'}
 
 
 def get_input_data(context, request, schema):
@@ -74,8 +74,13 @@ def get_input_data(context, request, schema):
         except ValueError as e:
             raise InvalidBodyFormat(detail=e.message)
     else:
-        data_dict = request.GET.copy()
-        data_dict.extend(request.POST)
+        if request.method == 'DELETE':
+            # https://github.com/Pylons/webob/issues/351
+            post_request = request.copy()
+            post_request.method = 'POST'
+        else:
+            post_request = request
+        data_dict = post_request.params
 
     try:
         schema = schema().bind(request=request, context=context)
