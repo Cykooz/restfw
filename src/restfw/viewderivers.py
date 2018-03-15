@@ -74,10 +74,10 @@ def check_result_schema(view, info):
                         detail = {}
                         diff = result_keys - schema_keys
                         for key in diff:
-                            detail[key] = {'Field from result is absent in the schema'}
+                            detail[key] = 'Field from result is absent in the schema'
                         diff = schema_keys - result_keys
                         for key in diff:
-                            detail[key] = {'Field from schema is absent in the result'}
+                            detail[key] = 'Field from schema is absent in the result'
                         if detail:
                             raise ResultValidationError(detail)
                     elif isinstance(appstruct, (list, tuple)):

@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed message about error in the ``check_result_schema`` viewderiver.
+
 1.2.2 (2018-03-15)
 ==================
 
