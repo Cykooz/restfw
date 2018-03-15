@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed error in ``clone_schema_class`` with cloning already cloned schemas.
+
 1.2 (2018-03-07)
 ================
 

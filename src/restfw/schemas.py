@@ -276,29 +276,30 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
     :rtype: colander.SchemaNode
     """
     cloned_schema = type(name, (base_schema,), kwargs)
-    schema_nodes = cloned_schema.__all_schema_nodes__[:]
-    node_by_name = {node.name: node for node in schema_nodes}
+    all_schema_nodes = base_schema.__all_schema_nodes__[:]
+    all_schema_nodes.extend(cloned_schema.__class_schema_nodes__)
+    node_by_name = {node.name: node for node in all_schema_nodes}
     excludes = excludes or []
     for exclude in excludes:
         if isinstance(exclude, six.string_types):
             if exclude in node_by_name:
-                schema_nodes.remove(node_by_name[exclude])
+                all_schema_nodes.remove(node_by_name[exclude])
                 del node_by_name[exclude]
         elif issubclass(exclude, colander.SchemaNode):
             for node in exclude.__all_schema_nodes__:
                 if node.name in node_by_name:
-                    schema_nodes.remove(node_by_name[node.name])
+                    all_schema_nodes.remove(node_by_name[node.name])
                     del node_by_name[node.name]
 
     only = set(only or [])
     if only:
         for name, node in node_by_name.items():
             if name not in only and name not in kwargs:
-                schema_nodes.remove(node)
+                all_schema_nodes.remove(node)
 
     replace_validators = replace_validators or {}
     changed_schema_nodes = []
-    for node in schema_nodes:
+    for node in all_schema_nodes:
         new_node = node.clone()
         if nodes_missing is not _undefined:
             new_node.missing = nodes_missing
