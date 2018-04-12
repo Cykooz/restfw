@@ -13,9 +13,6 @@ def includeme(config):
     from .predicates import TestingPredicate
     from .viewderivers import register_view_derivers
 
-    config.include('pyramid_tm')
-    config.include('pyramid_retry')
-    config.include('pyramid_zodbconn')
     config.include('pyramid_jinja2')
 
     config.set_authorization_policy(RestACLAuthorizationPolicy())

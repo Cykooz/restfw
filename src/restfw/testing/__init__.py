@@ -26,8 +26,6 @@ def get_pyramid_root(request=None):
     if getattr(request, 'root', None) is None:
         root_factory = request.registry.queryUtility(IRootFactory, default=DefaultRootFactory)
         root = root_factory(request)  # Initialise pyramid root
-        if hasattr(root, 'set_request'):
-            root.set_request(request)
         request.root = root
     return request.root
 

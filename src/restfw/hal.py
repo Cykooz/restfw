@@ -4,7 +4,6 @@
 :Date: 13.12.2017
 """
 import six
-from persistent.mapping import PersistentMapping
 from pyramid.interfaces import ILocation
 from zope.interface import implementer
 
@@ -104,18 +103,37 @@ class HalResourceWithEmbedded(HalResource):
 
 
 @implementer(interfaces.IContainer)
-class PersistentContainer(HalResource, PersistentMapping):
+class SimpleContainer(HalResource):
+
+    def __init__(self):
+        super(SimpleContainer, self).__init__()
+        self.__data = {}
+
+    def __getitem__(self, key):
+        return self.__data[key]
 
     def __setitem__(self, key, value):
         if ILocation.providedBy(value):
             value.__name__ = key
             value.__parent__ = self
-        return super(PersistentContainer, self).__setitem__(key, value)
+        return self.__data.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        del self.__data[key]
+
+    def __contains__(self, key):
+        return key in self.__data
+
+    def keys(self):
+        return self.__data.keys()
+
+    def values(self):
+        return self.__data.values()
 
     def get_links(self, request):
-        res = super(PersistentContainer, self).get_links(request)
+        res = super(SimpleContainer, self).get_links(request)
         self_url = res['self']['href']
-        for key in self.keys():
+        for key in self.__data.keys():
             res[key] = {'href': self_url + key + '/'}
         return res
 

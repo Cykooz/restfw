@@ -6,16 +6,14 @@
 from __future__ import unicode_literals
 
 import uuid
-from persistent import Persistent
 
 import colander
-import transaction
 from mountbit.utils.testing import D
 from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 
 from .. import interfaces, schemas
 from ..errors import ValidationError
-from ..hal import HalResource, HalResourceWithEmbedded, PersistentContainer, list_to_embedded_resources
+from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources
 from ..resource_info import ResourceInfo
 from ..testing import assert_resource
 
@@ -39,7 +37,7 @@ class PostDummyResourceSchema(PutDummyResourceSchema):
     pass
 
 
-class DummyResource(HalResource, Persistent):
+class DummyResource(HalResource):
 
     def __init__(self, title, description):
         super(DummyResource, self).__init__()
@@ -70,7 +68,7 @@ class DummyResource(HalResource, Persistent):
         return None
 
 
-class DummyContainer(HalResourceWithEmbedded, PersistentContainer):
+class DummyContainer(HalResourceWithEmbedded, SimpleContainer):
     __acl__ = [
         (Allow, Everyone, ALL_PERMISSIONS)
     ]
@@ -103,11 +101,10 @@ class DummyContainer(HalResourceWithEmbedded, PersistentContainer):
 class DummyResourceInfo(ResourceInfo):
 
     def prepare_resource(self):
-        with transaction.manager:
-            container = DummyContainer()
-            self.root['test_container'] = container
-            resource = DummyResource('Resource title', 'Resource description')
-            container['resource'] = resource
+        container = DummyContainer()
+        self.root['test_container'] = container
+        resource = DummyResource('Resource title', 'Resource description')
+        container['resource'] = resource
         return resource
 
     def get_requests(self, send):
@@ -136,13 +133,12 @@ class DummyContainerInfo(ResourceInfo):
     embedded_name = 'items'
 
     def prepare_resource(self):
-        with transaction.manager:
-            resource = DummyContainer()
-            self.root['test_container'] = resource
-            for i in range(self.count_of_embedded):
-                child = DummyResource('Resource title %d' % i,
-                                      'Resource description %d' % i)
-                resource['res-%d' % i] = child
+        resource = DummyContainer()
+        self.root['test_container'] = resource
+        for i in range(self.count_of_embedded):
+            child = DummyResource('Resource title %d' % i,
+                                  'Resource description %d' % i)
+            resource['res-%d' % i] = child
         return resource
 
     def get_requests(self, send):

@@ -82,7 +82,6 @@ setup(
             'webob',
             'mock',
             'asset',
-            'docker-py',
             'WebTest',
         ],
         'docs': [
@@ -97,14 +96,7 @@ setup(
         'colander',
         'pyramid>=1.8.3',
         'pyramid_jinja2',
-        'pyramid_zodbconn',
         'zope.interface',
-        'ZODB',
-        'ZEO',
-        'pyramid_tm',
-        'pyramid_retry',
-        'transaction>=2.0.0',
-        'persistent',
         'mountbit.utils',
     ],
     entry_points={
