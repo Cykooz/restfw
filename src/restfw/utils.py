@@ -6,7 +6,6 @@
 import re
 
 import colander
-# from mountbit.backend.docs.utils import is_doc_building
 import six
 from pyramid.traversal import find_resource
 from zope.interface.interfaces import IInterface
@@ -74,13 +73,7 @@ def get_input_data(context, request, schema):
         except ValueError as e:
             raise InvalidBodyFormat(detail=e.message)
     else:
-        if request.method == 'DELETE':
-            # https://github.com/Pylons/webob/issues/351
-            post_request = request.copy()
-            post_request.method = 'POST'
-        else:
-            post_request = request
-        data_dict = post_request.params
+        data_dict = request.params
 
     try:
         schema = schema().bind(request=request, context=context)
@@ -141,9 +134,9 @@ def get_paging_links(resource, request, offset, limit, has_next_page):
 
 
 def register_resource_links_extender(config, adapter, resource_class):
-    # type: (pyramid.config.Configurator, object, object) -> None
     """Add into the pyramid registry an adapter for extend resource links.
     :param config: A pyramid configurator.
+    :type config: pyramid.config.Configurator
     :param adapter: Some callable object (takes only resource instance) which implements IResourceLinks.
     :param resource_class: Class or interface of resource which links will be extended by adapter.
     """

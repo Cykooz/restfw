@@ -79,7 +79,6 @@ setup(
     extras_require={
         'test': [
             'pytest',
-            'webob',
             'mock',
             'asset',
             'WebTest',
@@ -95,9 +94,11 @@ setup(
         'six',
         'colander',
         'pyramid>=1.8.3',
+        'WebOb>=1.8.1',
         'pyramid_jinja2',
         'zope.interface',
         'mountbit.utils',
+        'requests',
     ],
     entry_points={
         'console_scripts':
