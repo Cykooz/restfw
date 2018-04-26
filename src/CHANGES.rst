@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Made authorization work with broad original permissions (merged from 1.2.7).
+
 1.3 (2018-04-12)
 ================
 

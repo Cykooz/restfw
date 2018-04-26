@@ -92,7 +92,9 @@ class RestACLAuthorizationPolicy(object):
         :class:`pyramid.security.ACLDenied` if not."""
 
         acl = '<No ACL found on any object in resource lineage>'
-        permission = self._get_context_permission(context, permission)
+        context_permission = self._get_context_permission(context, permission)
+        orig_permission = permission if permission != context_permission else None
+        permission = context_permission
 
         for location in lineage(context):
             try:
@@ -108,7 +110,8 @@ class RestACLAuthorizationPolicy(object):
                 if ace_principal in principals:
                     if not is_nonstr_iter(ace_permissions):
                         ace_permissions = [ace_permissions]
-                    if self._match_permission(permission, ace_permissions):
+                    if (self._match_permission(permission, ace_permissions) or
+                            (orig_permission and self._match_permission(orig_permission, ace_permissions))):
                         if ace_action == Allow:
                             return ACLAllowed(ace, acl, permission,
                                               principals, location)

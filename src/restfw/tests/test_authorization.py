@@ -3,7 +3,7 @@
 :Authors: cykooz
 :Date: 30.03.2017
 """
-from pyramid.security import Allow, ALL_PERMISSIONS
+from pyramid.security import Allow, ALL_PERMISSIONS, Deny
 from pyramid.tests.test_authorization import TestACLAuthorizationPolicy
 
 from ..resources import Resource
@@ -53,3 +53,18 @@ class TestRestACLAuthorizationPolicy(TestACLAuthorizationPolicy):
 
         assert not policy.permits(context, [6], 'get')
         assert not policy.permits(context, [6], 'patch')
+
+    def test_orig_permission_check(self):
+        root = DummyContext()
+        child = DummyContext()
+        child.__parent__ = root
+        child.__acl__ = []
+        child.options_for_get = MethodOptions(None, None, 'child.get')
+
+        policy = self._makeOne()
+        assert policy.permits(child, [1], 'get')
+
+        child.__acl__ = [
+            (Deny, 1, 'child.get')
+        ]
+        assert not policy.permits(child, [1], 'get')
