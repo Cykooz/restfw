@@ -30,6 +30,14 @@ Features
 
 - Removed dependency from ZODB.
 
+1.2.7 (2018-04-26)
+==================
+
+Features
+--------
+
+- Made authorization work with broad original permissions.
+
 1.2.4 (2018-03-15)
 ==================
 
