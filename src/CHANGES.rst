@@ -11,6 +11,14 @@
         - Bug Fixes
         - Docs
 
+Next release
+============
+
+Features
+--------
+
+- Made authorization work with broad original permissions.
+
 CHANGELOG
 *********
 
