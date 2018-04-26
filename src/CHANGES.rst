@@ -11,6 +11,9 @@
         - Bug Fixes
         - Docs
 
+CHANGELOG
+*********
+
 Next release
 ============
 
@@ -18,9 +21,6 @@ Features
 --------
 
 - Made authorization work with broad original permissions.
-
-CHANGELOG
-*********
 
 1.2.4 (2018-03-15)
 ==================
