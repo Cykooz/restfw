@@ -24,7 +24,7 @@ def invalid_parameters_view(exc_response, request):
     return result
 
 
-@exception_view_config(context=Exception, renderer='json', testing=False)
+@exception_view_config(context=Exception, renderer='json', debug_or_testing=False)
 def default_exception_view(exc, request):
     http_exc = HTTPInternalServerError(
         explanation=exc.__class__.__name__,

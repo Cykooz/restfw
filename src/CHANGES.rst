@@ -21,6 +21,12 @@ Features
 --------
 
 - Made authorization work with broad original permissions (merged from 1.2.7).
+- Added view predicates ``debug`` and ``debug_or_testing``.
+
+Changes
+-------
+
+- Utility function ``is_testing_env()`` renamed to ``is_testing()``.
 
 1.3 (2018-04-12)
 ================

@@ -11,7 +11,7 @@ from pyramid.viewderivers import INGRESS
 
 from .errors import ResultValidationError
 from .interfaces import IResource
-from .utils import is_testing_env
+from .utils import is_testing
 
 
 def check_request_method_view(view, info):
@@ -98,6 +98,6 @@ def register_view_derivers(config):
     config.add_view_deriver(check_request_method_view,
                             name='check_request_method_view',
                             under=INGRESS)
-    if is_testing_env(config.registry):
+    if is_testing(config.registry):
         config.add_view_deriver(check_result_schema,
                                 name='check_result_schema')

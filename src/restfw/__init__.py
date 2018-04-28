@@ -10,7 +10,7 @@ def includeme(config):
     :type config: pyramid.config.Configurator
     """
     from .authorization import RestACLAuthorizationPolicy
-    from .predicates import TestingPredicate
+    from .predicates import DebugPredicate, DebugOrTestingPredicate, TestingPredicate
     from .viewderivers import register_view_derivers
 
     config.include('pyramid_jinja2')
@@ -18,6 +18,8 @@ def includeme(config):
     config.set_authorization_policy(RestACLAuthorizationPolicy())
     config.set_root_factory('restfw.root.root_factory')
     config.add_renderer(None, 'restfw.renderers.json_renderer')
+    config.add_view_predicate('debug', DebugPredicate)
+    config.add_view_predicate('debug_or_testing', DebugOrTestingPredicate)
     config.add_view_predicate('testing', TestingPredicate)
 
     register_view_derivers(config)

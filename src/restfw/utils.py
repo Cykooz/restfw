@@ -10,7 +10,7 @@ import six
 from pyramid.traversal import find_resource
 from zope.interface.interfaces import IInterface
 
-from .errors import ValidationError, InvalidBodyFormat
+from .errors import InvalidBodyFormat, ValidationError
 from .interfaces import IEvent, IHalResourceLinks, IResourceInfoFabric
 from .renderers import json_renderer
 
@@ -18,7 +18,7 @@ from .renderers import json_renderer
 JSON_RENDER = json_renderer(None)
 
 
-def is_testing_env(registry):
+def is_testing(registry):
     """
     :type registry: pyramid.registry.Registry
     :rtype: bool
@@ -26,8 +26,23 @@ def is_testing_env(registry):
     return registry.settings.get('testing', False) or registry.__name__ == 'testing'
 
 
+is_testing_env = is_testing  # bw compatibility
+
+
 def is_doc_building(registry):
+    """
+    :type registry: pyramid.registry.Registry
+    :rtype: bool
+    """
     return registry.settings.get('is_doc_building', False)
+
+
+def is_debug(registry):
+    """
+    :type registry: pyramid.registry.Registry
+    :rtype: bool
+    """
+    return registry.settings.get('debug', False)
 
 
 def notify(event, request):
