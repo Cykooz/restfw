@@ -5,9 +5,10 @@
 """
 import six
 from pyramid.interfaces import ILocation
-from zope.interface import implementer
+from pyramid.traversal import quote_path_segment
+from zope.interface import implementer, providedBy
 
-from . import schemas, interfaces
+from . import interfaces, schemas
 from .resources import Resource
 from .utils import get_paging_links
 
@@ -17,15 +18,20 @@ class HalResource(Resource):
 
     options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.HalResourceSchema)
 
+    def _get_sub_resource_names(self, registry):
+        for name, _ in registry.adapters.lookupAll([providedBy(self)], interfaces.IResource):
+            if name:
+                yield name
+
     def get_links(self, request):
         """
         :type request: pyramid.request.Request
         :rtype: dict
         """
-        links = {'self': {'href': request.resource_url(self)}}
-        # adapters = request.registry.getAdapters([self], interfaces.IResourceLinks)
-        # for adapter in adapters:
-        #     links.update(adapter.get_links(request))
+        self_url = request.resource_url(self)
+        links = {'self': {'href': self_url}}
+        for name in self._get_sub_resource_names(request.registry):
+            links[name] = {'href': self_url + quote_path_segment(name) + '/'}
         return links
 
     def __json__(self, request):
@@ -102,7 +108,6 @@ class HalResourceWithEmbedded(HalResource):
         return result
 
 
-@implementer(interfaces.IContainer)
 class SimpleContainer(HalResource):
 
     def __init__(self):
@@ -110,7 +115,10 @@ class SimpleContainer(HalResource):
         self.__data = {}
 
     def __getitem__(self, key):
-        return self.__data[key]
+        try:
+            return self.__data[key]
+        except KeyError:
+            return super(SimpleContainer, self).__getitem__(key)
 
     def __setitem__(self, key, value):
         if ILocation.providedBy(value):

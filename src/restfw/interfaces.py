@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 
 from pyramid.interfaces import ILocation
-from zope.interface import Interface, Attribute
+from zope.interface import Attribute, Interface
 
 
 class MethodOptions(object):
@@ -29,6 +29,14 @@ class IResource(ILocation):
     options_for_put = Attribute('Options for PUT HTTP method.')
     options_for_patch = Attribute('Options for PATCH HTTP method.')
     options_for_delete = Attribute('Options for DELETE HTTP method.')
+
+    def __getitem__(key):
+        """Returns a sub-resource or raises exception KeyError.
+        :param key: name of sub-resource
+        :type key: str
+        :rtype: IResource
+        :raise: KeyError
+        """
 
     def as_dict(request):
         """Returns a dict that represents the resource.
@@ -91,17 +99,22 @@ class IResource(ILocation):
         """
 
 
-class IContainer(IResource):
-    """Interface for resource that can returns child resource by it name"""
+class IRoot(IResource):
+    """Interface for root resource"""
 
-    def __getitem__(key):
-        """Returns object from container.
-        :param key: name of object in the container.
+    request = Attribute('Current request object')
+
+
+class ISubResourceFabric(Interface):
+
+    def __call__(parent):
+        """Returns instance of sub-resource of parent resource.
+        :type parent: IResource
+        :rtype: IResource or None
         """
 
 
 # HAL (https://tools.ietf.org/html/draft-kelly-json-hal-08)
-
 
 class IHalResource(IResource):
 
@@ -137,16 +150,6 @@ class IHalResourceWithEmbedded(IResource):
         :type params: dict
         :rtype: EmbeddedResult
         """
-
-
-class IHalContainerWithEmbedded(IHalResourceWithEmbedded, IContainer):
-    pass
-
-
-class IRoot(IContainer):
-    """Interface for root container"""
-
-    request = Attribute('Current request object')
 
 
 # Events

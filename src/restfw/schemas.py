@@ -8,6 +8,9 @@ from functools import partial
 import colander
 import six
 from webob.multidict import MultiDict
+from zope.interface import providedBy
+
+from .interfaces import IResource
 
 
 LISTING_CONF = {
@@ -203,6 +206,20 @@ class HalLinkNode(colander.MappingSchema):
 class HalLinksSchema(colander.MappingSchema):
     title = 'HAL links'
     self = HalLinkNode(title='Link to this resource')
+
+    def after_bind(self, node, kw):
+        """Add links for sub-resources.
+        :type node: colander.SchemaNode
+        :type kw: dict
+        """
+        request = kw.get('request')
+        context = kw.get('context')
+        if not request or not context:
+            return
+        for name, _ in request.registry.adapters.lookupAll([providedBy(context)], IResource):
+            if name and not node.get(name):
+                child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(**kw)
+                node.add(child)
 
 
 class DynamicHalLinksNode(colander.SchemaNode):
