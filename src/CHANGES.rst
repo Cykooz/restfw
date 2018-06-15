@@ -14,6 +14,25 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added ``Configurator`` directive ``add_sub_resource_fabric`` to
+  register fabric of sub-resource.
+- Added helper decorator ``sub_resource`` to declarative register
+  fabric of sub-resource.
+- By default all resources can have sub-resources registered by
+  ``add_sub_resource_fabric`` directive or ``sub_resource`` decorator.
+- Added JSON render adapters for ``datetime.time`` and ``enum.Enum`` types.
+
+Backward incompatible changes
+-----------------------------
+
+- Removed interfaces ``IContainer`` and ``IHalContainerWithEmbedded``.
+
 1.4 (2018-04-28)
 ================
 

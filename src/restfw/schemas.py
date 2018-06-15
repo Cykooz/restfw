@@ -141,6 +141,11 @@ class EmbeddedNode(colander.SchemaNode):
     schema_type = colander.Mapping
     title = 'Embedded resources'
 
+    def _bind(self, kw):
+        kw = kw.copy()
+        kw['is_embedded'] = True
+        return super(EmbeddedNode, self)._bind(kw)
+
 
 class SequenceNode(colander.SequenceSchema):
 
@@ -208,10 +213,14 @@ class HalLinksSchema(colander.MappingSchema):
     self = HalLinkNode(title='Link to this resource')
 
     def after_bind(self, node, kw):
-        """Add links for sub-resources.
+        """Add links to sub-resources.
         :type node: colander.SchemaNode
         :type kw: dict
         """
+        if kw.get('is_embedded', False):
+            # Do not add links to sub-resources into schema of embedded resource.
+            # Because current ``context`` is not an embedded resource.
+            return
         request = kw.get('request')
         context = kw.get('context')
         if not request or not context:

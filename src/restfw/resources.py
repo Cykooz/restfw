@@ -26,16 +26,18 @@ class Resource(object):
     def __getitem__(self, key):
         if not key:
             raise KeyError(key)
+        resource = None
         request = self.get_request()
-        try:
-            sub_resource = request.registry.queryAdapter(self, interfaces.IResource, name=key)
-        except KeyError:
-            sub_resource = None
-        if not sub_resource:
+        if request:
+            try:
+                resource = request.registry.queryAdapter(self, interfaces.IResource, name=key)
+            except KeyError:
+                pass
+        if not resource:
             raise KeyError(key)
-        sub_resource.__name__ = key
-        sub_resource.__parent__ = self
-        return sub_resource
+        resource.__name__ = key
+        resource.__parent__ = self
+        return resource
 
     def as_dict(self, request):
         """
@@ -72,8 +74,7 @@ class Resource(object):
         :rtype: pyramid.request.Request
         """
         root = find_root(self)
-        if root is not self and root.request:
-            return root.request
+        return root.request
 
     options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.ResourceSchema)
 
@@ -87,6 +88,7 @@ class Resource(object):
         return self.http_get(request, params)
 
     def http_get(self, request, params):
+        """Returns a resource, any of it representation or any response instance."""
         return self
 
     options_for_post = None
@@ -124,8 +126,8 @@ def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource):
     :type name: str
     :type parent: type or zope.interface.Interface
     """
-    verifyObject(interfaces.ISubResourceFabric, fabric)
-    config.registry.registerAdapter(fabric, required=parent, provided=interfaces.IResource, name=name)
+    verifyObject(interfaces.ISubResourceFabric, fabric, tentative=True)
+    config.registry.registerAdapter(fabric, required=[parent], provided=interfaces.IResource, name=name)
 
 
 class sub_resource(object):

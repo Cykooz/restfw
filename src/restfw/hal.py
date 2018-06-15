@@ -28,11 +28,7 @@ class HalResource(Resource):
         :type request: pyramid.request.Request
         :rtype: dict
         """
-        self_url = request.resource_url(self)
-        links = {'self': {'href': self_url}}
-        for name in self._get_sub_resource_names(request.registry):
-            links[name] = {'href': self_url + quote_path_segment(name) + '/'}
-        return links
+        return {'self': {'href': request.resource_url(self)}}
 
     def __json__(self, request):
         """
@@ -40,7 +36,12 @@ class HalResource(Resource):
         :rtype: dict
         """
         result = self.as_dict(request)
-        result['_links'] = self.get_links(request)
+        links = self.get_links(request)
+        # Add links to sub-resources
+        self_url = links['self']['href']
+        for name in self._get_sub_resource_names(request.registry):
+            links[name] = {'href': self_url + quote_path_segment(name) + '/'}
+        result['_links'] = links
         return result
 
     def as_embedded(self, request):
@@ -48,7 +49,10 @@ class HalResource(Resource):
         :type request: pyramid.request.Request
         :rtype: dict
         """
-        return self.__json__(request)
+        result = self.as_dict(request)
+        # Embedded version of resource has not links to sub-resources
+        result['_links'] = self.get_links(request)
+        return result
 
 
 class EmbeddedResources(object):
@@ -98,8 +102,7 @@ class HalResourceWithEmbedded(HalResource):
         :type params: dict
         :rtype: dict
         """
-        result = self.as_dict(request)
-        result['_links'] = self.get_links(request)
+        result = self.__json__(request)
         if params.get('embedded', True):
             embedded = self.get_embedded(request, params)
             if embedded:
