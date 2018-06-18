@@ -10,14 +10,14 @@ from restfw.hal import HalResourceWithEmbedded, SimpleContainer, list_to_embedde
 from restfw.resources import add_sub_resource_fabric
 
 from ..hal import HalResource
-from ..resources import sub_resource
+from ..resources import sub_resource_config
 
 
 class DummyResource(HalResource):
     pass
 
 
-@sub_resource('sub', DummyResource)
+@sub_resource_config('sub', DummyResource)
 class SubDummyResource(HalResource):
 
     def __init__(self, parent):
@@ -52,7 +52,7 @@ def test_add_sub_resource_fabric_directive(app_config, pyramid_request):
     assert sub.__name__ == 'sub'
 
 
-def test_sub_resource_decorator(app_config, pyramid_request):
+def test_sub_resource_config_decorator(app_config, pyramid_request):
     root = pyramid_request.root
     root['resource'] = DummyResource()
 

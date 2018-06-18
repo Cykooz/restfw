@@ -130,14 +130,14 @@ def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource):
     config.registry.registerAdapter(fabric, required=[parent], provided=interfaces.IResource, name=name)
 
 
-class sub_resource(object):
+class sub_resource_config(object):
     """ A function, class or method :term:`decorator` which allows a
     developer to create sub-resource fabric registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.
 
     For example, this code in a module ``resources.py``::
 
-      @sub_resource(name='classes', parent=IUser)
+      @sub_resource_config(name='classes', parent=IUser)
       class UserClasses(Resource):
 
         def __init__(self, parent):

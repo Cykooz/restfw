@@ -14,18 +14,18 @@
 CHANGELOG
 *********
 
-2.0 (2018-06-15)
-================
+Next release
+============
 
 Features
 --------
 
 - Added ``Configurator`` directive ``add_sub_resource_fabric`` to
   register fabric of sub-resource.
-- Added helper decorator ``sub_resource`` to declarative register
+- Added helper decorator ``sub_resource_config`` to declarative register
   fabric of sub-resource.
 - By default all resources can have sub-resources registered by
-  ``add_sub_resource_fabric`` directive or ``sub_resource`` decorator.
+  ``add_sub_resource_fabric`` directive or ``sub_resource_config`` decorator.
 - Added JSON render adapters for ``datetime.time`` and ``enum.Enum`` types.
 
 Backward incompatible changes
