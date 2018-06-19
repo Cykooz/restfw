@@ -55,5 +55,5 @@ def app_config_fixture():
 @pytest.fixture(name='pyramid_request')
 def pyramid_request_fixture(app_config):
     app_config.include('restfw')
-    with open_pyramid_request(app_config) as request:
+    with open_pyramid_request(app_config.registry) as request:
         yield request

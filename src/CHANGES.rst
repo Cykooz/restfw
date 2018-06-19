@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-2.0 (2018-06-18)
-================
+Next release
+============
 
 Features
 --------
@@ -32,6 +32,8 @@ Backward incompatible changes
 -----------------------------
 
 - Removed interfaces ``IContainer`` and ``IHalContainerWithEmbedded``.
+- Testing utility ``open_pyramid_request`` takes pyramid registry instance
+  instead of pyramid configurator instance.
 
 1.4 (2018-04-28)
 ================

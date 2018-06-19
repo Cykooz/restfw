@@ -3,6 +3,9 @@
 :Authors: cykooz
 :Date: 06.12.2016
 """
+from pyramid.router import Router
+
+
 try:
     import pytest
     pytest.register_assert_rewrite(
@@ -31,8 +34,11 @@ def get_pyramid_root(request=None):
 
 
 @contextmanager
-def open_pyramid_request(app_config):
-    registry = app_config.registry
+def open_pyramid_request(registry):
+    """
+    :type registry: pyramid.registry.Registry
+    :rtype: pyramid.request.Request
+    """
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
     request = request_factory.blank('http://localhost')
     request.registry = registry
