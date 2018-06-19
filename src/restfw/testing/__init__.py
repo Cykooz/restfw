@@ -3,9 +3,6 @@
 :Authors: cykooz
 :Date: 06.12.2016
 """
-from pyramid.router import Router
-
-
 try:
     import pytest
     pytest.register_assert_rewrite(
