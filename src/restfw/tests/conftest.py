@@ -10,8 +10,8 @@ from pyramid.config import Configurator
 from pyramid.request import Request
 from pyramid.scripting import prepare
 
-from ..testing import open_pyramid_request
 from ..testing.webapp import WebApp
+from ..utils import open_pyramid_request
 
 
 def simple_app(global_config, **settings):

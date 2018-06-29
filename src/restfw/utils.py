@@ -4,10 +4,14 @@
 :Date: 26.08.2016
 """
 import re
+from contextlib import contextmanager
 
 import colander
 import six
-from pyramid.traversal import find_resource
+from pyramid.interfaces import IRequestFactory, IRootFactory
+from pyramid.request import Request, apply_request_extensions
+from pyramid.threadlocal import RequestContext, get_current_request
+from pyramid.traversal import DefaultRootFactory, find_resource
 from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
@@ -184,3 +188,31 @@ def force_dict_utf8(d):
     for k, v in six.iteritems(d):
         values.append((force_utf8(k), force_utf8(v)))
     return dict(values)
+
+
+def get_pyramid_root(request=None):
+    request = request or get_current_request()
+    if getattr(request, 'root', None) is None:
+        root_factory = request.registry.queryUtility(IRootFactory, default=DefaultRootFactory)
+        root = root_factory(request)  # Initialise pyramid root
+        request.root = root
+    return request.root
+
+
+@contextmanager
+def open_pyramid_request(registry):
+    """
+    :type registry: pyramid.registry.Registry
+    :rtype: pyramid.request.Request
+    """
+    request_factory = registry.queryUtility(IRequestFactory, default=Request)
+    request = request_factory.blank('http://localhost')
+    request.registry = registry
+    apply_request_extensions(request)
+    get_pyramid_root(request)
+    context = RequestContext(request)
+    context.begin()
+    try:
+        yield request
+    finally:
+        context.end()

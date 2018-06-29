@@ -17,6 +17,16 @@ CHANGELOG
 Next release
 ============
 
+Changes
+-------
+
+- Function ``open_pyramid_request`` and ``get_pyramid_root``
+  moved from ``restfw.testing`` into ``restfw.utils``
+  (old versions has marked as deprecated).
+
+2.0 (2018-06-18)
+================
+
 Features
 --------
 
