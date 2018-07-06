@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Added using of ``result_headers`` inside of ``assert_resource`` (HOTFIX).
+
 2.0.4 (2018-06-29)
 ==================
 
