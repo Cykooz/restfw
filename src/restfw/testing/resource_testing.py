@@ -276,6 +276,11 @@ def assert_container_listing(resource_info, web_app):
     embedded = list(res.json_body['_embedded'].values())[0]
     assert len(embedded) == min(total_count - 2, 2)
 
+    res = web_app.get(resource_url, params={'limit': 1, 'offset': 1, 'total_count': True}, headers=headers)
+    assert res.headers['X-Total-Count'] == str(total_count)
+    embedded = list(res.json_body['_embedded'].values())[0]
+    assert len(embedded) == 1
+
     res = web_app.get(resource_url, params={'embedded': False}, headers=headers)
     assert 'X-Total-Count' not in res.headers
     assert '_embedded' not in res.json_body

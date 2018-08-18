@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Added offset+limit case to function ``assert_container_listing``.
+
 2.0.6 (2018-07-06)
 ==================
 
