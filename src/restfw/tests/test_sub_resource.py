@@ -66,13 +66,12 @@ def test_sub_resource_config_decorator(app_config, pyramid_request):
     assert sub.__name__ == 'sub'
 
 
-def test_links_to_sub_resource(web_app):
-    root = web_app.root
+def test_links_to_sub_resource(web_app, pyramid_request, app_config):
+    root = pyramid_request.root
     root['container'] = container = Container()
     container['resource'] = DummyResource()
 
-    config = Configurator(registry=web_app.registry)
-    add_sub_resource_fabric(config, SubDummyResource, 'sub', DummyResource)
+    add_sub_resource_fabric(app_config, SubDummyResource, 'sub', DummyResource)
 
     # Get self resource
     res = web_app.get('container/resource')

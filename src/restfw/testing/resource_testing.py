@@ -50,10 +50,11 @@ class GetRequestsTester(RequestsTester):
             else:
                 assert res.text == result
         if result_headers is not None:
-            assert res.headers == result_headers
+            assert dict(res.headers) == result_headers
         head_res = self.web_app.head(self.resource_url, params=params, headers=headers,
                                      exception=exception, status=status)
-        assert head_res.headers == res.headers
+        if res.headers is not None:
+            assert dict(head_res.headers) == res.headers
         assert head_res.body == b''
 
 
@@ -79,7 +80,7 @@ class PutRequestsTester(RequestsTester):
             else:
                 assert res.text == result
         if result_headers is not None:
-            assert res.headers == result_headers
+            assert dict(res.headers) == result_headers
 
 
 @implementer(ISendTestingRequest)
@@ -104,7 +105,7 @@ class PatchRequestsTester(RequestsTester):
             else:
                 assert res.text == result
         if result_headers is not None:
-            assert res.headers == result_headers
+            assert dict(res.headers) == result_headers
 
 
 @implementer(ISendTestingRequest)
@@ -129,7 +130,7 @@ class PostRequestsTester(RequestsTester):
             else:
                 assert res.text == result
         if result_headers is not None:
-            assert res.headers == result_headers
+            assert dict(res.headers) == result_headers
 
 
 @implementer(ISendTestingRequest)
@@ -150,7 +151,7 @@ class DeleteRequestsTester(RequestsTester):
             else:
                 assert res.text == result
         if result_headers is not None:
-            assert res.headers == result_headers
+            assert dict(res.headers) == result_headers
 
 
 def assert_resource(resource_info, web_app):

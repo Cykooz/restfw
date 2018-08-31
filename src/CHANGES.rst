@@ -17,10 +17,21 @@ CHANGELOG
 Next release
 ============
 
+Features
+--------
+
+- Added offset+limit case to function ``assert_container_listing``.
+- Added fix for memory leaks on pyramid segment cache.
+
 Changes
 -------
 
-- Added offset+limit case to function ``assert_container_listing``.
+- ``WebApp.request`` and ``WebApp.root`` has marked as deprecated.
+
+Bug Fixes
+---------
+
+- Fixed testing result headers inside of ``assert_resource()`` function.
 
 2.0.6 (2018-07-06)
 ==================

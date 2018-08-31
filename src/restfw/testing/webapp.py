@@ -6,6 +6,7 @@
 from __future__ import absolute_import, print_function
 
 import inspect
+import warnings
 from os.path import basename
 
 import requests
@@ -24,25 +25,44 @@ class WebApp(object):
         self.app_env_fabric = app_env_fabric
         self.env = None
         self.registry = None
-        self.root = None
-        self.request = None
+        self._root = None
+        self._request = None
         self.test_app = None
         self.url_prefix = url_prefix.strip('/')
+
+    @property
+    def request(self):
+        warnings.warn(
+            'Property "WebApp.request" will be removed at next major release of "restfw". '
+            'Please use context manager "open_pyramid_request" to get pyramid request instance.',
+            stacklevel=2
+        )
+        return self._request
+
+    @property
+    def root(self):
+        warnings.warn(
+            'Property "WebApp.root" will be removed at next major release of "restfw". '
+            'Please use context manager "open_pyramid_request" to get root instance form '
+            'pyramid request as "request.root".',
+            stacklevel=2
+        )
+        return self._root
 
     def __enter__(self):
         self.env = self.app_env_fabric()
         self.registry = self.env['registry']
         #: :type: restfw.root.Root
-        self.request = self.env['request']
-        self.request.root = self.root = self.env['root']
+        self._request = self.env['request']
+        self._request.root = self._root = self.env['root']
         app = self.env['app']
         self.test_app = TestApp(app)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.registry = None
-        self.request = None
-        self.root = None
+        self._request = None
+        self._root = None
         if self.env:
             self.env['closer']()
         self.env = None
