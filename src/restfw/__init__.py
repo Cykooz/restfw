@@ -27,5 +27,11 @@ def includeme(config):
 
     register_view_derivers(config)
 
+    # Fix memory leaks on pyramid segment cache
+    import pyramid.traversal
+    if pyramid.traversal._segment_cache.__class__ is dict:
+        from lru import LRU
+        pyramid.traversal._segment_cache = LRU(1000)
+
     from .utils import scan_ignore
     config.scan(ignore=scan_ignore(config.registry))

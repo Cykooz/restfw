@@ -53,7 +53,8 @@ class GetRequestsTester(RequestsTester):
             assert dict(res.headers) == result_headers
         head_res = self.web_app.head(self.resource_url, params=params, headers=headers,
                                      exception=exception, status=status)
-        assert head_res.headers == res.headers
+        if res.headers is not None:
+            assert dict(head_res.headers) == res.headers
         assert head_res.body == b''
 
 
@@ -275,6 +276,11 @@ def assert_container_listing(resource_info, web_app):
     assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
     assert len(embedded) == min(total_count - 2, 2)
+
+    res = web_app.get(resource_url, params={'limit': 1, 'offset': 1, 'total_count': True}, headers=headers)
+    assert res.headers['X-Total-Count'] == str(total_count)
+    embedded = list(res.json_body['_embedded'].values())[0]
+    assert len(embedded) == 1
 
     res = web_app.get(resource_url, params={'embedded': False}, headers=headers)
     assert 'X-Total-Count' not in res.headers

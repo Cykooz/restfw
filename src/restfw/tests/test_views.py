@@ -163,11 +163,11 @@ class DummyContainerInfo(ResourceInfo):
         send(params=params, result=result, status=201)
 
 
-def test_resource(web_app):
-    resource_info = DummyResourceInfo(web_app.request)
+def test_resource(web_app, pyramid_request):
+    resource_info = DummyResourceInfo(pyramid_request)
     assert_resource(resource_info, web_app)
 
 
-def test_container(web_app):
-    resource_info = DummyContainerInfo(web_app.request)
+def test_container(web_app, pyramid_request):
+    resource_info = DummyContainerInfo(pyramid_request)
     assert_resource(resource_info, web_app)

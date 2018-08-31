@@ -99,6 +99,7 @@ setup(
         'zope.interface',
         'mountbit.utils',
         'requests',
+        'lru-dict',
     ],
     entry_points={
         'console_scripts':
