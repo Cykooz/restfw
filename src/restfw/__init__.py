@@ -19,8 +19,8 @@ def includeme(config):
     config.set_root_factory('restfw.root.root_factory')
     config.add_renderer(None, 'restfw.renderers.json_renderer')
     config.add_view_predicate('debug', DebugPredicate)
-    config.add_view_predicate('debug_or_testing', DebugOrTestingPredicate)
     config.add_view_predicate('testing', TestingPredicate)
+    config.add_view_predicate('debug_or_testing', DebugOrTestingPredicate)
 
     from .resources import add_sub_resource_fabric
     config.add_directive('add_sub_resource_fabric', add_sub_resource_fabric)

@@ -31,6 +31,9 @@ def create_app_env():
 
 @pytest.fixture(name='web_app')
 def web_app_fixture():
+    """
+    :rtype: WebApp
+    """
     with WebApp(create_app_env) as web_app:
         yield web_app
 
