@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Added some type hinting.
+
 2.1 (2018-08-31)
 ================
 

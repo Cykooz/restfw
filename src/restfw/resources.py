@@ -58,7 +58,9 @@ class Resource(object):
         return self.__class__.__name__
 
     def get_allowed_methods(self):
-        # type: () -> set
+        """
+        :rtype: set[str]
+        """
         methods = {'OPTIONS'}
         for method in ('get', 'put', 'patch', 'delete', 'post'):
             method_options = 'options_for_%s' % method

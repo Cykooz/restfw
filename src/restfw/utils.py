@@ -12,6 +12,7 @@ from pyramid.interfaces import IRequestFactory, IRootFactory
 from pyramid.request import Request, apply_request_extensions
 from pyramid.threadlocal import RequestContext, get_current_request
 from pyramid.traversal import DefaultRootFactory, find_resource
+from typing import ContextManager
 from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
@@ -203,7 +204,7 @@ def get_pyramid_root(request=None):
 def open_pyramid_request(registry):
     """
     :type registry: pyramid.registry.Registry
-    :rtype: pyramid.request.Request
+    :rtype: ContextManager[pyramid.request.Request]
     """
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
     request = request_factory.blank('http://localhost')

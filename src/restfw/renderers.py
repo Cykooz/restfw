@@ -18,7 +18,7 @@ def date_adapter(obj, request):
 
 
 def time_adapter(obj, request):
-    return obj.strftime('%H:%M')
+    return obj.strftime('%H:%M:%S')
 
 
 def decimal_adapter(obj, request):

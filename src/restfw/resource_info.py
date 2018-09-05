@@ -33,21 +33,31 @@ class ResourceInfo(object):
         return None
 
     def get_requests(self, send):
-        # type: (ISendTestingRequest) -> None
+        """
+        :type send: ISendTestingRequest
+        """
         pass
 
     def put_requests(self, send):
-        # type: (ISendTestingRequest) -> None
+        """
+        :type send: ISendTestingRequest
+        """
         pass
 
     def patch_requests(self, send):
-        # type: (ISendTestingRequest) -> None
+        """
+        :type send: ISendTestingRequest
+        """
         pass
 
     def post_requests(self, send):
-        # type: (ISendTestingRequest) -> None
+        """
+        :type send: ISendTestingRequest
+        """
         pass
 
     def delete_requests(self, send):
-        # type: (ISendTestingRequest) -> None
+        """
+        :type send: ISendTestingRequest
+        """
         pass

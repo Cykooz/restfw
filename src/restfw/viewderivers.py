@@ -48,7 +48,11 @@ def check_result_schema(view, info):
         return view
 
     def mapped_view(context, request):
-        # type: (object, pyramid.request.Request) -> object
+        """
+        :type context: object
+        :type request: pyramid.request.Request
+        :rtype: object
+        """
         response = view(context, request)
         if (context is not request.root and
                 IResource.providedBy(context) and
