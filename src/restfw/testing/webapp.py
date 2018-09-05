@@ -276,7 +276,6 @@ class WebApp(object):
     def download_file(self, url, exception=httpexceptions.HTTPOk, expected_headers=None):
         if url.startswith('http://localhost/'):
             url = url[len('http://localhost'):]
-        if url.startswith('/%s/' % self.url_prefix):
             r = self.get(url, exception=exception)
             headers = dict(r.headers)
             content = r.body

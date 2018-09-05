@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed small error in ``WebApp.download_file``.
+
 2.1.2 (2018-09-05)
 ==================
 
