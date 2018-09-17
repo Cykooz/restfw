@@ -28,6 +28,7 @@ class Resource(object):
             raise KeyError(key)
         resource = None
         request = self.get_request()
+        key = str(key)
         if request:
             try:
                 resource = request.registry.queryAdapter(self, interfaces.IResource, name=key)

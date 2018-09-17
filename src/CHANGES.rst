@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed ``Resource.__getitem__()`` - key now converts to string.
+
 2.1.8 (2018-09-05)
 ==================
 
