@@ -6,7 +6,7 @@
 import six
 from pyramid.interfaces import ILocation
 from pyramid.traversal import quote_path_segment
-from zope.interface import implementer, providedBy
+from zope.interface import implementer
 
 from . import interfaces, schemas
 from .resources import Resource
@@ -17,11 +17,6 @@ from .utils import get_paging_links
 class HalResource(Resource):
 
     options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.HalResourceSchema)
-
-    def _get_sub_resource_names(self, registry):
-        for name, _ in registry.adapters.lookupAll([providedBy(self)], interfaces.IResource):
-            if name:
-                yield name
 
     def get_links(self, request):
         """
@@ -39,7 +34,7 @@ class HalResource(Resource):
         links = self.get_links(request)
         # Add links to sub-resources
         self_url = links['self']['href']
-        for name in self._get_sub_resource_names(request.registry):
+        for name, _ in self.get_sub_resources(request.registry):
             links[name] = {'href': self_url + quote_path_segment(name) + '/'}
         result['_links'] = links
         return result

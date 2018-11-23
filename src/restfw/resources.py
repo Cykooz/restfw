@@ -3,13 +3,14 @@
 :Authors: cykooz
 :Date: 19.08.2016
 """
-import venusian
+from typing import Generator, Tuple
 from pyramid.httpexceptions import HTTPMethodNotAllowed
+from pyramid.registry import Registry
 from pyramid.traversal import find_root
 from zope.interface import implementer
-from zope.interface.verify import verifyObject
 
 from . import interfaces, schemas
+from .config import sub_resource_config  # BW compatability
 
 
 @implementer(interfaces.IResource)
@@ -39,6 +40,14 @@ class Resource(object):
         resource.__name__ = key
         resource.__parent__ = self
         return resource
+
+    def get_sub_resources(self, registry):
+        """
+        :type registry: Registry
+        :rtype: Generator[Tuple[str, interfaces.IResource]]
+        """
+        for name, sub_resource in registry.getAdapters((self,), interfaces.IResource):
+            yield name, sub_resource
 
     def as_dict(self, request):
         """
@@ -120,74 +129,3 @@ class Resource(object):
     def http_delete(self, request, params):
         """Delete the resource."""
         raise HTTPMethodNotAllowed(detail={'method': 'DELETE'})
-
-
-def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource):
-    """A configurator command for register sub-resource fabric.
-    :type config: pyramid.config.Configurator
-    :type fabric: interfaces.ISubResourceFabric
-    :type name: str
-    :type parent: type or zope.interface.Interface
-    """
-    verifyObject(interfaces.ISubResourceFabric, fabric, tentative=True)
-    config.registry.registerAdapter(fabric, required=[parent], provided=interfaces.IResource, name=name)
-
-
-class sub_resource_config(object):
-    """ A function, class or method :term:`decorator` which allows a
-    developer to create sub-resource fabric registrations nearer to it
-    definition than use :term:`imperative configuration` to do the same.
-
-    For example, this code in a module ``resources.py``::
-
-      @sub_resource_config(name='classes', parent=IUser)
-      class UserClasses(Resource):
-
-        def __init__(self, parent):
-            self.__parent__ = parent
-
-    Might replace the following call to the
-    :meth:`pyramid.config.Configurator.add_sub_resource_fabric` method::
-
-       from .resources import UserClasses
-       config.add_sub_resource_fabric(UserClasses, name='classes', parent=IUser)
-
-    Two additional keyword arguments which will be passed to the
-    :term:`venusian` ``attach`` function are ``_depth`` and ``_category``.
-
-    ``_depth`` is provided for people who wish to reuse this class from another
-    decorator. The default value is ``0`` and should be specified relative to
-    the ``view_config`` invocation. It will be passed in to the
-    :term:`venusian` ``attach`` function as the depth of the callstack when
-    Venusian checks if the decorator is being used in a class or module
-    context. It's not often used, but it can be useful in this circumstance.
-
-    ``_category`` sets the decorator category name. It can be useful in
-    combination with the ``category`` argument of ``scan`` to control which
-    views should be processed.
-
-    See the :py:func:`venusian.attach` function in Venusian for more
-    information about the ``_depth`` and ``_category`` arguments.
-
-    .. warning::
-
-        ``sub_resource`` will work ONLY on module top level members
-        because of the limitation of ``venusian.Scanner.scan``.
-
-    """
-    venusian = venusian  # for testing injection
-
-    def __init__(self, name, parent=interfaces.IResource, _depth=0, _category='restfw'):
-        self.depth = _depth
-        self.category = _category
-        self.name = name
-        self.parent = parent
-
-    def register(self, scanner, name, wrapped):
-        config = scanner.config
-        config.add_sub_resource_fabric(wrapped, self.name, self.parent)
-
-    def __call__(self, wrapped):
-        self.venusian.attach(wrapped, self.register, category=self.category,
-                             depth=self.depth + 1)
-        return wrapped

@@ -14,6 +14,25 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of predicates to sub resource fabrics.
+- Added ``Configurator`` directive ``add_sub_resource_fabric_predicate`` to
+  register predicates for sub resource fabrics.
+
+Backward Incompatible Changes
+-----------------------------
+
+- Sub resources creates now also during build of links to them form parent resource.
+  Before this release sub resources did not create - building of links used only
+  name of sub resources.
+- Fabrics of sub resources must not raise ``KeyError`` exception. Instead of it
+  they must returns ``None``.
+
 2.1.10 (2018-09-18)
 ===================
 

@@ -22,8 +22,9 @@ def includeme(config):
     config.add_view_predicate('testing', TestingPredicate)
     config.add_view_predicate('debug_or_testing', DebugOrTestingPredicate)
 
-    from .resources import add_sub_resource_fabric
+    from .config import add_sub_resource_fabric, add_sub_resource_fabric_predicate
     config.add_directive('add_sub_resource_fabric', add_sub_resource_fabric)
+    config.add_directive('add_sub_resource_fabric_predicate', add_sub_resource_fabric_predicate)
 
     register_view_derivers(config)
 

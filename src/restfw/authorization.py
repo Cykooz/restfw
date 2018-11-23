@@ -126,7 +126,8 @@ class RestACLAuthorizationPolicy(object):
             acl,
             permission,
             principals,
-            context)
+            context
+        )
 
     def principals_allowed_by_permission(self, context, permission):
         """ Return the set of principals explicitly granted the

@@ -225,7 +225,7 @@ class HalLinksSchema(colander.MappingSchema):
         context = kw.get('context')
         if not request or not context:
             return
-        for name, _ in request.registry.adapters.lookupAll([providedBy(context)], IResource):
+        for name, _ in context.get_sub_resources(request.registry):
             if name and not node.get(name):
                 child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(**kw)
                 node.add(child)
