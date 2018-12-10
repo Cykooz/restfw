@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Added argument ``headers`` into method ``WebApp.download_file()``.
+
 2.2 (2018-11-23)
 ================
 

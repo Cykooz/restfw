@@ -273,15 +273,15 @@ class WebApp(object):
 
         return response
 
-    def download_file(self, url, exception=httpexceptions.HTTPOk, expected_headers=None):
+    def download_file(self, url, headers=None, exception=httpexceptions.HTTPOk, expected_headers=None):
         if url.startswith('http://localhost/'):
             url = url[len('http://localhost'):]
-            r = self.get(url, exception=exception)
+            r = self.get(url, headers=headers, exception=exception)
             headers = dict(r.headers)
             content = r.body
         else:
-            r = requests.get(url)
-            self._check_status(r, 'get', url, status=exception.code)
+            r = requests.get(url, headers=headers)
+            self._check_status(r, 'get', url, status=exception.code, headers=headers)
             headers = dict(r.headers)
             content = r.content
         if expected_headers is not None:
