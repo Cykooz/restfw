@@ -12,6 +12,9 @@ from .errors import http_exception_to_dict, ValidationError
 
 @exception_view_config(context=IExceptionResponse, renderer='json')
 def http_exception_view(exc_response, request):
+    if exc_response.status_int == 304:
+        # Not Modified
+        return exc_response
     result = http_exception_to_dict(exc_response, request)
     request.response = exc_response
     return result

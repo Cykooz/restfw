@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Do not change response with 304 status code in ``http_exception_view``.
+
 2.2.2 (2018-12-10)
 ==================
 
