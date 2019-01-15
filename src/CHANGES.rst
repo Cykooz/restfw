@@ -21,6 +21,7 @@ Bug Fixes
 ---------
 
 - Do not change response with 304 status code in ``http_exception_view``.
+- Do not use ``WebApp.url_prefix`` to choose method of sending file in tests.
 
 2.2.2 (2018-12-10)
 ==================

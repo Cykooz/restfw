@@ -261,7 +261,7 @@ class WebApp(object):
     def send_file(self, file_path, url, params=None, headers=None,
                   method='post', exception=httpexceptions.HTTPOk):
         file_upload_headers = headers.copy()
-        if url.startswith('http://localhost/') or url.startswith('/%s/' % self.url_prefix):
+        if not url.startswith(('http:', 'https:')) or url.startswith('http://localhost/'):
             response = self._send_file_to_local(file_path, url, params=params, headers=file_upload_headers,
                                                 method=method)
         else:
