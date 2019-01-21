@@ -17,6 +17,18 @@ CHANGELOG
 Next release
 ============
 
+Features
+--------
+
+- Improved tools to create resource usage examples:
+
+  - ``restfw.resources_info.ResourceInfo`` moved to
+    ``restfw.usage_examples.UsageExamples``;
+  - added configurator directives ``add_usage_examples_fabric`` and
+    ``add_usage_examples_fabric_predicate``;
+  - added decorator ``examples_config`` to declarative registration of
+    usage examples fabric.
+
 Bug Fixes
 ---------
 

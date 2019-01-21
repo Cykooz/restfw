@@ -208,3 +208,44 @@ class IResourceInfoFabric(Interface):
 
     def __call__(self, registry, root):
         """Returns instance of IResourceInfo."""
+
+
+class IUsageExamples(Interface):
+    entry_point_name = Attribute('Unique name of entry point described by this examples')
+    resource = Attribute('Resource instance')
+    resource_url = Attribute('The resource url')
+    allowed_methods = Attribute('Allowed HTTP methods')
+
+    def get_requests(send):
+        """Calls function 'send' with parameters of GET requests.
+        :type send: ISendTestingRequest
+        """
+
+    def put_requests(send):
+        """Calls function 'send' with parameters of PUT requests.
+        :type send: ISendTestingRequest
+        """
+
+    def patch_requests(send):
+        """Calls function 'send' with parameters of PATCH requests.
+        :type send: ISendTestingRequest
+        """
+
+    def post_requests(send):
+        """Calls function 'send' with parameters of POST requests.
+        :type send: ISendTestingRequest
+        """
+
+    def delete_requests(send):
+        """Calls function 'send' with parameters of DELETE requests.
+        :type send: ISendTestingRequest
+        """
+
+
+class IUsageExamplesFabric(Interface):
+
+    def __call__(request):
+        """Create instance of IUsageExamples.
+        :type request: pyramid.request.Request
+        :rtype: IUsageExamples
+        """

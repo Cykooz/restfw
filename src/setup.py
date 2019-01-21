@@ -79,6 +79,7 @@ setup(
     extras_require={
         'test': [
             'pytest',
+            'pytest-clarity',
             'mock',
             'asset',
             'WebTest',
@@ -100,6 +101,7 @@ setup(
         'mountbit.utils',
         'requests',
         'lru-dict',
+        'venusian',
     ],
     entry_points={
         'console_scripts':

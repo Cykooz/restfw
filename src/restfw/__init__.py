@@ -26,6 +26,10 @@ def includeme(config):
     config.add_directive('add_sub_resource_fabric', add_sub_resource_fabric)
     config.add_directive('add_sub_resource_fabric_predicate', add_sub_resource_fabric_predicate)
 
+    from .config import add_usage_examples_fabric, add_usage_examples_fabric_predicate
+    config.add_directive('add_usage_examples_fabric', add_usage_examples_fabric)
+    config.add_directive('add_usage_examples_fabric_predicate', add_usage_examples_fabric_predicate)
+
     register_view_derivers(config)
 
     # Fix memory leaks on pyramid segment cache
