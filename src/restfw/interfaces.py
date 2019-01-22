@@ -215,6 +215,7 @@ class IUsageExamples(Interface):
     resource = Attribute('Resource instance')
     resource_url = Attribute('The resource url')
     allowed_methods = Attribute('Allowed HTTP methods')
+    request = Attribute("Pyramid's request instance")
 
     def get_requests(send):
         """Calls function 'send' with parameters of GET requests.
