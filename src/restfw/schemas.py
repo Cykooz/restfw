@@ -8,9 +8,6 @@ from functools import partial
 import colander
 import six
 from webob.multidict import MultiDict
-from zope.interface import providedBy
-
-from .interfaces import IResource
 
 
 LISTING_CONF = {
@@ -80,22 +77,6 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
-class Integer(colander.Integer):
-
-    def __init__(self, allow_empty=False):
-        self.allow_empty = allow_empty
-
-    def serialize(self, node, appstruct):
-        if self.allow_empty and appstruct is None:
-            return appstruct
-        return super(Integer, self).serialize(node, appstruct)
-
-    def deserialize(self, node, cstruct):
-        if (cstruct == '' or cstruct is None) and self.allow_empty:
-            return None
-        return super(Integer, self).deserialize(node, cstruct)
-
-
 class IntegerNode(colander.SchemaNode):
 
     def __init__(self, *args, **kwargs):
@@ -103,7 +84,7 @@ class IntegerNode(colander.SchemaNode):
         super(IntegerNode, self).__init__(*args, **kwargs)
 
     def schema_type(self):
-        return Integer(allow_empty=self.allow_empty)
+        return allow_empty_for_node_type(colander.Integer)(allow_empty=self.allow_empty)
 
 
 class UnsignedIntegerNode(colander.SchemaNode):
@@ -124,11 +105,23 @@ class BooleanNode(colander.SchemaNode):
 
 
 class DateTimeNode(colander.SchemaNode):
-    schema_type = colander.DateTime
+
+    def __init__(self, *args, **kwargs):
+        self.allow_empty = kwargs.pop('allow_empty', False)
+        super(DateTimeNode, self).__init__(*args, **kwargs)
+
+    def schema_type(self):
+        return allow_empty_for_node_type(colander.DateTime)(allow_empty=self.allow_empty)
 
 
 class DateNode(colander.SchemaNode):
-    schema_type = colander.Date
+
+    def __init__(self, *args, **kwargs):
+        self.allow_empty = kwargs.pop('allow_empty', False)
+        super(DateNode, self).__init__(*args, **kwargs)
+
+    def schema_type(self):
+        return allow_empty_for_node_type(colander.Date)(allow_empty=self.allow_empty)
 
 
 class EmailNode(colander.SchemaNode):
@@ -333,3 +326,25 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
         changed_schema_nodes.append(new_node)
     cloned_schema.__all_schema_nodes__ = changed_schema_nodes
     return cloned_schema
+
+
+def allow_empty_for_node_type(origin_node_type_class):
+
+    class AllowEmptyNodeType(origin_node_type_class):
+        __name__ = origin_node_type_class.__name__
+
+        def __init__(self, *args, **kwargs):
+            self.allow_empty = kwargs.pop('allow_empty', False)
+            super(AllowEmptyNodeType, self).__init__(*args, **kwargs)
+
+        def serialize(self, node, appstruct):
+            if self.allow_empty and appstruct is None:
+                return appstruct
+            return super(AllowEmptyNodeType, self).serialize(node, appstruct)
+
+        def deserialize(self, node, cstruct):
+            if (cstruct == '' or cstruct is None) and self.allow_empty:
+                return None
+            return super(AllowEmptyNodeType, self).deserialize(node, cstruct)
+
+    return AllowEmptyNodeType

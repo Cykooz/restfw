@@ -17,6 +17,11 @@ CHANGELOG
 Next release
 ============
 
+Features
+--------
+
+- Added support of empty values for ``DateTimeNode`` and ``DateNode``.
+
 Bug Fixes
 ---------
 
