@@ -6,6 +6,7 @@
 from functools import partial
 
 import colander
+import inspect
 import six
 from webob.multidict import MultiDict
 
@@ -13,6 +14,48 @@ from webob.multidict import MultiDict
 LISTING_CONF = {
     'max_limit': 500
 }
+
+
+def create_node_with_allow_empty(origin_node_type_class):
+
+    class AllowEmptyNodeType(origin_node_type_class):
+        __name__ = origin_node_type_class.__name__
+
+        def __init__(self, *args, **kwargs):
+            self.allow_empty = kwargs.pop('allow_empty', False)
+            super(AllowEmptyNodeType, self).__init__(*args, **kwargs)
+
+        def serialize(self, node, appstruct):
+            if self.allow_empty and appstruct is None:
+                return appstruct
+            return super(AllowEmptyNodeType, self).serialize(node, appstruct)
+
+        def deserialize(self, node, cstruct):
+            if (cstruct == '' or cstruct is None) and self.allow_empty:
+                return None
+            return super(AllowEmptyNodeType, self).deserialize(node, cstruct)
+
+    arg_spec = None
+    if origin_node_type_class.__init__ is not object.__init__:
+        arg_spec = inspect.getargspec(origin_node_type_class.__init__)
+
+    class AllowEmptyNode(colander.SchemaNode):
+
+        def __init__(self, *args, **kwargs):
+            self.node_type_args = {
+                'allow_empty': kwargs.pop('allow_empty', False)
+            }
+            if arg_spec:
+                for arg in arg_spec.args[1:]:
+                    if arg in kwargs:
+                        self.node_type_args[arg] = kwargs.pop(arg)
+
+            super(AllowEmptyNode, self).__init__(*args, **kwargs)
+
+        def schema_type(self):
+            return AllowEmptyNodeType(**self.node_type_args)
+
+    return AllowEmptyNode
 
 
 # Schema types
@@ -77,14 +120,7 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
-class IntegerNode(colander.SchemaNode):
-
-    def __init__(self, *args, **kwargs):
-        self.allow_empty = kwargs.pop('allow_empty', False)
-        super(IntegerNode, self).__init__(*args, **kwargs)
-
-    def schema_type(self):
-        return allow_empty_for_node_type(colander.Integer)(allow_empty=self.allow_empty)
+IntegerNode = create_node_with_allow_empty(colander.Integer)
 
 
 class UnsignedIntegerNode(colander.SchemaNode):
@@ -104,24 +140,10 @@ class BooleanNode(colander.SchemaNode):
     schema_type = colander.Boolean
 
 
-class DateTimeNode(colander.SchemaNode):
-
-    def __init__(self, *args, **kwargs):
-        self.allow_empty = kwargs.pop('allow_empty', False)
-        super(DateTimeNode, self).__init__(*args, **kwargs)
-
-    def schema_type(self):
-        return allow_empty_for_node_type(colander.DateTime)(allow_empty=self.allow_empty)
+DateTimeNode = create_node_with_allow_empty(colander.DateTime)
 
 
-class DateNode(colander.SchemaNode):
-
-    def __init__(self, *args, **kwargs):
-        self.allow_empty = kwargs.pop('allow_empty', False)
-        super(DateNode, self).__init__(*args, **kwargs)
-
-    def schema_type(self):
-        return allow_empty_for_node_type(colander.Date)(allow_empty=self.allow_empty)
+DateNode = create_node_with_allow_empty(colander.Date)
 
 
 class EmailNode(colander.SchemaNode):
@@ -326,25 +348,3 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
         changed_schema_nodes.append(new_node)
     cloned_schema.__all_schema_nodes__ = changed_schema_nodes
     return cloned_schema
-
-
-def allow_empty_for_node_type(origin_node_type_class):
-
-    class AllowEmptyNodeType(origin_node_type_class):
-        __name__ = origin_node_type_class.__name__
-
-        def __init__(self, *args, **kwargs):
-            self.allow_empty = kwargs.pop('allow_empty', False)
-            super(AllowEmptyNodeType, self).__init__(*args, **kwargs)
-
-        def serialize(self, node, appstruct):
-            if self.allow_empty and appstruct is None:
-                return appstruct
-            return super(AllowEmptyNodeType, self).serialize(node, appstruct)
-
-        def deserialize(self, node, cstruct):
-            if (cstruct == '' or cstruct is None) and self.allow_empty:
-                return None
-            return super(AllowEmptyNodeType, self).deserialize(node, cstruct)
-
-    return AllowEmptyNodeType
