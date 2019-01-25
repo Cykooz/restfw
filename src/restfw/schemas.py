@@ -7,10 +7,11 @@ from functools import partial
 
 import colander
 import six
+from pyramid.interfaces import ILocation
+from pyramid.traversal import find_resource
+from six.moves.urllib_parse import urlsplit
 from webob.multidict import MultiDict
-from zope.interface import providedBy
-
-from .interfaces import IResource
+from zope.interface.interfaces import IInterface
 
 
 LISTING_CONF = {
@@ -39,6 +40,37 @@ class UrlEncodeMapping(colander.Mapping):
                 new_value[name] = value.getall(name) if isinstance(sub_node.typ, colander.Sequence) else value[name]
             return new_value
         return super(UrlEncodeMapping, self)._validate(node, value)
+
+
+class ResourceType(colander.SchemaType):
+    """A type representing a resource object that supports ``ILocation`` interface."""
+
+    def serialize(self, node, appstruct):
+        if not appstruct:
+            return colander.null
+        if not ILocation.providedBy(appstruct):
+            raise colander.Invalid(node, colander._('"${val}" object has not provide ILocation',
+                                                    mapping={'val': appstruct}))
+        bindings = node.bindings or {}
+        request = bindings.get('request', None)
+        if not request:
+            raise RuntimeError('"request" has not found inside of schema node bindings')
+        return request.resource_url(appstruct)
+
+    def deserialize(self, node, cstruct):
+        if not cstruct:
+            return colander.null
+        bindings = node.bindings or {}
+        request = bindings.get('request', None)
+        if not request:
+            raise RuntimeError('"request" has not found inside of schema node bindings')
+
+        resource_path = urlsplit(cstruct).path
+        try:
+            resource = find_resource(request.root, resource_path)
+        except KeyError:
+            raise colander.Invalid(node, colander._('Resource has not found'))
+        return resource
 
 
 # Basic nodes
@@ -167,6 +199,10 @@ class MappingNode(colander.MappingSchema):
         return colander.Mapping(unknown=self.unknown)
 
 
+class ResourceNode(colander.SchemaNode):
+    schema_type = ResourceType
+
+
 # Validators
 
 class LaconicOneOf(colander.OneOf):
@@ -186,6 +222,32 @@ class LaconicNoneOf(colander.OneOf):
         if value in self.choices:
             err = colander._('"${val}" is not allowed value',
                              mapping={'val': value})
+            raise colander.Invalid(node, err)
+
+
+class ResourceInterface(object):
+    """Validator which succeeds if the type or interface of value passed to it
+    is one of a fixed set of interfaces and classes."""
+
+    def __init__(self, interface, *interfaces):
+        """
+        :param interface: interface or class of resource
+        :param interfaces: addition interfaces or classes of resource
+        """
+        self.interfaces = set(interfaces)
+        self.interfaces.add(interface)
+        self._validators = []
+        for class_or_interface in self.interfaces:
+            if IInterface.providedBy(class_or_interface):
+                self._validators.append(class_or_interface.providedBy)
+            else:
+                self._validators.append(lambda arg: isinstance(arg, class_or_interface))
+
+    def __call__(self, node, value):
+        if not any(v(value) for v in self._validators):
+            choices = ', '.join(x.__name__ for x in self.interfaces)
+            err = colander._('Type of "${val}" is not one of ${choices}',
+                             mapping={'val': value, 'choices': choices})
             raise colander.Invalid(node, err)
 
 

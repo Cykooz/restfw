@@ -5,8 +5,8 @@
 """
 from zope.interface import implementer, provider
 
-from .errors import ValidationError
-from .interfaces import IUsageExamples, IUsageExamplesFabric, ISendTestingRequest
+from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
+from ..errors import ValidationError
 
 
 @provider(IUsageExamplesFabric)

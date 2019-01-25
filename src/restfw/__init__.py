@@ -13,8 +13,6 @@ def includeme(config):
     from .predicates import DebugPredicate, DebugOrTestingPredicate, TestingPredicate
     from .viewderivers import register_view_derivers
 
-    config.include('pyramid_jinja2')
-
     config.set_authorization_policy(RestACLAuthorizationPolicy())
     config.set_root_factory('restfw.root.root_factory')
     config.add_renderer(None, 'restfw.renderers.json_renderer')
@@ -26,7 +24,8 @@ def includeme(config):
     config.add_directive('add_sub_resource_fabric', add_sub_resource_fabric)
     config.add_directive('add_sub_resource_fabric_predicate', add_sub_resource_fabric_predicate)
 
-    from .config import add_usage_examples_fabric, add_usage_examples_fabric_predicate
+    from .usage_examples.config import add_usage_examples_fabric_predicate
+    from .usage_examples.config import add_usage_examples_fabric
     config.add_directive('add_usage_examples_fabric', add_usage_examples_fabric)
     config.add_directive('add_usage_examples_fabric_predicate', add_usage_examples_fabric_predicate)
 

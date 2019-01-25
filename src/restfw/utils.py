@@ -66,11 +66,9 @@ def scan_ignore(registry):
         re.compile('tests$').search,
         re.compile('testing$').search,
         re.compile('conftest$').search,
-        re.compile('resources_info$').search,  # deprecated
         '.wsgi'
     ]
     if not is_doc_building(registry):
-        result.append('.docs')  # deprecated
         result.append('.usage_examples')
     return result
 

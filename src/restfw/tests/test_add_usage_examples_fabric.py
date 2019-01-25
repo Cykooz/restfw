@@ -5,7 +5,7 @@
 """
 from mountbit.utils.testing import ANY
 
-from restfw.interfaces import IUsageExamplesFabric
+from restfw.usage_examples.interfaces import IUsageExamplesFabric
 from restfw.usage_examples import UsageExamples
 
 
