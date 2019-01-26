@@ -16,32 +16,41 @@ LISTING_CONF = {
 }
 
 
-def create_node_with_allow_empty(origin_node_type_class):
+class AllowEmptyMeta(colander._SchemaMeta):
 
-    class AllowEmptyNodeType(origin_node_type_class):
-        __name__ = origin_node_type_class.__name__
+    def __new__(mcs, classname, superclasses, attrdict):
 
-        def __init__(self, *args, **kwargs):
+        # Create new schema type with extended methods
+        origin_node_type_class = attrdict.get('schema_type')
+        if not origin_node_type_class:
+            ValueError('schema_type attribute is not specified')
+
+        def schema_type_init_func(self, *args, **kwargs):
             self.allow_empty = kwargs.pop('allow_empty', False)
-            super(AllowEmptyNodeType, self).__init__(*args, **kwargs)
+            super(self.__class__, self).__init__(*args, **kwargs)
 
-        def serialize(self, node, appstruct):
+        def serialize_func(self, node, appstruct):
             if self.allow_empty and appstruct is None:
                 return appstruct
-            return super(AllowEmptyNodeType, self).serialize(node, appstruct)
+            return super(self.__class__, self).serialize(node, appstruct)
 
-        def deserialize(self, node, cstruct):
+        def deserialize_func(self, node, cstruct):
             if (cstruct == '' or cstruct is None) and self.allow_empty:
                 return None
-            return super(AllowEmptyNodeType, self).deserialize(node, cstruct)
+            return super(self.__class__, self).deserialize(node, cstruct)
 
-    arg_spec = None
-    if origin_node_type_class.__init__ is not object.__init__:
-        arg_spec = inspect.getargspec(origin_node_type_class.__init__)
+        AllowEmptyNodeType = type(
+            origin_node_type_class.__name__ + 'AllowEmpty',
+            (origin_node_type_class,),
+            {'__init__': schema_type_init_func, 'serialize': serialize_func, 'deserialize': deserialize_func}
+        )
 
-    class AllowEmptyNode(colander.SchemaNode):
+        # Extend methods of node
+        arg_spec = None
+        if origin_node_type_class.__init__ is not object.__init__:
+            arg_spec = inspect.getargspec(origin_node_type_class.__init__)
 
-        def __init__(self, *args, **kwargs):
+        def init_func(self, *args, **kwargs):
             self.node_type_args = {
                 'allow_empty': kwargs.pop('allow_empty', False)
             }
@@ -50,12 +59,15 @@ def create_node_with_allow_empty(origin_node_type_class):
                     if arg in kwargs:
                         self.node_type_args[arg] = kwargs.pop(arg)
 
-            super(AllowEmptyNode, self).__init__(*args, **kwargs)
+            super(self.__class__, self).__init__(*args, **kwargs)
 
-        def schema_type(self):
+        def schema_type_func(self):
             return AllowEmptyNodeType(**self.node_type_args)
 
-    return AllowEmptyNode
+        attrdict['__init__'] = init_func
+        attrdict['schema_type'] = schema_type_func
+
+        return super(AllowEmptyMeta, mcs).__new__(mcs, classname, superclasses, attrdict)
 
 
 # Schema types
@@ -120,7 +132,9 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
-IntegerNode = create_node_with_allow_empty(colander.Integer)
+class IntegerNode(colander.SchemaNode):
+    __metaclass__ = AllowEmptyMeta
+    schema_type = colander.Integer
 
 
 class UnsignedIntegerNode(colander.SchemaNode):
@@ -140,10 +154,14 @@ class BooleanNode(colander.SchemaNode):
     schema_type = colander.Boolean
 
 
-DateTimeNode = create_node_with_allow_empty(colander.DateTime)
+class DateTimeNode(colander.SchemaNode):
+    __metaclass__ = AllowEmptyMeta
+    schema_type = colander.DateTime
 
 
-DateNode = create_node_with_allow_empty(colander.Date)
+class DateNode(colander.SchemaNode):
+    __metaclass__ = AllowEmptyMeta
+    schema_type = colander.Date
 
 
 class EmailNode(colander.SchemaNode):
