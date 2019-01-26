@@ -4,6 +4,7 @@
 :Date: 26.08.2016
 """
 import re
+import warnings
 from contextlib import contextmanager
 
 import colander
@@ -16,7 +17,7 @@ from typing import ContextManager
 from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
-from .interfaces import IEvent, IHalResourceLinks, IResourceInfoFabric
+from .interfaces import IEvent, IHalResourceLinks
 from .renderers import json_renderer
 
 
@@ -65,11 +66,10 @@ def scan_ignore(registry):
         re.compile('tests$').search,
         re.compile('testing$').search,
         re.compile('conftest$').search,
-        re.compile('resources_info$').search,
         '.wsgi'
     ]
     if not is_doc_building(registry):
-        result.append('.docs')
+        result.append('.usage_examples')
     return result
 
 
@@ -175,7 +175,12 @@ def find_resource_by_type(resource, path, class_or_interface):
 
 
 def register_resource_info(config, info_class, name):
-    config.registry.registerUtility(info_class, provided=IResourceInfoFabric, name=name)
+    warnings.warn(
+        'Function restfw.utils:register_resource_info will be removed at next major release. '
+        'Please use config.add_usage_examples_fabric() or decorator restfw.config:examples_config',
+        stacklevel=2
+    )
+    config.add_usage_examples_fabric(info_class, name=name)
 
 
 def force_utf8(v):
@@ -217,3 +222,10 @@ def open_pyramid_request(registry):
         yield request
     finally:
         context.end()
+
+
+def get_object_fullname(o):
+    module = o.__module__
+    if module is None or module == str.__class__.__module__:
+        return o.__name__  # Avoid reporting __builtin__
+    return '%s.%s' % (module, o.__name__)

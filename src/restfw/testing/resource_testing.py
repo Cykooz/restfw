@@ -4,14 +4,15 @@
 :Date: 06.12.2016
 """
 from copy import deepcopy
-from typing import Dict
 
 from pyramid.httpexceptions import HTTPException
+from typing import Dict
 from webtest.forms import Upload
 from zope.interface import implementer
 
-from ..interfaces import IHalResourceWithEmbedded, ISendTestingRequest
+from ..interfaces import IHalResourceWithEmbedded
 from ..schemas import LISTING_CONF
+from ..usage_examples.interfaces import ISendTestingRequest
 
 
 DEFAULT = object()

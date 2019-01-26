@@ -125,7 +125,7 @@ def test_sub_resource_config_decorator(app_config, root):
     with pytest.raises(KeyError):
         _ = root['container']['resource']['sub']
 
-    app_config.scan('restfw.tests.test_config_decorators')
+    app_config.scan('restfw.tests.test_sub_resource_config')
     with pytest.raises(KeyError):
         _ = root['container']['resource']['sub']
     app_config.commit()

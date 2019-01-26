@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 :Authors: cykooz
-:Date: 06.12.2016
+:Date: 21.01.2019
 """
 from zope.interface import implementer, provider
 
-from .errors import ValidationError
-from .interfaces import IResourceInfo, IResourceInfoFabric, ISendTestingRequest
+from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
+from ..errors import ValidationError
 
 
-@provider(IResourceInfoFabric)
-@implementer(IResourceInfo)
-class ResourceInfo(object):
+@provider(IUsageExamplesFabric)
+@implementer(IUsageExamples)
+class UsageExamples(object):
 
     ValidationError = ValidationError
     headers_for_listing = None
@@ -29,8 +29,22 @@ class ResourceInfo(object):
         self.resource_url = self.request.resource_url(self.resource)
         self.allowed_methods = self.resource.get_allowed_methods()
 
+    @property
+    def entry_point_name(self):
+        """
+        :rtype: str
+        """
+        name = self.__class__.__name__
+        suffix = 'Examples'
+        if name.endswith(suffix):
+            name = name[:-len(suffix)]
+        return name
+
     def prepare_resource(self):
-        return None
+        """
+        :rtype: restfw.interfaces.IResource
+        """
+        raise NotImplementedError
 
     def get_requests(self, send):
         """

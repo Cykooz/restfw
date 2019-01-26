@@ -3,11 +3,11 @@
 :Authors: cykooz
 :Date: 30.03.2017
 """
-from pyramid.security import Allow, ALL_PERMISSIONS, Deny
-from pyramid.tests import test_authorization as pyramid_auth_tests
+from pyramid.security import ALL_PERMISSIONS, Allow, Deny
 
-from ..resources import Resource
+from .vendor import pyramid_test_authorization
 from ..interfaces import MethodOptions
+from ..resources import Resource
 
 
 class DummyContext(Resource):
@@ -29,7 +29,7 @@ class DummyContext(Resource):
     options_for_delete = MethodOptions(None, None, 'dummy.delete')
 
 
-class TestRestACLAuthorizationPolicy(pyramid_auth_tests.TestACLAuthorizationPolicy):
+class TestRestACLAuthorizationPolicy(pyramid_test_authorization.TestACLAuthorizationPolicy):
 
     def _getTargetClass(self):
         from ..authorization import RestACLAuthorizationPolicy

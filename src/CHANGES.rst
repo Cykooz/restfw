@@ -22,11 +22,42 @@ Features
 
 - Added support of empty values for ``DateTimeNode`` and ``DateNode``.
 
+2.3a1 (2019-01-25)
+==================
+
+Features
+--------
+
+- Added new colander type ``ResourceType`` - a type representing
+  a resource object that supports ``ILocation`` interface.
+- Added new colander node ``ResourceNode``.
+- Added new colander validator ``ResourceInterface`` - a validator which
+  succeeds if the type or interface of value passed to it is one of
+  a fixed set of interfaces and classes.
+
+- Improved tools to create resource usage examples:
+
+  - ``restfw.resources_info.ResourceInfo`` moved to
+    ``restfw.usage_examples.UsageExamples``;
+  - added configurator directives ``add_usage_examples_fabric`` and
+    ``add_usage_examples_fabric_predicate``;
+  - added decorator ``restfw.usage_examples.examples_config`` to
+    declarative registration of usage examples fabric;
+  - added utility ``restfw.usage_examples.collector.UsageExamplesCollector``
+    what collects full information about all registered resource usage
+    examples.
+
 Bug Fixes
 ---------
 
-- Do not change response with 304 status code in ``http_exception_view``.
-- Do not use ``WebApp.url_prefix`` to choose method of sending file in tests.
+- Response with 304 status code do not change in ``http_exception_view`` now.
+- ``WebApp.url_prefix`` do not use now to choose method of sending file in tests.
+
+Backward Incompatible Changes
+-----------------------------
+
+- Deleted class ``restfw.resources_info.ResourceInfo``.
+- Delete from main dependencies package ``pyramid_jinja2``.
 
 2.2.2 (2018-12-10)
 ==================

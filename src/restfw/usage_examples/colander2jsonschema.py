@@ -4,28 +4,33 @@
 :Date: 28.04.2015
 """
 import json
-import colander
-import colander.interfaces
 from collections import OrderedDict
 
-from mountbit.backend.rest.schemas import ObjectIdType
-from mountbit.restfw.schemas import EmptyString, UrlEncodeMapping
+import colander
+import colander.interfaces
 
-from .utils import raw
+from .structs import SchemaInfo
+from .. import schemas
+from ..utils import get_object_fullname
 
 
-def get_schema_description(schema, registry, is_input=True):
-    bound_schema = schema().bind(registry=registry)
-    json_sch = convert(bound_schema)
-    json_doc = json.dumps(json_sch, indent=2)
-    if is_input:
-        yield 'Input schema (``{}``):'.format(schema.__name__)
-    else:
-        yield 'Output schema (``{}``):'.format(schema.__name__)
-    yield ''
-    html = '<div json-schema-view-body class="json-schema-view-body">\n{}\n</div>'.format(json_doc)
-    for line in raw(html):
-        yield line
+def colander_2_json_schema(schema_class, request, context, indent=2):
+    """Build SchemaInfo instance with colander schema serialized to JSON Schema string.
+    :type schema_class: colander.SchemaNode
+    :type request: pyramid.interfaces.IRequest
+    :type context: restfw.interfaces.IResource
+    :type indent: int
+    :rtype: SchemaInfo or None
+    """
+    if schema_class is None:
+        return None
+    bound_schema = schema_class().bind(request=request, context=context)
+    json_schema = convert(bound_schema)
+    json_schema = json.dumps(json_schema, indent=indent, ensure_ascii=False)
+    return SchemaInfo(
+        class_name=get_object_fullname(schema_class),
+        serialized_schema=json_schema
+    )
 
 
 class ConversionError(Exception):
@@ -364,14 +369,15 @@ class TypeConversionDispatcher(object):
         colander.Decimal: DecimalTypeConverter,
         colander.Money: DecimalTypeConverter,
         colander.Integer: IntegerTypeConverter,
+        # schemas.Integer: IntegerTypeConverter,
         colander.Mapping: ObjectTypeConverter,
-        UrlEncodeMapping: ObjectTypeConverter,
+        schemas.UrlEncodeMapping: ObjectTypeConverter,
         colander.Sequence: ArrayTypeConverter,
         colander.Tuple: ArrayTypeConverter,
         colander.String: StringTypeConverter,
-        EmptyString: StringTypeConverter,
+        schemas.EmptyString: StringTypeConverter,
         colander.Time: TimeTypeConverter,
-        ObjectIdType: StringTypeConverter
+        schemas.ResourceType: StringTypeConverter,
     }
 
     def __init__(self, converters=None):

@@ -14,8 +14,8 @@ from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 from .. import interfaces, schemas
 from ..errors import ValidationError
 from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources
-from ..resource_info import ResourceInfo
 from ..testing import assert_resource
+from ..usage_examples import UsageExamples
 
 
 class DummyResourceSchema(schemas.HalResourceSchema):
@@ -98,7 +98,7 @@ class DummyContainer(HalResourceWithEmbedded, SimpleContainer):
         return resource, True
 
 
-class DummyResourceInfo(ResourceInfo):
+class DummyResourceExamples(UsageExamples):
 
     def prepare_resource(self):
         container = DummyContainer()
@@ -127,7 +127,7 @@ class DummyResourceInfo(ResourceInfo):
         send(status=204)
 
 
-class DummyContainerInfo(ResourceInfo):
+class DummyContainerExamples(UsageExamples):
 
     count_of_embedded = 3
     embedded_name = 'items'
@@ -164,10 +164,10 @@ class DummyContainerInfo(ResourceInfo):
 
 
 def test_resource(web_app, pyramid_request):
-    resource_info = DummyResourceInfo(pyramid_request)
+    resource_info = DummyResourceExamples(pyramid_request)
     assert_resource(resource_info, web_app)
 
 
 def test_container(web_app, pyramid_request):
-    resource_info = DummyContainerInfo(pyramid_request)
+    resource_info = DummyContainerExamples(pyramid_request)
     assert_resource(resource_info, web_app)

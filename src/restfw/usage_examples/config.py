@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 :Authors: cykooz
-:Date: 23.11.2018
+:Date: 25.01.2019
 """
 from functools import update_wrapper
 
@@ -9,17 +9,18 @@ import venusian
 from zope.interface.verify import verifyObject
 
 from . import interfaces
+from ..utils import get_object_fullname
 
 
-def _derive_sub_resource_fabric(fabric, predicates):
+def _derive_usage_examples_fabric(fabric, predicates):
     """
-    :type fabric: interfaces.ISubResourceFabric
+    :type fabric: interfaces.IUsageExamplesFabric
     :type predicates: list
-    :rtype: interfaces.ISubResourceFabric
+    :rtype: interfaces.IUsageExamplesFabric
     """
-    def fabric_wrapper(parent):
-        if all((predicate(parent) for predicate in predicates)):
-            return fabric(parent)
+    def fabric_wrapper(request):
+        if all((predicate(request) for predicate in predicates)):
+            return fabric(request)
 
     if hasattr(fabric, '__name__'):
         update_wrapper(fabric_wrapper, fabric)
@@ -27,45 +28,39 @@ def _derive_sub_resource_fabric(fabric, predicates):
     return fabric_wrapper
 
 
-def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource, **predicates):
-    """A configurator command for register sub-resource fabric.
+def add_usage_examples_fabric(config, fabric, name='', **predicates):
+    """A configurator command for register fabric of resource usage examples.
     :type config: pyramid.config.Configurator
-    :type fabric: interfaces.ISubResourceFabric
+    :type fabric: interfaces.IUsageExamplesFabric
     :type name: str
-    :type parent: type or zope.interface.Interface
     :type predicates: dict
 
-    Using the default ``parent`` value, ``IResource`` will cause the sub resource
-    fabric to be registered for all resource types.
-
     Any number of predicate keyword arguments may be passed in
-    ``**predicates``.  Each predicate named will narrow the set of
-    circumstances in which the sub resource fabric will be invoked. Each named
+    ``**predicates``. Each predicate named will narrow the set of
+    circumstances in which the examples fabric will be invoked. Each named
     predicate must have been registered via
-    :meth:`restfw.config.add_sub_resource_fabric_predicate` before it
+    :meth:`restfw.usage_examples.config.add_usage_examples_fabric_predicate` before it
     can be used.
     """
 
     dotted = config.maybe_dotted
-    fabric, parent = dotted(fabric), dotted(parent)
-    verifyObject(interfaces.ISubResourceFabric, fabric, tentative=True)
-
-    if not isinstance(parent, (tuple, list)):
-        parent = (parent,)
+    fabric = dotted(fabric)
+    verifyObject(interfaces.IUsageExamplesFabric, fabric, tentative=True)
+    if not name:
+        name = get_object_fullname(fabric)
 
     intr = config.introspectable(
-        'sub_resource_fabrics',
+        'usage_examples_fabrics',
         id(fabric),
         config.object_description(fabric),
-        'sub_resource_fabric'
+        'usage_examples_fabric'
     )
     intr['fabric'] = fabric
-    intr['parent'] = parent
 
     def register():
-        pred_list = config.get_predlist('sub_resource_fabric')
+        pred_list = config.get_predlist('usage_examples_fabric')
         order, preds, phash = pred_list.make(config, **predicates)
-        derived_fabric = _derive_sub_resource_fabric(fabric, preds)
+        derived_fabric = _derive_usage_examples_fabric(fabric, preds)
 
         intr.update({
             'phash': phash,
@@ -74,14 +69,14 @@ def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource, *
             'derived_fabric': derived_fabric,
         })
 
-        config.registry.registerAdapter(derived_fabric, required=parent, provided=interfaces.IResource, name=name)
+        config.registry.registerUtility(derived_fabric, provided=interfaces.IUsageExamplesFabric, name=name)
 
     config.action(None, register, introspectables=(intr,))
     return fabric
 
 
-def add_sub_resource_fabric_predicate(config, name, factory, weighs_more_than=None,
-                                      weighs_less_than=None):
+def add_usage_examples_fabric_predicate(config, name, factory, weighs_more_than=None,
+                                        weighs_less_than=None):
     """
     :type config: pyramid.config.Configurator
     :type name: str
@@ -89,20 +84,20 @@ def add_sub_resource_fabric_predicate(config, name, factory, weighs_more_than=No
     :param weighs_more_than:
     :param weighs_less_than:
 
-    Adds a sub resource fabric predicate factory. The associated
-    sub resource fabric predicate can later be named as a keyword argument to
-    :meth:`pyramid.config.Configurator.add_sub_resource_fabric` in the
+    Adds a resource usage examples fabric predicate factory. The associated
+    resource examples fabric predicate can later be named as a keyword argument to
+    :meth:`pyramid.config.Configurator.add_usage_examples_fabric` in the
     ``**predicates`` anonymous keyword argument dictionary.
 
-    ``name`` should be the name of the predicate.  It must be a valid
+    ``name`` should be the name of the predicate. It must be a valid
     Python identifier (it will be used as a ``**predicates`` keyword
-    argument to :meth:`~restfw.config.add_sub_resource_fabric`).
+    argument to :meth:`~restfw.usage_examples.config.add_usage_examples_fabric`).
 
     ``factory`` should be a :term:`predicate factory` or :term:`dotted
     Python name` which refers to a predicate factory.
     """
     config._add_predicate(
-        'sub_resource_fabric',
+        'usage_examples_fabric',
         name,
         factory,
         weighs_more_than=weighs_more_than,
@@ -110,63 +105,63 @@ def add_sub_resource_fabric_predicate(config, name, factory, weighs_more_than=No
     )
 
 
-class sub_resource_config(object):
-    """ A function, class or method :term:`decorator` which allows a
-    developer to create sub-resource fabric registrations nearer to it
+class examples_config(object):
+    """A function, class or method :term:`decorator` which allows a
+    developer to create resource usage examples fabric registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.
 
-    For example, this code in a module ``resources.py``::
+    For example, this code in a module ``examples.py``::
 
-      @sub_resource_config(name='classes', parent=IUser)
-      class UserClasses(Resource):
+        @examples_config()
+        class UsersExamples(UsageExamples):
 
-        def __init__(self, parent):
-            self.__parent__ = parent
+            def prepare_resource(self):
+                create_user_with_token('user')
+                create_user_with_token('admin', role='admin')
+                return self.root['users']
 
     Might replace the following call to the
-    :meth:`restfw.config.add_sub_resource_fabric` method::
+    :meth:`restfw.usage_examples.config.add_usage_examples_fabric` method::
 
-       from .resources import UserClasses
-       config.add_sub_resource_fabric(UserClasses, name='classes', parent=IUser)
+       from .examples import UsersExamples
+       config.add_usage_examples_fabric(UsersExamples)
 
     Any ``**predicate`` arguments will be passed along to
-    :meth:`restfw.config.add_sub_resource_fabric`.
+    :meth:`restfw.usage_examples.config.add_usage_examples_fabric`.
 
     Two additional keyword arguments which will be passed to the
     :term:`venusian` ``attach`` function are ``_depth`` and ``_category``.
 
     ``_depth`` is provided for people who wish to reuse this class from another
     decorator. The default value is ``0`` and should be specified relative to
-    the ``view_config`` invocation. It will be passed in to the
+    the ``examples_config`` invocation. It will be passed in to the
     :term:`venusian` ``attach`` function as the depth of the callstack when
     Venusian checks if the decorator is being used in a class or module
     context. It's not often used, but it can be useful in this circumstance.
 
     ``_category`` sets the decorator category name. It can be useful in
     combination with the ``category`` argument of ``scan`` to control which
-    views should be processed.
+    resource examples fabric should be processed.
 
     See the :py:func:`venusian.attach` function in Venusian for more
     information about the ``_depth`` and ``_category`` arguments.
 
     .. warning::
 
-        ``sub_resource`` will work ONLY on module top level members
+        ``examples_config`` will work ONLY on module top level members
         because of the limitation of ``venusian.Scanner.scan``.
-
     """
     venusian = venusian  # for testing injection
 
-    def __init__(self, name, parent=interfaces.IResource, **predicates):
+    def __init__(self, name='', **predicates):
         self.name = name
-        self.parent = parent
         self.predicates = predicates
         self.depth = predicates.pop('_depth', 0)
         self.category = predicates.pop('_category', 'restfw')
 
     def register(self, scanner, name, wrapped):
         config = scanner.config
-        config.add_sub_resource_fabric(wrapped, self.name, self.parent, **self.predicates)
+        config.add_usage_examples_fabric(wrapped, self.name, **self.predicates)
 
     def __call__(self, wrapped):
         self.venusian.attach(wrapped, self.register, category=self.category,

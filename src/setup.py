@@ -79,14 +79,16 @@ setup(
     extras_require={
         'test': [
             'pytest',
+            'pytest-clarity',
             'mock',
             'asset',
             'WebTest',
         ],
         'docs': [
             'WebTest',
-            'sphinx_rtd_theme',
-            'sphinxcontrib-blockdiag',
+            'sphinx',
+            'jinja2',
+            'pathlib2;python_version<"3.4"',
         ]
     },
     install_requires=[
@@ -95,11 +97,11 @@ setup(
         'colander',
         'pyramid>=1.8.3',
         'WebOb>=1.8.1',
-        'pyramid_jinja2',
         'zope.interface',
         'mountbit.utils',
         'requests',
         'lru-dict',
+        'venusian',
     ],
     entry_points={
         'console_scripts':
