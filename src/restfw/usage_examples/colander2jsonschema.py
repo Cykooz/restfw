@@ -369,10 +369,12 @@ class NullableTypeConverter(TypeConverter):
         """
         if converted is None:
             converted = OrderedDict()
-        orig_schema_type = schema_node.schema_type().typ
+        orig_schema_type = schema_node.typ.typ
         schema_type = type(orig_schema_type)
 
         converter_class = self.dispatcher.converters.get(schema_type)
+        if converter_class is None:
+            raise NoSuchConverter(str(schema_type))
         converter = converter_class(self.dispatcher)
         converted = converter(schema_node, converted=converted)
         return converted
