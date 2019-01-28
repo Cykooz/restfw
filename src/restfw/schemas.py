@@ -20,7 +20,7 @@ LISTING_CONF = {
 
 
 class Nullable(colander.SchemaType):
-    """A type which accept serialize None to '' and deserialize '' to None.
+    """A type which accepts serialize None to None and deserialize ''/None to None.
     When the value is not equal to None/'', it will use (de)serialization of
     the given type. This can be used to make nodes optional.
     Example:
