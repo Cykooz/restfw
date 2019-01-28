@@ -359,9 +359,29 @@ class ArrayTypeConverter(TypeConverter):
         return converted
 
 
+class NullableTypeConverter(TypeConverter):
+
+    def __call__(self, schema_node, converted=None):
+        """
+        :type schema_node: colander.SchemaNode
+        :type converted: dict
+        :rtype: dict
+        """
+        if converted is None:
+            converted = OrderedDict()
+        orig_schema_type = schema_node.schema_type().typ
+        schema_type = type(orig_schema_type)
+
+        converter_class = self.dispatcher.converters.get(schema_type)
+        converter = converter_class(self.dispatcher)
+        converted = converter(schema_node, converted=converted)
+        return converted
+
+
 class TypeConversionDispatcher(object):
 
     converters = {
+        schemas.Nullable: NullableTypeConverter,
         colander.Boolean: BooleanTypeConverter,
         colander.Date: DateTypeConverter,
         colander.DateTime: DateTimeTypeConverter,
@@ -369,7 +389,6 @@ class TypeConversionDispatcher(object):
         colander.Decimal: DecimalTypeConverter,
         colander.Money: DecimalTypeConverter,
         colander.Integer: IntegerTypeConverter,
-        # schemas.Integer: IntegerTypeConverter,
         colander.Mapping: ObjectTypeConverter,
         schemas.UrlEncodeMapping: ObjectTypeConverter,
         colander.Sequence: ArrayTypeConverter,
