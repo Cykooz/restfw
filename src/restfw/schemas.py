@@ -19,6 +19,34 @@ LISTING_CONF = {
 }
 
 
+class Nullable(colander.SchemaType):
+    """A type which accepts serialize None to None and deserialize ''/None to None.
+    When the value is not equal to None/'', it will use (de)serialization of
+    the given type. This can be used to make nodes optional.
+    Example:
+        date = colander.SchemaNode(
+            colander.NoneType(colander.DateTime()),
+            default=None,
+            missing=None,
+        )
+    """
+
+    def __init__(self, typ):
+        self.typ = typ
+
+    def serialize(self, node, appstruct):
+        if appstruct is None:
+            return appstruct
+
+        return self.typ.serialize(node, appstruct)
+
+    def deserialize(self, node, cstruct):
+        if cstruct == '' or cstruct is None:
+            return None
+
+        return self.typ.deserialize(node, cstruct)
+
+
 # Schema types
 
 class EmptyString(colander.String):
@@ -112,30 +140,14 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
-class Integer(colander.Integer):
-
-    def __init__(self, allow_empty=False):
-        self.allow_empty = allow_empty
-
-    def serialize(self, node, appstruct):
-        if self.allow_empty and appstruct is None:
-            return appstruct
-        return super(Integer, self).serialize(node, appstruct)
-
-    def deserialize(self, node, cstruct):
-        if (cstruct == '' or cstruct is None) and self.allow_empty:
-            return None
-        return super(Integer, self).deserialize(node, cstruct)
-
-
 class IntegerNode(colander.SchemaNode):
+    schema_type = colander.Integer
 
     def __init__(self, *args, **kwargs):
-        self.allow_empty = kwargs.pop('allow_empty', False)
+        if kwargs.pop('allow_empty', False):
+            schema_type = self.schema_type
+            self.schema_type = lambda: Nullable(schema_type())
         super(IntegerNode, self).__init__(*args, **kwargs)
-
-    def schema_type(self):
-        return Integer(allow_empty=self.allow_empty)
 
 
 class UnsignedIntegerNode(colander.SchemaNode):
@@ -158,9 +170,21 @@ class BooleanNode(colander.SchemaNode):
 class DateTimeNode(colander.SchemaNode):
     schema_type = colander.DateTime
 
+    def __init__(self, *args, **kwargs):
+        if kwargs.pop('allow_empty', False):
+            schema_type = self.schema_type
+            self.schema_type = lambda: Nullable(schema_type())
+        super(DateTimeNode, self).__init__(*args, **kwargs)
+
 
 class DateNode(colander.SchemaNode):
     schema_type = colander.Date
+
+    def __init__(self, *args, **kwargs):
+        if kwargs.pop('allow_empty', False):
+            schema_type = self.schema_type
+            self.schema_type = lambda: Nullable(schema_type())
+        super(DateNode, self).__init__(*args, **kwargs)
 
 
 class EmailNode(colander.SchemaNode):

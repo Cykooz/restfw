@@ -20,6 +20,8 @@ CHANGELOG
 Features
 --------
 
+- Added new Nullable type to allow empty value for any schema type. Added support of empty values for
+  ``DateTimeNode`` and ``DateNode``.
 - Added new colander type ``ResourceType`` - a type representing
   a resource object that supports ``ILocation`` interface.
 - Added new colander node ``ResourceNode``.
@@ -50,6 +52,7 @@ Backward Incompatible Changes
 
 - Deleted class ``restfw.resources_info.ResourceInfo``.
 - Delete from main dependencies package ``pyramid_jinja2``.
+- Deleted schema type ``restfw.schemas.Integer``.
 
 2.2.2 (2018-12-10)
 ==================
