@@ -38,4 +38,8 @@ def includeme(config):
         pyramid.traversal._segment_cache = LRU(1000)
 
     from .utils import scan_ignore
-    config.scan(ignore=scan_ignore(config.registry))
+    ignore = scan_ignore(config.registry)
+    ignore.extend([
+        '.docs_gen',
+    ])
+    config.scan(ignore=ignore)
