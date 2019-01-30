@@ -69,7 +69,7 @@ def scan_ignore(registry):
         '.wsgi'
     ]
     if not is_doc_building(registry):
-        result.append('.usage_examples')
+        result.append(re.compile('usage_examples$').search)
     return result
 
 
