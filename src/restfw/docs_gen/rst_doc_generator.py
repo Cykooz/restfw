@@ -120,7 +120,7 @@ class RstDocGenerator(object):
                 text = template.render(
                     name=entry_point_info.name,
                     resource_class_name=entry_point_info.resource_class_name,
-                    resource_desctiption=resource_description,
+                    resource_description=resource_description,
                     entry_point_url=entry_point_url,
                     resource_info=resource_info,
                     available_methods=available_methods,

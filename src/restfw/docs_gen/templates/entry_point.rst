@@ -9,7 +9,7 @@ Resource path:
 Available methods:
     {{ available_methods }}
 
-{{ description }}
+{{ resource_description }}
 
 {% for method in methods %}
 {{ method }}
