@@ -229,10 +229,6 @@ class RstDocGenerator(object):
 
         params = example_info.request_info.params
         if method in ('GET', 'HEAD') and params:
-            for key in params:
-                # Convert boolean values into 'true' or 'false' string
-                if isinstance(params[key], bool):
-                    params[key] = str(params[key]).lower()
             url += '?' + urlencode(params, doseq=True)
             params = None
 
