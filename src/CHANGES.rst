@@ -40,6 +40,7 @@ Features
   - added utility ``restfw.usage_examples.collector.UsageExamplesCollector``
     what collects full information about all registered resource usage
     examples.
+- Added view for exception ``HTTPForbidden``.
 
 Bug Fixes
 ---------

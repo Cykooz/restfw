@@ -102,7 +102,7 @@ class IDocStringExtractor(Interface):
 class IDocStringLineFilter(Interface):
 
     def __call__(line):
-        """Returns False if given line must be excluded from docstring.
+        """Returns True if given line must be excluded from docstring.
         :type line: str
         :rtype: bool
         """

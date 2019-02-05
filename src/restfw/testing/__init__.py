@@ -3,7 +3,11 @@
 :Authors: cykooz
 :Date: 06.12.2016
 """
+import base64
 import warnings
+
+from ..utils import force_utf8
+
 
 try:
     import pytest
@@ -38,3 +42,8 @@ def open_pyramid_request(app_config):
         stacklevel=2
     )
     return utils.open_pyramid_request(app_config.registry)
+
+
+def basic_auth_value(user_name, password):
+    auth_str = force_utf8(u'%s:%s' % (user_name, password))
+    return b'Basic {}'.format(base64.b64encode(auth_str))

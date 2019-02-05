@@ -16,7 +16,7 @@ from six.moves import http_client
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
-from .utils import default_docstring_extractor
+from .utils import default_docstring_extractor, sphinx_doc_filter
 from ..testing import resource_testing
 from ..utils import get_object_fullname, open_pyramid_request
 
@@ -30,7 +30,7 @@ class UsageExamplesCollector(object):
     def __init__(self, web_app, prepare_env=None, get_schema_info=None,
                  principal_formatter=None,
                  docstring_extractor=default_docstring_extractor,
-                 docstring_filter=None,
+                 docstring_filter=sphinx_doc_filter,
                  logger=None):
         """
         :type web_app: restfw.testing.webapp.WebApp
@@ -117,7 +117,7 @@ class UsageExamplesCollector(object):
         """
         lines = self._docstring_extractor(code_object)
         if self._docstring_filter:
-            lines = [line for line in lines if self._docstring_filter(line)]
+            lines = [line for line in lines if not self._docstring_filter(line)]
         if lines:
             # Remove last empty line
             lines = lines[:-1]

@@ -3,7 +3,7 @@
 :Authors: cykooz
 :Date: 03.08.2017
 """
-from pyramid.httpexceptions import HTTPInternalServerError
+from pyramid.httpexceptions import HTTPInternalServerError, HTTPForbidden, HTTPUnauthorized
 from pyramid.interfaces import IExceptionResponse
 from pyramid.view import exception_view_config
 
@@ -18,6 +18,14 @@ def http_exception_view(exc_response, request):
     result = http_exception_to_dict(exc_response, request)
     request.response = exc_response
     return result
+
+
+@exception_view_config(context=HTTPForbidden)
+def forbidden_view(exc_response, request):
+    if exc_response.__class__ is HTTPForbidden:  # Exclude child classes
+        if request.authenticated_userid is None:
+            exc_response = HTTPUnauthorized()
+    return http_exception_view(exc_response, request)
 
 
 @exception_view_config(context=ValidationError, renderer='json')

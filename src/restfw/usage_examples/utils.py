@@ -5,9 +5,13 @@
 """
 from __future__ import print_function, unicode_literals
 
+import re
 import sys
 
+import six
 from zope.interface import provider
+
+
 try:
     from pathlib import Path
 except ImportError:
@@ -104,3 +108,11 @@ def default_docstring_extractor(code_object):
     if lines and lines[-1]:
         lines.append('')
     return lines
+
+
+RST_METHOD_DIRECTIVES = re.compile(r'^\s*:(param|type|rtype|return)[^:]*:.*$', re.UNICODE).match
+
+
+@provider(interfaces.IDocStringLineFilter)
+def sphinx_doc_filter(line):
+    return bool(RST_METHOD_DIRECTIVES(line))

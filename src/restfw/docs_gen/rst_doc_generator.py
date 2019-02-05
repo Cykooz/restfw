@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import json
 import logging
 import os
-import re
 import shutil
 
 import six
@@ -18,6 +17,8 @@ from sphinx.pycode import ModuleAnalyzer
 from sphinx.util import force_decode
 from sphinx.util.docstrings import prepare_docstring
 from zope.interface import provider
+
+
 try:
     from pathlib import Path
 except ImportError:
@@ -27,9 +28,6 @@ except ImportError:
 from ..usage_examples import interfaces
 from ..usage_examples.collector import UsageExamplesCollector
 from ..usage_examples.utils import get_relative_path
-
-
-RST_METHOD_DIRECTIVES = re.compile(r'^\s*:(param|type|rtype)[^:]*:.*$', re.UNICODE).match
 
 
 class RstDocGenerator(object):
@@ -47,7 +45,6 @@ class RstDocGenerator(object):
             prepare_env=prepare_env,
             principal_formatter=principal_formatter,
             docstring_extractor=docstring_extractor,
-            docstring_filter=RST_METHOD_DIRECTIVES,
             logger=logger
         )
         self._app_prefix = app_prefix
@@ -70,6 +67,7 @@ class RstDocGenerator(object):
 
         self._logger.info('Generate ".rst" files...')
 
+        # Create destination directory or remove all it children except "index.rst"
         if not dst_dir:
             dst_dir = Path.cwd()
         if dst_dir.is_dir():
