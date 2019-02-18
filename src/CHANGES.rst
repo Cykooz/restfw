@@ -20,15 +20,14 @@ Next release
 Features
 --------
 
-- Added new Nullable type to allow empty value for any schema type. Added support of empty values for
-  ``DateTimeNode`` and ``DateNode``.
+- Added new Nullable type to allow empty value for any schema type.
+  Added support of empty values for ``DateTimeNode`` and ``DateNode``.
 - Added new colander type ``ResourceType`` - a type representing
   a resource object that supports ``ILocation`` interface.
 - Added new colander node ``ResourceNode``.
 - Added new colander validator ``ResourceInterface`` - a validator which
   succeeds if the type or interface of value passed to it is one of
   a fixed set of interfaces and classes.
-
 - Improved tools to create resource usage examples:
 
   - ``restfw.resources_info.ResourceInfo`` moved to
@@ -40,6 +39,9 @@ Features
   - added utility ``restfw.usage_examples.collector.UsageExamplesCollector``
     what collects full information about all registered resource usage
     examples.
+
+- Added utility ``RstDocGenerator`` that generates rst-files (reStructuredText)
+  with documentation based of information collected from usage examples.
 - Added view for exception ``HTTPForbidden``.
 
 Bug Fixes
