@@ -27,7 +27,7 @@ class UsageExamplesCollector(object):
     """
     ALL_POSSIBLE_METHODS = ('GET', 'PUT', 'PATCH', 'POST', 'DELETE')
 
-    def __init__(self, web_app, prepare_env=None, get_schema_info=None,
+    def __init__(self, web_app, prepare_env=None, schema_serializer=None,
                  principal_formatter=None,
                  docstring_extractor=default_docstring_extractor,
                  docstring_filter=sphinx_doc_filter,
@@ -35,7 +35,7 @@ class UsageExamplesCollector(object):
         """
         :type web_app: restfw.testing.webapp.WebApp
         :type prepare_env: interfaces.IPrepareEnv or None
-        :type get_schema_info: interfaces.ISchemaInfoBuilder or None
+        :type schema_serializer: interfaces.ISchemaSerializer or None
         :type principal_formatter: interfaces.IPrincipalFormatter or None
         :type docstring_extractor: interfaces.IDocStringExtractor
         :type docstring_filter: interfaces.IDocStringLineFilter or None
@@ -44,7 +44,7 @@ class UsageExamplesCollector(object):
         self.web_app = web_app
         self.registry = web_app.registry
         self._prepare_env = prepare_env
-        self._get_schema_info = get_schema_info or colander_2_json_schema
+        self._schema_serializer = schema_serializer or colander_2_json_schema
         self._principal_formatter = principal_formatter
         self._docstring_extractor = docstring_extractor
         self._docstring_filter = docstring_filter
@@ -195,6 +195,22 @@ class UsageExamplesCollector(object):
         send_requests(send)
 
         return send.results
+
+    def _get_schema_info(self, schema_class, request, context):
+        """Build SchemaInfo instance for given schema class.
+        :type schema_class: colander.SchemaNode
+        :type request: pyramid.interfaces.IRequest
+        :type context: restfw.interfaces.IResource
+        :rtype: SchemaInfo or None
+        """
+        serialized_schema = self._schema_serializer(schema_class, request, context)
+        if not serialized_schema:
+            return
+        return structs.SchemaInfo(
+            class_name=get_object_fullname(schema_class),
+            serialized_schema=serialized_schema,
+            description=self._get_code_object_doc(schema_class),
+        )
 
 
 class _ExampleInfoCollector(resource_testing.RequestsTester):

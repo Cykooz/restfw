@@ -20,7 +20,12 @@ Input schema (``{{ input_schema.class_name }}``):
     {{ input_schema.serialized_schema|indent(4) }}
     </code></div>
 
+{% if input_schema.description %}
+{{ '\n'.join(input_schema.description) }}
 {% endif %}
+
+{% endif %}
+
 {% if output_schema %}
 Output schema (``{{ output_schema.class_name }}``):
 
@@ -29,6 +34,10 @@ Output schema (``{{ output_schema.class_name }}``):
     <div class="json-schema"><code>
     {{ output_schema.serialized_schema|indent(4) }}
     </code></div>
+
+{% if output_schema.description %}
+{{ '\n'.join(output_schema.description) }}
+{% endif %}
 
 {% endif %}
 

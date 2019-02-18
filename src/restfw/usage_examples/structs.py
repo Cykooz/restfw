@@ -35,13 +35,15 @@ class ResourceInfo(object):
 
 class SchemaInfo(object):
 
-    def __init__(self, class_name, serialized_schema):
+    def __init__(self, class_name, serialized_schema, description=None):
         """
         :type class_name: str
         :type serialized_schema: Any
+        :type description: list[unicode]
         """
         self.class_name = class_name
         self.serialized_schema = serialized_schema
+        self.description = description or []
 
 
 class RequestInfo(object):

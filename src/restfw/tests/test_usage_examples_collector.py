@@ -22,6 +22,7 @@ from ..utils import get_object_fullname
 # Schemas
 
 class DummySchema(schemas.HalResourceSchema):
+    """Some schema description."""
     value = schemas.IntegerNode(title='Some value')
 
 
@@ -272,6 +273,7 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.input_schema.class_name == get_object_fullname(PutDummySchema)
     assert method.output_schema is not None
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
+    assert method.output_schema.description == ['Some schema description.']
     assert len(method.examples_info) == 4
     assert [ei.response_info.status_code for ei in method.examples_info] == [401, 403, 200, 422]
 

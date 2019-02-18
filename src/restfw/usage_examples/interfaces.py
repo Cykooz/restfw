@@ -67,14 +67,14 @@ class IPrepareEnv(Interface):
         """
 
 
-class ISchemaInfoBuilder(Interface):
+class ISchemaSerializer(Interface):
 
     def __call__(schema, request, context):
-        """Build SchemaInfo instance for given schema.
+        """Returns serialized version of given schema.
         :type schema: Any
         :type request: pyramid.interfaces.IRequest
         :type context: Any
-        :rtype: SchemaInfo
+        :rtype: Any
         """
 
 

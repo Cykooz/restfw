@@ -9,28 +9,23 @@ from collections import OrderedDict
 import colander
 import colander.interfaces
 
-from .structs import SchemaInfo
 from .. import schemas
-from ..utils import get_object_fullname
 
 
 def colander_2_json_schema(schema_class, request, context, indent=2):
-    """Build SchemaInfo instance with colander schema serialized to JSON Schema string.
+    """Serialize colander schema into JSON Schema string.
     :type schema_class: colander.SchemaNode
     :type request: pyramid.interfaces.IRequest
     :type context: restfw.interfaces.IResource
     :type indent: int
-    :rtype: SchemaInfo or None
+    :rtype: str or None
     """
     if schema_class is None:
         return None
     bound_schema = schema_class().bind(request=request, context=context)
     json_schema = convert(bound_schema)
     json_schema = json.dumps(json_schema, indent=indent, ensure_ascii=False)
-    return SchemaInfo(
-        class_name=get_object_fullname(schema_class),
-        serialized_schema=json_schema
-    )
+    return json_schema
 
 
 class ConversionError(Exception):
