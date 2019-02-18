@@ -6,7 +6,6 @@
 from __future__ import absolute_import, print_function
 
 import inspect
-import warnings
 from os.path import basename
 
 import requests
@@ -29,25 +28,6 @@ class WebApp(object):
         self._request = None
         self.test_app = None
         self.url_prefix = url_prefix.strip('/')
-
-    @property
-    def request(self):
-        warnings.warn(
-            'Property "WebApp.request" will be removed at next major release of "restfw". '
-            'Please use context manager "open_pyramid_request" to get pyramid request instance.',
-            stacklevel=2
-        )
-        return self._request
-
-    @property
-    def root(self):
-        warnings.warn(
-            'Property "WebApp.root" will be removed at next major release of "restfw". '
-            'Please use context manager "open_pyramid_request" to get root instance form '
-            'pyramid request as "request.root".',
-            stacklevel=2
-        )
-        return self._root
 
     def __enter__(self):
         self.env = self.app_env_fabric()

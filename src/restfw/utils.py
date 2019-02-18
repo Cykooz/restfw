@@ -4,7 +4,6 @@
 :Date: 26.08.2016
 """
 import re
-import warnings
 from contextlib import contextmanager
 
 import colander
@@ -172,15 +171,6 @@ def find_resource_by_type(resource, path, class_or_interface):
     if not test(context):
         raise KeyError('%r type is not %s' % (context, class_or_interface))
     return context
-
-
-def register_resource_info(config, info_class, name):
-    warnings.warn(
-        'Function restfw.utils:register_resource_info will be removed at next major release. '
-        'Please use config.add_usage_examples_fabric() or decorator restfw.config:examples_config',
-        stacklevel=2
-    )
-    config.add_usage_examples_fabric(info_class, name=name)
 
 
 def force_utf8(v):

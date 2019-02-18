@@ -31,6 +31,9 @@ from ..usage_examples.utils import get_relative_path
 
 
 class RstDocGenerator(object):
+    """Utility that generates rst-files (reStructuredText) with documentation
+    based of information collected from usage examples.
+    """
 
     def __init__(self, web_app, prepare_env=None, principal_formatter=None, app_prefix=None, logger=None):
         """

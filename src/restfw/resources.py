@@ -10,7 +10,6 @@ from pyramid.traversal import find_root
 from zope.interface import implementer
 
 from . import interfaces, schemas
-from .config import sub_resource_config  # BW compatability
 
 
 @implementer(interfaces.IResource)

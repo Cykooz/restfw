@@ -30,18 +30,19 @@ Features
   a fixed set of interfaces and classes.
 - Improved tools to create resource usage examples:
 
-  - ``restfw.resources_info.ResourceInfo`` moved to
-    ``restfw.usage_examples.UsageExamples``;
-  - added configurator directives ``add_usage_examples_fabric`` and
-    ``add_usage_examples_fabric_predicate``;
-  - added decorator ``restfw.usage_examples.examples_config`` to
-    declarative registration of usage examples fabric;
-  - added utility ``restfw.usage_examples.collector.UsageExamplesCollector``
-    what collects full information about all registered resource usage
-    examples.
+    - ``restfw.resources_info.ResourceInfo`` moved to
+      ``restfw.usage_examples.UsageExamples``;
+    - added configurator directives ``add_usage_examples_fabric`` and
+      ``add_usage_examples_fabric_predicate``;
+    - added decorator ``restfw.usage_examples.examples_config`` to
+      declarative registration of usage examples fabric;
+    - added utility ``restfw.usage_examples.collector.UsageExamplesCollector``
+      what collects full information about all registered resource usage
+      examples.
 
-- Added utility ``RstDocGenerator`` that generates rst-files (reStructuredText)
-  with documentation based of information collected from usage examples.
+- Added utility ``restfw.docs_gen.rst_doc_generator.RstDocGenerator`` that
+  generates rst-files (reStructuredText) with documentation based on
+  information collected from usage examples.
 - Added view for exception ``HTTPForbidden``.
 
 Bug Fixes
@@ -56,6 +57,14 @@ Backward Incompatible Changes
 - Deleted class ``restfw.resources_info.ResourceInfo``.
 - Delete from main dependencies package ``pyramid_jinja2``.
 - Deleted schema type ``restfw.schemas.Integer``.
+- Deleted function ``restfw.utils.register_resource_info``
+- Deleted all deprecated code:
+
+    - ``restfw.testing.get_pyramid_root``
+    - ``restfw.testing.open_pyramid_request``
+    - ``restfw.testing.webapp.WebApp.request``
+    - ``restfw.testing.webapp.WebApp.root``
+    - ``restfw.resources.sub_resource_config``
 
 2.2.2 (2018-12-10)
 ==================
