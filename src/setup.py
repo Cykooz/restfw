@@ -1,41 +1,12 @@
 # encoding: utf-8
 import os
 import sys
-from setuptools import setup, find_packages, findall
+from setuptools import setup, find_packages
 sys.path.append('.')
 import version
 
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-
-
-def find_package_data():
-    ignore_ext = {'.py', '.pyc', '.pyo'}
-    base_package = 'restfw'
-    package_data = {}
-    root = os.path.join(HERE, base_package)
-    for path in findall(root):
-        if path.endswith('~'):
-            continue
-        ext = os.path.splitext(path)[1]
-        if ext in ignore_ext:
-            continue
-
-        # Find package name
-        package_path = os.path.dirname(path)
-        while package_path != root:
-            if os.path.isfile(os.path.join(package_path, '__init__.py')):
-                break
-            package_path = os.path.dirname(package_path)
-        package_name = package_path[len(HERE) + 1:].replace(os.path.sep, '.')
-
-        globs = package_data.setdefault(package_name, set())
-        data_path = path[len(package_path) + 1:]
-        data_glob = os.path.join(os.path.dirname(data_path), '*' + ext)
-        globs.add(data_glob)
-    for key, value in package_data.items():
-        package_data[key] = list(value)
-    return package_data
 
 
 def cli_cmd(app_name, command_name, func_name=None):
@@ -53,6 +24,7 @@ setup(
     version=version.get_version(),
     description='REST framework for Pyramid',
     long_description=README + '\n\n' + CHANGES,
+    long_description_content_type='text/x-rst',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -71,15 +43,14 @@ setup(
     keywords='',
     author='ASD Technologies',
     author_email='team@asdtech.co',
-    url='',
+    url='https://bitbucket.org/asdtech/restfw',
     package_dir={'': '.'},
     packages=find_packages(),
-    package_data=find_package_data(),
+    include_package_data=True,
     zip_safe=False,
     extras_require={
         'test': [
             'pytest',
-            'pytest-clarity',
             'mock',
             'asset',
             'WebTest',

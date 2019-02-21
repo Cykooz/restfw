@@ -15,9 +15,7 @@ def test_serialize_empty_integer():
     node = IntegerNode()
     assert node.serialize(0) == '0'
     assert node.serialize(colander.null) is colander.null
-    with pytest.raises(colander.Invalid) as ex:
-        node.serialize(None)
-    assert ex.value.msg == '"${val}" is not a number'
+    assert node.serialize(None) is colander.null
     with pytest.raises(colander.Invalid) as ex:
         node.serialize('')
     assert ex.value.msg == '"${val}" is not a number'

@@ -1,31 +1,54 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-NOT_COMMITED=`git status --untracked-files=no --porcelain`
 TWINE_REPOSITORY='mountbit'
 
-if [ "$NOT_COMMITED" ]
+CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd ${CUR_DIR}
+
+BIN_DIR="${CUR_DIR}/bin"
+PYTHON="${CUR_DIR}/bin/python_twine"
+TWINE="${CUR_DIR}/bin/twine"
+
+cd src
+
+echo "Check MANIFEST"
+${BIN_DIR}/check-manifest -p ${PYTHON}
+echo
+echo "Build SDIST and WHEEL"
+${PYTHON} setup.py -q sdist bdist_wheel
+echo
+echo "Check dists by Twine"
+${TWINE} check dist/*
+rm -rf dist build
+
+
+echo
+echo "Check not committed changes"
+NOT_COMMITTED=`git status --untracked-files=no --porcelain`
+if [[ "$NOT_COMMITTED" ]]
 then
-    echo ERROR: You have not commited changes!
+    echo "ERROR: You have not committed changes!"
     exit 1
 fi
 
-cd src
+echo
+echo "Update version in CHANGES.rst"
 VERSION='auto'
-if [ $1 ]
+if [[ $1 ]]
 then
     VERSION=$1
 fi
-VERSION=`../bin/python version.py -u ${VERSION}`
+VERSION=`${PYTHON} version.py -u ${VERSION}`
 
-if [ -z "$VERSION" ]
+if [[ -z "$VERSION" ]]
 then
-    echo ERROR: File CHANGES.rst not changed!
+    echo "ERROR: File CHANGES.rst not changed!"
     exit 1
 fi
 
-NOT_COMMITED=`git status --untracked-files=no --porcelain`
-if [ "$NOT_COMMITED" ]
+NOT_COMMITTED=`git status --untracked-files=no --porcelain`
+if [[ "$NOT_COMMITTED" ]]
 then
     echo Commit updated CHANGES.rst for version ${VERSION}
     git add CHANGES.rst
@@ -38,13 +61,13 @@ then
     git push --tags
 fi
 
-echo Make release
-rm -rf dist
-../bin/python setup.py sdist bdist_wheel
- TWINE_REPOSITORY=${TWINE_REPOSITORY} ../bin/twine upload dist/*
-rm -rf dist
-rm -rf build
 
-cd ..
+echo "Make release"
+rm -rf dist build
+${PYTHON} setup.py sdist bdist_wheel
+TWINE_REPOSITORY=${TWINE_REPOSITORY} ${TWINE} upload dist/*
+rm -rf dist build
+
+cd ${CUR_DIR}
 
 echo OK
