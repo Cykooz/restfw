@@ -12,6 +12,7 @@ from copy import deepcopy
 import six
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
+from pyramid.security import Everyone, Authenticated
 from six.moves import http_client
 
 from . import interfaces, structs
@@ -164,11 +165,15 @@ class UsageExamplesCollector(object):
             allowed_principals = authorization_policy.principals_allowed_by_permission(
                 resource, method_permission
             )
+            if Everyone in allowed_principals:
+                allowed_principals = {Everyone}
+            elif Authenticated in allowed_principals:
+                allowed_principals = {Authenticated}
             if self._principal_formatter is not None:
-                allowed_principals = [
+                allowed_principals = {
                     self._principal_formatter(p, request, resource)
                     for p in allowed_principals
-                ]
+                }
 
             result[method.upper()] = structs.MethodInfo(
                 examples_info=self._get_examples_info(usage_examples, method),

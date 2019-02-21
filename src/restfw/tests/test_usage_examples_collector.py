@@ -7,7 +7,7 @@ import logging
 
 from mountbit.utils.testing import ANY, D
 from pyramid import httpexceptions
-from pyramid.security import Allow, Everyone
+from pyramid.security import Allow, Everyone, Authenticated, DENY_ALL
 
 from .. import schemas
 from ..hal import HalResource, SimpleContainer
@@ -43,6 +43,7 @@ class DummyResource(HalResource):
 
     __acl__ = [
         (Allow, Everyone, 'get'),
+        (Allow, 'auth_user', 'get'),
         (Allow, 'auth_user', 'dummy.edit'),
     ]
 
@@ -72,7 +73,12 @@ class DummyResource(HalResource):
 
 
 class DummyContainer(SimpleContainer):
-    pass
+
+    __acl__ = [
+        (Allow, 'auth_user', 'get'),
+        (Allow, Authenticated, 'get'),
+        DENY_ALL,
+    ]
 
 
 # Usage examples
@@ -151,15 +157,18 @@ class DummyContainerExamples(UsageExamples):
         return self.root['dummy_container']
 
     def get_requests(self, send):
-        send(
-            result={
-                '_links': {
-                    'self': {'href': 'http://localhost/dummy_container/'},
-                    'dummy': {'href': 'http://localhost/dummy_container/dummy/'},
+        send(exception=httpexceptions.HTTPUnauthorized)
+        for user in ['other_user', 'auth_user']:
+            send(
+                headers={'Authorization': basic_auth_value(user, '123')},
+                result={
+                    '_links': {
+                        'self': {'href': 'http://localhost/dummy_container/'},
+                        'dummy': {'href': 'http://localhost/dummy_container/dummy/'},
+                    },
+                    'value': 0
                 },
-                'value': 0
-            },
-        )
+            )
 
 
 def _prepare_env(request):
@@ -230,6 +239,14 @@ def test_usage_examples_collector(web_app, app_config):
     assert info.count_of_entry_points == 1
     assert info.class_name == container_class_name
     assert info.description == []
+
+    # Methods of DummyContainer Entry Point ...
+    ep_info = collector.entry_points_info[container_usage_id]
+    methods = ep_info.methods
+    assert list(methods.keys()) == ['GET']
+    # ... GET
+    method = methods['GET']
+    assert method.allowed_principals == {Authenticated}
 
     # Dummy Entry Point 1 info
     ep_info = collector.entry_points_info[dummy_usage1_id]
