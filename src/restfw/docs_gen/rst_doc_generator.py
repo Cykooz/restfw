@@ -88,7 +88,7 @@ class RstDocGenerator(object):
 
         # Create directories and collect paths to entry points docs
         for ep_id, entry_point_info in six.iteritems(entry_points_info):
-            app_name = self._get_app_name(entry_point_info.resource_class_name)
+            app_name = self._get_app_name(entry_point_info.examples_class_name)
             app_dir_path = self._init_app_dir(app_name, dst_dir)
 
             resource_info = resources_info[entry_point_info.resource_class_name]
@@ -131,10 +131,10 @@ class RstDocGenerator(object):
                 )
                 f.write(text)
 
-    def _get_app_name(self, resource_class_name):
-        if self._app_prefix and resource_class_name.startswith(self._app_prefix):
-            resource_class_name = resource_class_name[len(self._app_prefix):]
-        app_name = resource_class_name.split('.')[0]
+    def _get_app_name(self, class_name):
+        if self._app_prefix and class_name.startswith(self._app_prefix):
+            class_name = class_name[len(self._app_prefix):]
+        app_name = class_name.split('.')[0]
         app_name = app_name.upper() if len(app_name) <= 2 else app_name.capitalize()
         return app_name
 

@@ -115,15 +115,17 @@ class MethodInfo(object):
 
 class EntryPointInfo(object):
 
-    def __init__(self, name, resource_class_name, url_elements, methods, description=None):
+    def __init__(self, name, examples_class_name, resource_class_name, url_elements, methods, description=None):
         """
         :type name: str
+        :type examples_class_name: str
         :type resource_class_name: str
         :type url_elements: list[UrlElement]
         :type methods: dict[str, MethodInfo]
         :type description: list[unicode]
         """
         self.name = name
+        self.examples_class_name = examples_class_name
         self.resource_class_name = resource_class_name
         self.url_elements = url_elements
         self.methods = methods
