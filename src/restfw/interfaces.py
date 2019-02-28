@@ -5,6 +5,7 @@
 """
 from __future__ import unicode_literals
 
+import six
 from pyramid.interfaces import ILocation
 from zope.interface import Attribute, Interface
 
@@ -17,6 +18,21 @@ class MethodOptions(object):
         self.input_schema = input_schema
         self.output_schema = output_schema
         self.permission = permission
+
+    def replace(self, **kwargs):
+        """Create copy of current instance and replace some fields in it.
+        :param kwargs:
+        :rtype: MethodOptions
+        """
+        kwargs = {
+            key: value
+            for key, value in six.iteritems(kwargs)
+            if key in self.__slots__
+        }
+        for key in self.__slots__:
+            if key not in kwargs:
+                kwargs[key] = getattr(self, key, None)
+        return self.__class__(**kwargs)
 
 
 class IResource(ILocation):

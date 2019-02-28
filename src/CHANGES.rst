@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-3.0b4 (2019-02-28)
-==================
+Next release
+============
 
 Features
 --------
@@ -44,6 +44,7 @@ Features
   generates rst-files (reStructuredText) with documentation based on
   information collected from usage examples.
 - Added view for exception ``HTTPForbidden``.
+- Added method ``replace`` into ``MethodOptions`` class.
 
 Bug Fixes
 ---------
