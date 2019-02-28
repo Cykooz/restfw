@@ -86,7 +86,7 @@ class UsageExamplesCollector(object):
 
                 entry_points_info[ep_id] = structs.EntryPointInfo(
                     usage_examples.entry_point_name,
-                    examples_class_name=usage_examples.__class__.__name__,
+                    examples_class_name=get_object_fullname(usage_examples.__class__),
                     resource_class_name=resource_class_name,
                     url_elements=path_elements,
                     methods=methods,

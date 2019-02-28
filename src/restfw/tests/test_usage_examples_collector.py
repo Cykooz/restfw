@@ -251,6 +251,7 @@ def test_usage_examples_collector(web_app, app_config):
     # Dummy Entry Point 1 info
     ep_info = collector.entry_points_info[dummy_usage1_id]
     assert ep_info.name == 'Dummy1'
+    assert ep_info.examples_class_name == dummy_usage1_id
     assert ep_info.resource_class_name == dummy_class_name
     assert ep_info.description == [
         'This is a first entry point for',
