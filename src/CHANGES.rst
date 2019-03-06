@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-3.0b5 (2019-02-28)
-==================
+Next release
+============
 
 Features
 --------
@@ -51,6 +51,8 @@ Bug Fixes
 
 - Response with 304 status code do not change in ``http_exception_view`` now.
 - ``WebApp.url_prefix`` do not use now to choose method of sending file in tests.
+- Fixed error with using ``list`` value for argument ``params`` of ``send``
+  function inside of UsageExamples methods.
 
 Backward Incompatible Changes
 -----------------------------

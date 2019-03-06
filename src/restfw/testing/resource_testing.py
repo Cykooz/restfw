@@ -6,7 +6,6 @@
 from copy import deepcopy
 
 from pyramid.httpexceptions import HTTPException
-from typing import Dict
 from webtest.forms import Upload
 from zope.interface import implementer
 
@@ -31,7 +30,14 @@ class RequestsTester(object):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         raise NotImplementedError
 
 
@@ -40,7 +46,14 @@ class GetRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         res = self.web_app.get(self.resource_url, params=params, headers=headers,
@@ -64,11 +77,18 @@ class PutRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         put_method = self.web_app.put_json
-        if params and any(isinstance(v, Upload) for v in params.values()):
+        if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
             put_method = self.web_app.put
         res = put_method(self.resource_url, params=params, headers=headers,
                          exception=exception, status=status)
@@ -89,11 +109,18 @@ class PatchRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         patch_method = self.web_app.patch_json
-        if params and any(isinstance(v, Upload) for v in params.values()):
+        if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
             patch_method = self.web_app.patch
         res = patch_method(self.resource_url, params=params, headers=headers,
                            exception=exception, status=status)
@@ -114,11 +141,18 @@ class PostRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         post_method = self.web_app.post_json
-        if params and any(isinstance(v, Upload) for v in params.values()):
+        if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
             post_method = self.web_app.post
         res = post_method(self.resource_url, params=params, headers=headers,
                           exception=exception, status=status)
@@ -139,7 +173,14 @@ class DeleteRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
-        # type: (Dict, Dict, Dict, Dict, HTTPException, int) -> None
+        """
+        :type params: dict or list or str or None
+        :type headers: dict or None
+        :type result: dict or None
+        :type result_headers: dict or None
+        :type exception: HTTPException
+        :type status: int
+        """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         res = self.web_app.delete_json(self.resource_url, params=params, headers=headers,
