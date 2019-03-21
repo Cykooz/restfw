@@ -11,7 +11,7 @@ import os
 import shutil
 
 import six
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, PackageLoader, ChoiceLoader
 from pyramid.encode import urlencode
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.util import force_decode
@@ -35,12 +35,15 @@ class RstDocGenerator(object):
     based of information collected from usage examples.
     """
 
-    def __init__(self, web_app, prepare_env=None, principal_formatter=None, app_prefix=None, logger=None):
+    def __init__(self, web_app, prepare_env=None, principal_formatter=None,
+                 app_prefix=None, templates_loader=None, logger=None):
         """
         :type web_app: restfw.testing.webapp.WebApp
         :type prepare_env: interfaces.IPrepareEnv or None
         :type principal_formatter: interfaces.IPrincipalFormatter or None
         :type app_prefix: str or unicode or None
+        :param templates_loader: Jinja2 templates loader to overwrite all or some templates
+        :type templates_loader: jinja2.loaders.BaseLoader or None
         :param logger: logger instance
         """
         self._collector = UsageExamplesCollector(
@@ -52,15 +55,16 @@ class RstDocGenerator(object):
         )
         self._app_prefix = app_prefix
         self._logger = logger or logging
-        self._jinja_env = Environment(
-            loader=PackageLoader('restfw.docs_gen', 'templates'),
-            trim_blocks=True
-        )
+
+        loader = PackageLoader('restfw.docs_gen', 'templates')
+        if templates_loader:
+            loader = ChoiceLoader([
+                templates_loader,
+                loader,
+            ])
+        self._jinja_env = Environment(loader=loader, trim_blocks=True)
         self._jinja_env.filters['rst_header'] = _rst_header
         self._ep_id_2_doc_path = {}  # type: dict[str, Path]
-
-    def _get_template(self, name):
-        return self._jinja_env.get_template(name)
 
     def generate(self, dst_dir):
         """Generate directories and files with API documentation.
@@ -69,8 +73,15 @@ class RstDocGenerator(object):
         self._collector.collect()
 
         self._logger.info('Generate ".rst" files...')
+        dst_dir = self._prepare_dst_directory(dst_dir)
+        self._create_dirs_and_collect_ep_paths(dst_dir)
+        self._create_entry_points_rst()
 
-        # Create destination directory or remove all it children except "index.rst"
+    @staticmethod
+    def _prepare_dst_directory(dst_dir):
+        """Create destination directory or remove all it children except 'index.rst'.
+        :type dst_dir: Path
+        """
         if not dst_dir:
             dst_dir = Path.cwd()
         if dst_dir.is_dir():
@@ -81,13 +92,16 @@ class RstDocGenerator(object):
                 _remove_file_or_dir(child)
         else:
             dst_dir.mkdir(parents=True, exist_ok=True)
+        return dst_dir
 
+    def _create_dirs_and_collect_ep_paths(self, dst_dir):
+        """Create directories and collect paths to entry points docs.
+        :type dst_dir: Path
+        """
         self._ep_id_2_doc_path = {}
-        entry_points_info = self._collector.entry_points_info
         resources_info = self._collector.resources_info
 
-        # Create directories and collect paths to entry points docs
-        for ep_id, entry_point_info in six.iteritems(entry_points_info):
+        for ep_id, entry_point_info in six.iteritems(self._collector.entry_points_info):
             app_name = self._get_app_name(entry_point_info.examples_class_name)
             app_dir_path = self._init_app_dir(app_name, dst_dir)
 
@@ -102,8 +116,11 @@ class RstDocGenerator(object):
             entry_point_path = resource_dir_path / file_name
             self._ep_id_2_doc_path[ep_id] = entry_point_path
 
-        # Create .rst files with entry point documentation
-        for ep_id, entry_point_info in six.iteritems(entry_points_info):
+    def _create_entry_points_rst(self):
+        """Create .rst files with entry point documentation."""
+        resources_info = self._collector.resources_info
+
+        for ep_id, entry_point_info in six.iteritems(self._collector.entry_points_info):
             entry_point_path = self._ep_id_2_doc_path[ep_id]
             entry_point_url = self._get_entry_point_url(ep_id)
             resource_info = resources_info[entry_point_info.resource_class_name]
@@ -130,6 +147,9 @@ class RstDocGenerator(object):
                     methods=methods,
                 )
                 f.write(text)
+
+    def _get_template(self, name):
+        return self._jinja_env.get_template(name)
 
     def _get_app_name(self, class_name):
         if self._app_prefix and class_name.startswith(self._app_prefix):
@@ -169,7 +189,7 @@ class RstDocGenerator(object):
 
     def _init_resource_dir(self, resource_info, parent_dir):
         """Create directory and index.rst for resource.
-        :type resource_info: structs.ResourceInfo
+        :type resource_info: restfw.usage_examples.structs.ResourceInfo
         :type parent_dir: Path
         :rtype: Path
         """
@@ -222,7 +242,7 @@ class RstDocGenerator(object):
     def _render_example_to_rst(self, method, example_info):
         """
         :type method: str
-        :type example_info: structs.ExampleInfo
+        :type example_info: restfw.usage_examples.structs.ExampleInfo
         :rtype: str
         """
         url = example_info.request_info.url
@@ -239,7 +259,9 @@ class RstDocGenerator(object):
             params = json.dumps(params, indent=2, ensure_ascii=False)
 
         response_headers = {}
-        for header in ('Location',):
+        expected_headers = example_info.response_info.expected_headers or {}
+        interested_headers = sorted({'Location'}.union(expected_headers.keys()))
+        for header in interested_headers:
             value = example_info.response_info.headers.get(header)
             if value:
                 response_headers[header] = value
@@ -268,7 +290,7 @@ class RstDocGenerator(object):
     def _render_method_to_rst(self, method, method_info):
         """
         :type method: str
-        :type method_info: structs.MethodInfo
+        :type method_info: restfw.usage_examples.structs.MethodInfo
         :rtype: str
         """
         examples_info = method_info.examples_info

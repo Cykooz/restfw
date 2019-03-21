@@ -14,6 +14,7 @@ from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Everyone, Authenticated
 from six.moves import http_client
+from typing import List
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
@@ -229,7 +230,7 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
         """
         super(_ExampleInfoCollector, self).__init__(web_app, resource_url)
         self.method = method
-        self.results = []  # type: list[structs.ExampleInfo]
+        self.results = []  # type: List[structs.ExampleInfo]
 
     def __call__(self, params=resource_testing.DEFAULT, headers=None, result=None, result_headers=None,
                  exception=None, status=None):
@@ -256,6 +257,7 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
         response_info = structs.ResponseInfo(
             status_code, status_name,
             headers=deepcopy(dict(response.headers)),
+            expected_headers=deepcopy(dict(result_headers)) if result_headers else None,
             json_body=response.json_body if response.status_code != 204 else None
         )
         self.results.append(structs.ExampleInfo(request_info, response_info))

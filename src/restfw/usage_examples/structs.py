@@ -61,16 +61,18 @@ class RequestInfo(object):
 
 class ResponseInfo(object):
 
-    def __init__(self, status_code, status_name, headers=None, json_body=None):
+    def __init__(self, status_code, status_name, headers=None, expected_headers=None, json_body=None):
         """
         :type status_code: int
         :type status_name: str
         :type headers: dict or None
+        :type expected_headers: dict or None
         :type json_body: dict or list or str or None
         """
         self.status_code = status_code
         self.status_name = status_name
         self.headers = headers
+        self.expected_headers = expected_headers
         self.json_body = json_body
 
 
