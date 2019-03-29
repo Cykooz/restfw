@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import six
 from pyramid import httpexceptions
+from pyramid.traversal import resource_path
 
 
 def exception__str__(self):
@@ -29,10 +30,8 @@ def http_exception_to_dict(exc, request, include_status=False):
         if status_code == 200:
             return {}
         exc_class_name = exc_class_name[4:]
-    detail = exc.detail or ''
-    if not detail:
-        detail = {}
-    elif not isinstance(detail, dict):
+    detail = exc.detail or {}
+    if not isinstance(detail, dict):
         detail = {'msg': detail}
 
     result = {
@@ -42,9 +41,14 @@ def http_exception_to_dict(exc, request, include_status=False):
     }
     if include_status:
         result['status'] = status_code
-    # resource = getattr(request, 'context', None)
-    # if resource:
-    #     result['resource_url'] = request.resource_url(resource)
+    if status_code == 404 and 'resource' not in detail:
+        resource = getattr(request, 'context', None)
+        if resource:
+            elements = [request.view_name] if request.view_name else []
+            detail['resource'] = resource_path(resource, *elements)
+            if detail.get('msg') == request.path_info:
+                # Delete default message with full path from request
+                del detail['msg']
     return result
 
 

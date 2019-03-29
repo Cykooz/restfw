@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-3.0b7 (2019-03-21)
-==================
+Next release
+============
 
 Features
 --------
@@ -45,6 +45,8 @@ Features
   information collected from usage examples.
 - Added view for exception ``HTTPForbidden``.
 - Added method ``replace`` into ``MethodOptions`` class.
+- Added field ``resource`` into detail about ``HTTP 404`` error with path
+  to resource what has not found.
 
 Bug Fixes
 ---------

@@ -5,7 +5,7 @@
 """
 from pyramid import httpexceptions
 
-from restfw.hal import HalResource
+from restfw.hal import HalResource, SimpleContainer
 
 
 class DummyResource(HalResource):
@@ -28,7 +28,7 @@ def test_http_exception_view(web_app, pyramid_request):
     assert res.json_body == {
         'code': 'NotFound',
         'description': 'The resource could not be found.',
-        'detail': {'msg': 'Message'}
+        'detail': {'msg': 'Message', 'resource': '/404'}
     }
 
     root['304'] = DummyResource(httpexceptions.HTTPNotModified())
@@ -39,3 +39,18 @@ def test_http_exception_view(web_app, pyramid_request):
     assert res.content_type is None
     assert res.content_length is None
     assert res.body == b''
+
+
+def test_http_not_found_exception(web_app, pyramid_request):
+    root = pyramid_request.root
+    root['dir'] = SimpleContainer()
+    dir_url = pyramid_request.resource_url(root['dir'])
+
+    res = web_app.get(dir_url + 'not_found/sub_resource/child', check_response=False)
+    assert res.status_int == 404
+    assert res.content_type == 'application/json'
+    assert res.json_body == {
+        'code': 'NotFound',
+        'description': 'The resource could not be found.',
+        'detail': {'resource': '/dir/not_found'}
+    }
