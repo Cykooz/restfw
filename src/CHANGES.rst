@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Changed order of sending ``GET`` and ``HEAD`` requests in ``GetRequestsTester``.
+
 3.0 (2019-04-03)
 ================
 

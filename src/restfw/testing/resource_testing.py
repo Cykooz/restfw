@@ -56,20 +56,23 @@ class GetRequestsTester(RequestsTester):
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
-        res = self.web_app.get(self.resource_url, params=params, headers=headers,
-                               exception=exception, status=status)
-        if result is not None:
-            if res.content_type == 'application/json':
-                assert res.json_body == result
-            else:
-                assert res.text == result
-        if result_headers is not None:
-            assert dict(res.headers) == result_headers
+
         head_res = self.web_app.head(self.resource_url, params=params, headers=headers,
                                      exception=exception, status=status)
-        if res.headers is not None:
-            assert dict(head_res.headers) == res.headers
         assert head_res.body == b''
+
+        get_res = self.web_app.get(self.resource_url, params=params, headers=headers,
+                                   exception=exception, status=status)
+        if result is not None:
+            if get_res.content_type == 'application/json':
+                assert get_res.json_body == result
+            else:
+                assert get_res.text == result
+        if result_headers is not None:
+            assert dict(get_res.headers) == result_headers
+
+        if get_res.headers is not None:
+            assert dict(head_res.headers) == dict(get_res.headers)
 
 
 @implementer(ISendTestingRequest)
