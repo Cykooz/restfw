@@ -14,6 +14,22 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Added support of complex values of ``node_name`` argument of
+  ``create_validation_error()`` function. For example:
+
+  .. code-block:: python
+
+    create_validation_error(
+        SchemaClass, 'Error message',
+        node_name='sub.obj_list.2.cost'
+    )
+
 3.0.2 (2019-04-11)
 ==================
 

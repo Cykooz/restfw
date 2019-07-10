@@ -109,10 +109,31 @@ def colander_invalid_to_response(exc):
     return ValidationError(exc.asdict())
 
 
+def _create_error(node, message, child_node_path=None, value=None):
+    """
+    :type node: colander.SchemaNode
+    :type message: str
+    :type child_node_path: str
+    :type value: Any
+    :rtype: colander.Invalid
+    """
+    if child_node_path:
+        pos = None
+        child_node_name, _, child_node_path = child_node_path.partition('.')
+        if isinstance(node.typ, colander.Positional):
+            pos = int(child_node_name)
+            child_node = node.children[0]
+        else:
+            child_node = node[child_node_name]
+        error = colander.Invalid(node)
+        error.add(_create_error(child_node, message, child_node_path, value), pos=pos)
+    else:
+        error = colander.Invalid(node, message, value)
+    return error
+
+
 def create_validation_error(schema_class, message, node_name=None, value=None):
-    schema = schema_class()
-    node = schema[node_name] if node_name else schema
-    error = colander.Invalid(node, message, value)
+    error = _create_error(schema_class(), message, node_name, value)
     return colander_invalid_to_response(error)
 
 
