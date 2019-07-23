@@ -9,13 +9,14 @@ import inspect
 from os.path import basename
 
 import requests
+import six
 from pyramid import httpexceptions
 from pyramid.encode import urlencode
 from requests.exceptions import RequestException
 from webtest import TestApp
 from webtest.utils import NoDefault
 
-from ..utils import force_dict_utf8
+from ..utils import force_dict_utf8, force_utf8
 
 
 class WebApp(object):
@@ -120,6 +121,15 @@ class WebApp(object):
             kwargs['content_type'] = content_type
         if upload_files:
             kwargs['upload_files'] = upload_files
+
+        if six.PY2:
+            # Encode some parameters for Python 2
+            if isinstance(params, dict):
+                if not method_name.endswith('_json'):
+                    params = force_dict_utf8(params) if kwargs.get('upload_files') else urlencode(params)
+            if kwargs.get('headers'):
+                kwargs['headers'] = force_dict_utf8(kwargs['headers'])
+            url = force_utf8(url)
 
         http_method = getattr(self.test_app, method_name, None)
         assert http_method is not None, 'Unknown HTTP method: %s' % method_name

@@ -14,6 +14,19 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support Python 2 into ``WebApp``.
+
+Changes
+-------
+
+- Fixed error detail for ``HTTPNotFound`` exception.
+
 3.0.4 (2019-07-10)
 ==================
 
