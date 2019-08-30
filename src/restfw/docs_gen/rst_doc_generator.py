@@ -155,7 +155,8 @@ class RstDocGenerator(object):
         if self._app_prefix and class_name.startswith(self._app_prefix):
             class_name = class_name[len(self._app_prefix):]
         app_name = class_name.split('.')[0]
-        app_name = app_name.upper() if len(app_name) <= 2 else app_name.capitalize()
+        app_name = app_name.replace('_', ' ')
+        app_name = app_name.upper() if len(app_name) <= 2 else app_name.title()
         return app_name
 
     @staticmethod

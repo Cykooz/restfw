@@ -12,7 +12,7 @@ from copy import deepcopy
 import six
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
-from pyramid.security import Everyone, Authenticated
+from pyramid.security import Authenticated, Everyone
 from six.moves import http_client
 from typing import List
 

@@ -34,15 +34,25 @@ def enum_adapter(obj, request):
     return obj.name
 
 
-json_renderer = JSON()
-json_renderer.add_adapter(datetime.datetime, datetime_adapter)
-json_renderer.add_adapter(datetime.date, date_adapter)
-json_renderer.add_adapter(datetime.time, time_adapter)
-json_renderer.add_adapter(Decimal, decimal_adapter)
+def build_json_renderer(**kwargs):
+    adapters = [
+        (datetime.datetime, datetime_adapter),
+        (datetime.date, date_adapter),
+        (datetime.time, time_adapter),
+        (Decimal, decimal_adapter),
+    ]
+    try:
+        from enum import Enum
+        adapters.append((Enum, enum_adapter))
+    except ImportError:
+        pass
+    try:
+        from bson import ObjectId
+        adapters.append((ObjectId, object_id_adapter))
+    except ImportError:
+        pass
+
+    return JSON(adapters=adapters, **kwargs)
 
 
-try:
-    from enum import Enum
-    json_renderer.add_adapter(Enum, enum_adapter)
-except ImportError:
-    pass
+json_renderer = build_json_renderer()

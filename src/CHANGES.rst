@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Improved generation application name inside of ``RstDocGenerator``.
+- Improved JSON serializer for ``colander_2_json_schema``.
+
 3.1 (2019-07-23)
 ================
 

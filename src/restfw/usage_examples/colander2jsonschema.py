@@ -3,28 +3,35 @@
 :Authors: cykooz
 :Date: 28.04.2015
 """
-import json
 from collections import OrderedDict
+from functools import partial
 
 import colander
 import colander.interfaces
 
+from restfw.renderers import build_json_renderer
 from .. import schemas
 
 
-def colander_2_json_schema(schema_class, request, context, indent=2):
+_JSON_SERIALIZER = partial(
+    build_json_renderer(indent=2, ensure_ascii=False)(None),
+    system={}
+)
+
+
+def colander_2_json_schema(schema_class, request, context, serializer=_JSON_SERIALIZER):
     """Serialize colander schema into JSON Schema string.
     :type schema_class: colander.SchemaNode
     :type request: pyramid.interfaces.IRequest
     :type context: restfw.interfaces.IResource
-    :type indent: int
+    :param serializer:
     :rtype: str or None
     """
     if schema_class is None:
         return None
     bound_schema = schema_class().bind(request=request, context=context)
     json_schema = convert(bound_schema)
-    json_schema = json.dumps(json_schema, indent=indent, ensure_ascii=False)
+    json_schema = serializer(json_schema)
     return json_schema
 
 
