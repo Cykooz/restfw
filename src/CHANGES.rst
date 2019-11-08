@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed checking of ``Location`` header in ``assert_resource()`` function.
+
 3.3 (2019-11-08)
 ================
 

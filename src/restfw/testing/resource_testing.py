@@ -95,8 +95,7 @@ class PutRequestsTester(RequestsTester):
             put_method = self.web_app.put
         res = put_method(self.resource_url, params=params, headers=headers,
                          exception=exception, status=status)
-        if status == 201:
-            assert 'Location' in res.headers
+        if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
         if result is not None:
             if res.content_type == 'application/json':
@@ -127,8 +126,7 @@ class PatchRequestsTester(RequestsTester):
             patch_method = self.web_app.patch
         res = patch_method(self.resource_url, params=params, headers=headers,
                            exception=exception, status=status)
-        if status == 201:
-            assert 'Location' in res.headers
+        if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
         if result is not None:
             if res.content_type == 'application/json':
@@ -159,8 +157,7 @@ class PostRequestsTester(RequestsTester):
             post_method = self.web_app.post
         res = post_method(self.resource_url, params=params, headers=headers,
                           exception=exception, status=status)
-        if status == 201:
-            assert 'Location' in res.headers
+        if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
         if result is not None:
             if res.content_type == 'application/json':
