@@ -4,7 +4,7 @@
 :Date: 23.11.2018
 """
 import pytest
-from mountbit.utils.testing import D
+from cykooz.testing import D
 from pyramid.traversal import find_interface
 
 from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources

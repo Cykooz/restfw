@@ -110,6 +110,11 @@ class MappingSchema(colander.SchemaNode):
     schema_type = UrlEncodeMapping
 
 
+class PreserveMappingSchema(colander.MappingSchema):
+    def schema_type(self):
+        return UrlEncodeMapping(unknown='preserve')
+
+
 class StringNode(colander.SchemaNode):
     schema_type = colander.String
 

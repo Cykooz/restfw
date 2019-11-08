@@ -4,6 +4,7 @@
 :Date: 20.08.2016
 """
 from pyramid import httpexceptions
+from pyramid.interfaces import ILocation
 from pyramid.view import view_config
 
 from .interfaces import IResource
@@ -59,7 +60,8 @@ def resource_post(context, request):
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        request.response.headers['Location'] = request.resource_url(resource)
+        if ILocation.providedBy(resource):
+            request.response.headers['Location'] = request.resource_url(resource)
     return resource
 
 
@@ -75,7 +77,8 @@ def resource_put(context, request):
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        request.response.headers['Location'] = request.resource_url(resource)
+        if ILocation.providedBy(resource):
+            request.response.headers['Location'] = request.resource_url(resource)
     return resource
 
 
@@ -91,7 +94,8 @@ def resource_patch(context, request):
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        request.response.headers['Location'] = request.resource_url(resource)
+        if ILocation.providedBy(resource):
+            request.response.headers['Location'] = request.resource_url(resource)
     return resource
 
 

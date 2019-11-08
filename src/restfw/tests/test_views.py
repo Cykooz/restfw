@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import uuid
 
 import colander
-from mountbit.utils.testing import D
+from cykooz.testing import D
 from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 
 from .. import interfaces, schemas

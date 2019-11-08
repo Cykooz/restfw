@@ -61,8 +61,9 @@ class IResource(ILocation):
         """
 
     def get_allowed_methods():
-        # type: () -> set
-        """Returns a set of allowed HTTP methods for the resource."""
+        """Returns a set of allowed HTTP methods for the resource.
+        :rtype: set
+        """
 
     def http_head(request, params):
         """This method may be used in derived classes to overwrite

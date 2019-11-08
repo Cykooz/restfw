@@ -3,7 +3,7 @@
 :Authors: cykooz
 :Date: 21.01.2019
 """
-from mountbit.utils.testing import ANY
+from cykooz.testing import ANY
 
 from restfw.usage_examples.interfaces import IUsageExamplesFabric
 from restfw.usage_examples import UsageExamples

@@ -14,6 +14,25 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added new schema ``PreserveMappingSchema``.
+
+Changes
+-------
+
+- Updated dependencies.
+
+Bug Fixes
+---------
+
+- Now ``Location`` header do not adds into response if has created
+  resource do not provide ``ILocation``.
+
 3.2 (2019-08-30)
 ================
 
