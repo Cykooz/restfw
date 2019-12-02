@@ -14,7 +14,7 @@ from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
 from six.moves import http_client
-from typing import List
+from typing import List, Dict
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
@@ -52,9 +52,9 @@ class UsageExamplesCollector(object):
         self._docstring_filter = docstring_filter
         self._logger = logger or logging
 
-        self.resources_info = {}  # type: dict[str, structs.ResourceInfo]
-        self.entry_points_info = {}  # type: dict[str, structs.EntryPointInfo]
-        self.url_to_ep_id = {}  # type: dict[str, str]
+        self.resources_info = {}  # type: Dict[str, structs.ResourceInfo]
+        self.entry_points_info = {}  # type: Dict[str, structs.EntryPointInfo]
+        self.url_to_ep_id = {}  # type: Dict[str, str]
 
     def collect(self):
         resources_info = {}
@@ -233,7 +233,7 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
         self.results = []  # type: List[structs.ExampleInfo]
 
     def __call__(self, params=resource_testing.DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None):
+                 exception=None, status=None, description=None):
         params = params if params is not resource_testing.DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)
@@ -260,4 +260,4 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
             expected_headers=deepcopy(dict(result_headers)) if result_headers else None,
             json_body=response.json_body if response.status_code != 204 else None
         )
-        self.results.append(structs.ExampleInfo(request_info, response_info))
+        self.results.append(structs.ExampleInfo(request_info, response_info, description))

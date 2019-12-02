@@ -9,7 +9,7 @@ from zope.interface import Interface, Attribute
 class ISendTestingRequest(Interface):
 
     def __call__(params=None, headers=None, result=None, result_headers=None,
-                 exception=None, status=None):
+                 exception=None, status=None, description=None):
         """Send a testing request to resource"""
 
 

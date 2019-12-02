@@ -392,6 +392,8 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
     :type replace_validators: dict
     :rtype: colander.SchemaNode
     """
+    if six.PY2 and isinstance(name, six.text_type):
+        name = name.encode()
     cloned_schema = type(name, (base_schema,), kwargs)
     all_schema_nodes = base_schema.__all_schema_nodes__[:]
     all_schema_nodes.extend(cloned_schema.__class_schema_nodes__)
@@ -410,8 +412,8 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
 
     only = set(only or [])
     if only:
-        for name, node in node_by_name.items():
-            if name not in only and name not in kwargs:
+        for node_name, node in node_by_name.items():
+            if node_name not in only and node_name not in kwargs:
                 all_schema_nodes.remove(node)
 
     replace_validators = replace_validators or {}

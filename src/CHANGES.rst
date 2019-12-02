@@ -14,6 +14,21 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added argument ``description`` for function ``send()`` used inside of ``Usage Examples``.
+- Documentation generator include only first example request from all of with equal
+  ``status code`` and not empty ``description``.
+
+Bug Fixes
+---------
+
+- Added encoding of class name in function ``clone_schema_class`` for Python 2.
+
 3.3.2 (2019-11-08)
 ==================
 

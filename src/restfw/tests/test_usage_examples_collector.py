@@ -97,6 +97,7 @@ class Dummy1Examples(UsageExamples):
 
     def get_requests(self, send):
         send(
+            description='Get info about Dummy resource.',
             result={
                 '_links': {
                     'self': {'href': 'http://localhost/container/dummy1/'}
@@ -160,6 +161,7 @@ class DummyContainerExamples(UsageExamples):
         send(exception=httpexceptions.HTTPUnauthorized)
         for user in ['other_user', 'auth_user']:
             send(
+                description='Get Dummy Container',
                 headers={'Authorization': basic_auth_value(user, '123')},
                 result={
                     '_links': {
@@ -247,6 +249,12 @@ def test_usage_examples_collector(web_app, app_config):
     # ... GET
     method = methods['GET']
     assert method.allowed_principals == {Authenticated}
+    description = 'Get Dummy Container'
+    assert [ei.description for ei in method.examples_info] == [
+        None,
+        description,
+        description,
+    ]
 
     # Dummy Entry Point 1 info
     ep_info = collector.entry_points_info[dummy_usage1_id]
@@ -279,6 +287,7 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
     assert len(method.examples_info) == 1
     assert [ei.response_info.status_code for ei in method.examples_info] == [200]
+    assert method.examples_info[0].description == 'Get info about Dummy resource.'
     # ... PUT
     method = methods['PUT']
     assert method.description == [

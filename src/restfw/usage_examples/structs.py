@@ -78,13 +78,15 @@ class ResponseInfo(object):
 
 class ExampleInfo(object):
 
-    def __init__(self, request_info, response_info):
+    def __init__(self, request_info, response_info, description=None):
         """
         :type request_info: RequestInfo
         :type response_info: ResponseInfo
+        :type description: str or None
         """
         self.request_info = request_info
         self.response_info = response_info
+        self.description = description
 
 
 class Examples(object):

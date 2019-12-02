@@ -277,6 +277,7 @@ class RstDocGenerator(object):
         template = self._get_template('example.rst')
         text = template.render(
             title=title,
+            description=example_info.description,
             method=method,
             url=url,
             headers=example_info.request_info.headers,
@@ -299,9 +300,15 @@ class RstDocGenerator(object):
 
         examples = []
         for status_code in status_codes:
+            descriptions = set()
             for example_info in examples_info:
                 if example_info.response_info.status_code != status_code:
                     continue
+                if example_info.description in descriptions:
+                    # Do not render example with duplicate description
+                    continue
+                if example_info.description is not None:
+                    descriptions.add(example_info.description)
                 examples.append(
                     self._render_example_to_rst(method, example_info)
                 )

@@ -1,5 +1,9 @@
 {{ title|rst_header('^') }}
 
+{% if description %}
+{{ description }}
+{% endif %}
+
 **Request**:
 
   **{{ method }}** \{{ url }}
