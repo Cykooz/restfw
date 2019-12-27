@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-3.4b1 (2019-12-02)
-==================
+Next release
+============
 
 Features
 --------
@@ -28,6 +28,8 @@ Bug Fixes
 ---------
 
 - Added encoding of class name in function ``clone_schema_class`` for Python 2.
+- Disabled view deriver ``check_request_method_view`` and ``check_result_schema``
+  for custom named views for resource.
 
 3.3.2 (2019-11-08)
 ==================

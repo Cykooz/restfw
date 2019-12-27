@@ -22,6 +22,9 @@ def check_request_method_view(view, info):
     """
     if info.exception_only:
         return view
+    if info.options.get('name'):
+        # Do not wrap a custom named view for resource.
+        return view
 
     def mapped_view(context, request):
         # type: (IResource, pyramid.request.Request) -> object
@@ -45,6 +48,9 @@ def check_result_schema(view, info):
     :rtype: object
     """
     if info.exception_only:
+        return view
+    if info.options.get('name'):
+        # Do not wrap a custom named view for resource.
         return view
 
     def mapped_view(context, request):
