@@ -29,7 +29,7 @@ class RequestsTester(object):
         self.calls_count = 0
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -38,6 +38,7 @@ class RequestsTester(object):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         raise NotImplementedError
 
@@ -46,7 +47,7 @@ class RequestsTester(object):
 class GetRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -55,6 +56,7 @@ class GetRequestsTester(RequestsTester):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
@@ -81,7 +83,7 @@ class GetRequestsTester(RequestsTester):
 class PutRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -90,6 +92,7 @@ class PutRequestsTester(RequestsTester):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
@@ -113,7 +116,7 @@ class PutRequestsTester(RequestsTester):
 class PatchRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -122,6 +125,7 @@ class PatchRequestsTester(RequestsTester):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
@@ -145,7 +149,7 @@ class PatchRequestsTester(RequestsTester):
 class PostRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -154,6 +158,7 @@ class PostRequestsTester(RequestsTester):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
@@ -177,7 +182,7 @@ class PostRequestsTester(RequestsTester):
 class DeleteRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -186,6 +191,7 @@ class DeleteRequestsTester(RequestsTester):
         :type exception: HTTPException
         :type status: int
         :type description: str or None
+        :type exclude_from_doc: bool
         """
         self.calls_count += 1
         params = params if params is not DEFAULT else {}

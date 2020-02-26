@@ -302,6 +302,8 @@ class RstDocGenerator(object):
         for status_code in status_codes:
             descriptions = set()
             for example_info in examples_info:
+                if example_info.exclude_from_doc:
+                    continue
                 if example_info.response_info.status_code != status_code:
                     continue
                 if example_info.description in descriptions:

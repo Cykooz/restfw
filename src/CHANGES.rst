@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added argument ``exclude_from_doc`` for function ``send()`` used inside of ``Usage Examples``.
+- Documentation generator not include examples with ``exclude_from_doc == True``.
+
 3.4 (2019-12-27)
 ================
 

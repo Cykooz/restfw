@@ -23,9 +23,13 @@ class Nullable(colander.SchemaType):
     """A type which accepts serialize None to None and deserialize ''/None to None.
     When the value is not equal to None/'', it will use (de)serialization of
     the given type. This can be used to make nodes optional.
+
     Example:
-        date = colander.SchemaNode(
-            colander.NoneType(colander.DateTime()),
+
+      .. code-block:: python
+
+        time = colander.SchemaNode(
+            Nullable(colander.DateTime()),
             default=None,
             missing=None,
         )

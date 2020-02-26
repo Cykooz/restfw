@@ -233,7 +233,7 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
         self.results = []  # type: List[structs.ExampleInfo]
 
     def __call__(self, params=resource_testing.DEFAULT, headers=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None):
+                 exception=None, status=None, description=None, exclude_from_doc=False):
         params = params if params is not resource_testing.DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)
@@ -260,4 +260,4 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
             expected_headers=deepcopy(dict(result_headers)) if result_headers else None,
             json_body=response.json_body if response.status_code != 204 else None
         )
-        self.results.append(structs.ExampleInfo(request_info, response_info, description))
+        self.results.append(structs.ExampleInfo(request_info, response_info, description, exclude_from_doc))
