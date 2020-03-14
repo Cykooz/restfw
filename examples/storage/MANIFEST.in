@@ -1,0 +1,5 @@
+graft storage
+include README.txt CHANGES.txt
+
+global-exclude __pycache__ *.py[cod]
+global-exclude .DS_Store

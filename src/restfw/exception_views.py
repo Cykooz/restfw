@@ -5,7 +5,8 @@
 """
 from pyramid.httpexceptions import HTTPInternalServerError, HTTPForbidden, HTTPUnauthorized
 from pyramid.interfaces import IExceptionResponse
-from pyramid.view import exception_view_config
+from pyramid.security import forget
+from pyramid.view import exception_view_config, forbidden_view_config
 
 from .errors import http_exception_to_dict, ValidationError
 
@@ -20,11 +21,12 @@ def http_exception_view(exc_response, request):
     return result
 
 
-@exception_view_config(context=HTTPForbidden)
+@forbidden_view_config()
 def forbidden_view(exc_response, request):
     if exc_response.__class__ is HTTPForbidden:  # Exclude child classes
         if request.authenticated_userid is None:
             exc_response = HTTPUnauthorized()
+            exc_response.headers.update(forget(request))
     return http_exception_view(exc_response, request)
 
 

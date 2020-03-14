@@ -3,6 +3,8 @@
 :Authors: cykooz
 :Date: 13.12.2017
 """
+import itertools
+
 import six
 from pyramid.interfaces import ILocation
 from pyramid.traversal import quote_path_segment
@@ -156,4 +158,37 @@ def list_to_embedded_resources(request, params, resources, parent, embedded_name
     paging_links = get_paging_links(parent, request, offset, limit, has_next_page)
     embedded = {embedded_name: page}
     total_count = count if params['total_count'] else None
+    return EmbeddedResources(paging_links, total_count, **embedded)
+
+
+class _IterLength(object):
+
+    def __init__(self, iterable):
+        self._iterable = iterable
+        self._len = 0
+
+    def __next__(self):
+        res = next(self._iterable)
+        self._len += 1
+        return res
+
+    def get_len(self):
+        self._len += sum(1 for _ in self._iterable)
+        return self._len
+
+
+def iter_to_embedded_resources(request, params, iterable, parent, embedded_name):
+    offset = params['offset']
+    limit = params['limit']
+    end = offset + limit + 1
+    if params['total_count']:
+        iterable = _IterLength(iterable)
+
+    page = list(itertools.islice(iterable, offset, end))
+    has_next_page = len(page) > limit
+    if has_next_page:
+        page.pop(limit - 1)
+    paging_links = get_paging_links(parent, request, offset, limit, has_next_page)
+    embedded = {embedded_name: page}
+    total_count = iterable.get_len() if params['total_count'] else None
     return EmbeddedResources(paging_links, total_count, **embedded)

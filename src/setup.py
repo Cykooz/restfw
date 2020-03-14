@@ -41,9 +41,9 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='',
-    author='ASD Technologies',
-    author_email='team@asdtech.co',
-    url='https://bitbucket.org/asdtech/restfw',
+    author='Kirill Kuzminykh',
+    author_email='cykooz@gmail.com',
+    url='https://github.com/Cykooz/restfw',
     package_dir={'': '.'},
     packages=find_packages(),
     include_package_data=True,
@@ -55,12 +55,14 @@ setup(
             'asset',
             'WebTest',
             'cykooz.testing',
+            'requests',
         ],
         'docs': [
             'WebTest',
             'sphinx<2.0',
             'jinja2',
             'pathlib2;python_version<"3.4"',
+            'requests',
         ]
     },
     install_requires=[
@@ -70,10 +72,9 @@ setup(
         'pyramid>=1.8.3',
         'WebOb>=1.8.1',
         'zope.interface',
-        'mountbit.utils',
-        'requests',
         'lru-dict',
-        'venusian<2.0',
+        'venusian<2.0',  # version 2.0+ do not support Python 2
+        'typing;python_version<"3.6"',
     ],
     entry_points={
         'console_scripts':
