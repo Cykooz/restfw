@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed dependencies constraints in ``setup.py``.
+
 3.5 (2020-02-26)
 ================
 

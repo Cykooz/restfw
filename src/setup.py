@@ -50,7 +50,7 @@ setup(
     zip_safe=False,
     extras_require={
         'test': [
-            'pytest<5.0',
+            'pytest',
             'mock',
             'asset',
             'WebTest',
@@ -58,7 +58,7 @@ setup(
         ],
         'docs': [
             'WebTest',
-            'sphinx<2.0',
+            'sphinx',
             'jinja2',
             'pathlib2;python_version<"3.4"',
         ]
@@ -73,7 +73,7 @@ setup(
         'mountbit.utils',
         'requests',
         'lru-dict',
-        'venusian<2.0',
+        'venusian',
     ],
     entry_points={
         'console_scripts':
