@@ -13,6 +13,7 @@ import six
 from pyramid import httpexceptions
 from pyramid.encode import urlencode
 from requests.exceptions import RequestException
+from six.moves.urllib.parse import quote, urlsplit, urlunsplit
 from webtest import TestApp
 from webtest.utils import NoDefault
 
@@ -130,6 +131,18 @@ class WebApp(object):
             if kwargs.get('headers'):
                 kwargs['headers'] = force_dict_utf8(kwargs['headers'])
             url = force_utf8(url)
+        else:
+            try:
+                url.encode('ascii')
+            except UnicodeEncodeError:
+                split_result = list(urlsplit(url))
+                split_result[2] = quote(split_result[2])
+                url = urlunsplit(split_result)
+            if isinstance(params, dict) and not method_name.endswith('_json'):
+                params = {
+                    key: '' if value is None else value
+                    for key, value in params.items()
+                }
 
         http_method = getattr(self.test_app, method_name, None)
         assert http_method is not None, 'Unknown HTTP method: %s' % method_name

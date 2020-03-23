@@ -70,7 +70,6 @@ setup(
         'pyramid>=1.8.3',
         'WebOb>=1.8.1',
         'zope.interface',
-        'mountbit.utils',
         'requests',
         'lru-dict',
         'venusian',

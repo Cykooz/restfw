@@ -14,6 +14,20 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added validators ``LazyAll`` and ``LazyAny``.
+
+Bug Fixes
+---------
+
+- Fixed using URLs with unicode chars for send requests
+  with help of ``WebApp`` under Python 3.
+
 3.5.2 (2020-03-23)
 ==================
 
