@@ -19,6 +19,8 @@ LISTING_CONF = {
 }
 
 
+# Schema types
+
 class Nullable(colander.SchemaType):
     """A type which accepts serialize None to None and deserialize ''/None to None.
     When the value is not equal to None/'', it will use (de)serialization of
@@ -30,8 +32,8 @@ class Nullable(colander.SchemaType):
 
         time = colander.SchemaNode(
             Nullable(colander.DateTime()),
-            default=None,
-            missing=None,
+            default=colander.drop,
+            missing=colander.drop,
         )
     """
 
@@ -50,8 +52,6 @@ class Nullable(colander.SchemaType):
 
         return self.typ.deserialize(node, cstruct)
 
-
-# Schema types
 
 class EmptyString(colander.String):
 
@@ -237,6 +237,40 @@ class ResourceNode(colander.SchemaNode):
 
 
 # Validators
+
+class LazyAll(object):
+    """Composite validator which fail if one of its
+    subvalidators raises an :class:`colander.Invalid` exception"""
+
+    def __init__(self, *validators):
+        self.validators = validators
+
+    def __call__(self, node, value):
+        for validator in self.validators:
+            validator(node, value)
+
+
+class LazyAny(object):
+    """Composite validator which fail if all of its
+    subvalidators raises an :class:`colander.Invalid` exception"""
+
+    def __init__(self, *validators):
+        self.validators = validators
+
+    def __call__(self, node, value):
+        errors = []
+        for validator in self.validators:
+            try:
+                validator(node, value)
+                return
+            except colander.Invalid as e:
+                errors.append(e)
+        if errors:
+            exc = colander.Invalid(node, [exc.msg for exc in errors])
+            for e in errors:
+                exc.children.extend(e.children)
+            raise exc
+
 
 class LaconicOneOf(colander.OneOf):
     """Laconic version of standard OneOf validator."""

@@ -22,4 +22,4 @@ from .resource_testing import assert_resource
 
 def basic_auth_value(user_name, password):
     auth_str = force_utf8(u'%s:%s' % (user_name, password))
-    return b'Basic {}'.format(base64.b64encode(auth_str))
+    return 'Basic {}'.format(base64.b64encode(auth_str).decode())

@@ -31,9 +31,10 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Framework :: Pyramid',
@@ -50,7 +51,7 @@ setup(
     zip_safe=False,
     extras_require={
         'test': [
-            'pytest<5.0',
+            'pytest',
             'mock',
             'asset',
             'WebTest',
@@ -59,7 +60,7 @@ setup(
         ],
         'docs': [
             'WebTest',
-            'sphinx<2.0',
+            'sphinx',
             'jinja2',
             'pathlib2;python_version<"3.4"',
             'requests',
@@ -73,7 +74,7 @@ setup(
         'WebOb>=1.8.1',
         'zope.interface',
         'lru-dict',
-        'venusian<2.0',  # version 2.0+ do not support Python 2
+        'venusian',
         'typing;python_version<"3.6"',
     ],
     entry_points={
