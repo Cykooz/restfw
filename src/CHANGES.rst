@@ -14,6 +14,22 @@
 CHANGELOG
 *********
 
+3.7 (2020-03-24)
+================
+
+Features
+--------
+
+- Added new filed ``default_auth`` and method ``authorize_request`` into
+  ``UsageExamples`` class.
+- Added argument ``auth`` into objects that provides ``ISendTestingRequest``
+  (for example ``send`` function used in usage examples).
+
+Changes
+-------
+
+- Deprecated field ``headers_for_listing`` of ``UsageExamples`` class.
+
 3.6 (2020-03-23)
 ================
 
