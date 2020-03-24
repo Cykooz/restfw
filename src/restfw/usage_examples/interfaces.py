@@ -3,12 +3,12 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
-from zope.interface import Interface, Attribute
+from zope.interface import Attribute, Interface
 
 
 class ISendTestingRequest(Interface):
 
-    def __call__(params=None, headers=None, result=None, result_headers=None,
+    def __call__(params=None, headers=None, auth=None, result=None, result_headers=None,
                  exception=None, status=None, description=None, exclude_from_doc=False):
         """Send a testing request to resource"""
 
@@ -19,6 +19,16 @@ class IUsageExamples(Interface):
     resource_url = Attribute('The resource url')
     allowed_methods = Attribute('Allowed HTTP methods')
     request = Attribute("Pyramid's request instance")
+    default_auth = Attribute('Authorization string used by default for all requests')
+
+    def authorize_request(params, headers, auth=None):
+        """Add authorization information into request with given params and headers.
+        :type params: dict or None
+        :type headers: dict or None
+        :param auth: Some string used for authorization. For example '<login>:<password>'.
+        :type auth: str or None
+        :return: Tuple with a new version of params and headers.
+        """
 
     def get_requests(send):
         """Calls function 'send' with parameters of GET requests.

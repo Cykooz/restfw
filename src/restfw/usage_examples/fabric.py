@@ -6,6 +6,7 @@
 from zope.interface import implementer, provider
 
 from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
+from .utils import basic_auth_value
 from ..errors import ValidationError
 
 
@@ -14,7 +15,8 @@ from ..errors import ValidationError
 class UsageExamples(object):
 
     ValidationError = ValidationError
-    headers_for_listing = None
+    headers_for_listing = None  # Deprecated
+    default_auth = ''
     test_listing = True
 
     def __init__(self, request):
@@ -39,6 +41,22 @@ class UsageExamples(object):
         if name.endswith(suffix):
             name = name[:-len(suffix)]
         return name
+
+    def authorize_request(self, params, headers, auth=None):
+        """Add authorization information into request with given params and headers.
+        :type params: dict or None
+        :type headers: dict or None
+        :param auth: Some string used for authorization. For example '<login>:<password>'.
+        :type auth: str or None
+        :return: Tuple with a new version of params and headers.
+        """
+        if auth is None:
+            auth = self.default_auth
+        if auth:
+            headers = headers.copy() if headers else {}
+            user_name, _, password = auth.partition(':')
+            headers['Authorization'] = basic_auth_value(user_name, password)
+        return params, headers
 
     def prepare_resource(self):
         """

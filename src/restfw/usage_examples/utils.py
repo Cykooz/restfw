@@ -5,11 +5,14 @@
 """
 from __future__ import print_function, unicode_literals
 
+import base64
 import re
 import sys
 
 import six
 from zope.interface import provider
+
+from ..utils import force_utf8
 
 
 try:
@@ -116,3 +119,8 @@ RST_METHOD_DIRECTIVES = re.compile(r'^\s*:(param|type|rtype|return)[^:]*:.*$', r
 @provider(interfaces.IDocStringLineFilter)
 def sphinx_doc_filter(line):
     return bool(RST_METHOD_DIRECTIVES(line))
+
+
+def basic_auth_value(user_name, password):
+    auth_str = force_utf8(u'%s:%s' % (user_name, password))
+    return 'Basic {}'.format(base64.b64encode(auth_str).decode())

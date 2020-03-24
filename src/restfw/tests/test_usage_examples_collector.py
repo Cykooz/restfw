@@ -7,12 +7,11 @@ import logging
 
 from cykooz.testing import ANY, D
 from pyramid import httpexceptions
-from pyramid.security import Allow, Everyone, Authenticated, DENY_ALL
+from pyramid.security import Allow, Authenticated, DENY_ALL, Everyone
 
 from .. import schemas
 from ..hal import HalResource, SimpleContainer
 from ..interfaces import MethodOptions
-from ..testing import basic_auth_value
 from ..usage_examples import UsageExamples
 from ..usage_examples.collector import UsageExamplesCollector
 from ..usage_examples.utils import sphinx_doc_filter
@@ -88,6 +87,7 @@ class Dummy1Examples(UsageExamples):
     This is a first entry point for
     DummyResource.
     """
+    default_auth = 'auth_user:123'
 
     def prepare_resource(self):
         container = SimpleContainer()
@@ -98,6 +98,7 @@ class Dummy1Examples(UsageExamples):
     def get_requests(self, send):
         send(
             description='Get info about Dummy resource.',
+            auth='',
             result={
                 '_links': {
                     'self': {'href': 'http://localhost/container/dummy1/'}
@@ -107,23 +108,20 @@ class Dummy1Examples(UsageExamples):
         )
 
     def put_requests(self, send):
-        send(exception=httpexceptions.HTTPUnauthorized)
+        send(auth='', exception=httpexceptions.HTTPUnauthorized)
         send(
-            headers={'Authorization': basic_auth_value('other_user', '123')},
+            auth='other_user:123',
             exception=httpexceptions.HTTPForbidden
         )
 
         params = {'value': 10}
-        headers = {'Authorization': basic_auth_value('auth_user', '123')}
         send(
             params=params,
-            headers=headers,
             result=D(params),
         )
 
         send(
             params={'value': 'foo'},
-            headers=headers,
             exception=self.ValidationError({
                 'value': '"foo" is not a number'
             })
@@ -140,6 +138,7 @@ class Dummy2Examples(Dummy1Examples):
 
     def get_requests(self, send):
         send(
+            auth='',
             result={
                 '_links': {
                     'self': {'href': 'http://localhost/dummy_container/dummy2/'}
@@ -150,6 +149,7 @@ class Dummy2Examples(Dummy1Examples):
 
 
 class DummyContainerExamples(UsageExamples):
+    default_auth = 'auth_user:123'
 
     def prepare_resource(self):
         container = DummyContainer()
@@ -158,11 +158,11 @@ class DummyContainerExamples(UsageExamples):
         return self.root['dummy_container']
 
     def get_requests(self, send):
-        send(exception=httpexceptions.HTTPUnauthorized)
+        send(auth='', exception=httpexceptions.HTTPUnauthorized)
         for user in ['other_user', 'auth_user']:
             send(
                 description='Get Dummy Container',
-                headers={'Authorization': basic_auth_value(user, '123')},
+                auth='%s:123' % user,
                 result={
                     '_links': {
                         'self': {'href': 'http://localhost/dummy_container/'},
@@ -308,7 +308,7 @@ def test_usage_examples_collector(web_app, app_config):
     ep_info = collector.entry_points_info[dummy_usage2_id]
     assert ep_info.name == 'Dummy2'
     assert ep_info.resource_class_name == dummy_class_name
-    assert ep_info.description == []  # docstrings do not inherits
+    assert ep_info.description == []  # docstrings do not inherit
     assert len(ep_info.url_elements) == 2
     assert ep_info.url_elements[0].value == 'dummy_container'
     assert ep_info.url_elements[0].resource_class_name == container_class_name

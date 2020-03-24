@@ -14,10 +14,11 @@ from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
 from six.moves import http_client
-from typing import List, Dict
+from typing import Dict, List
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
+from .fabric import UsageExamples
 from .utils import default_docstring_extractor, sphinx_doc_filter
 from ..testing import resource_testing
 from ..utils import get_object_fullname, open_pyramid_request
@@ -197,8 +198,7 @@ class UsageExamplesCollector(object):
         if send_requests is None:
             return []
 
-        resource_url = usage_examples.resource_url
-        send = _ExampleInfoCollector(self.web_app, resource_url, method)
+        send = _ExampleInfoCollector(self.web_app, usage_examples, method)
         send_requests(send)
 
         return send.results
@@ -222,21 +222,23 @@ class UsageExamplesCollector(object):
 
 class _ExampleInfoCollector(resource_testing.RequestsTester):
 
-    def __init__(self, web_app, resource_url, method):
+    def __init__(self, web_app, resource_examples, method):
         """
         :type web_app: restfw.testing.webapp.WebApp
-        :type resource_url: str
+        :type resource_examples: UsageExamples
         :type method: str
         """
-        super(_ExampleInfoCollector, self).__init__(web_app, resource_url)
+        super(_ExampleInfoCollector, self).__init__(web_app, resource_examples)
         self.method = method
         self.results = []  # type: List[structs.ExampleInfo]
 
-    def __call__(self, params=resource_testing.DEFAULT, headers=None, result=None, result_headers=None,
+    def __call__(self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None, result_headers=None,
                  exception=None, status=None, description=None, exclude_from_doc=False):
         params = params if params is not resource_testing.DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)
+
+        params, headers = self.resource_examples.authorize_request(params, headers, auth)
         response = web_method(
             self.resource_url, params=params, headers=headers,
             exception=exception, status=status
