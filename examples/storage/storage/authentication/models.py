@@ -23,13 +23,13 @@ class UserModel(object):
         self.path = path
 
     @classmethod
-    def get_model(cls, request, name):
+    def get_model(cls, registry, name):
         """
-        :type request: pyramid.request.Request
+        :type registry: pyramid.registry.Registry
         :type name: str
         :rtype: UserModel or None
         """
-        data_root = get_data_root(request.registry)
+        data_root = get_data_root(registry)
         path = data_root / name
         if path.exists():
             return cls(name, path)
@@ -48,11 +48,11 @@ class UserModel(object):
         return cls(name, path)
 
     @classmethod
-    def get_models(cls, request):
+    def get_models(cls, registry):
         """
-        :type request: pyramid.request.Request
+        :type registry: pyramid.registry.Registry
         """
-        data_root = get_data_root(request.registry)
+        data_root = get_data_root(registry)
         return sorted(
             (
                 cls(path.name, path)
@@ -64,6 +64,6 @@ class UserModel(object):
 
 
 def get_user_principals(user_name, password, request):
-    user_model = UserModel.get_model(request, user_name)
+    user_model = UserModel.get_model(request.registry, user_name)
     if user_model:
         return [user_model.name]

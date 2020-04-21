@@ -14,6 +14,24 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added configurator directives ``add_external_link_fabric`` and
+  ``add_external_link_fabric_predicate``.
+- Added decorator ``restfw.config.external_link_config`` to
+  declarative registration of fabric of external link.
+
+Backward Incompatible Changes
+-----------------------------
+
+- Removed method ``Resource.get_request()``.
+- Removed method ``Root.get_request()``.
+- Added method ``Root.__init__(registry)``.
+
 3.7 (2020-03-24)
 ================
 

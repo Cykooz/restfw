@@ -3,8 +3,7 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
-from pyramid.security import DENY_ALL, Allow, Everyone
-from pyramid.threadlocal import get_current_request
+from pyramid.security import Allow, DENY_ALL, Everyone
 from zope.interface import implementer
 
 from .events import RootCreated
@@ -21,23 +20,18 @@ class Root(SimpleContainer):
         DENY_ALL
     ]
 
-    @property
-    def request(self):
+    def __init__(self, registry):
         """
-        :rtype: pyramid.request.Request
+        :type registry: pyramid.registry.Registry
         """
-        return get_current_request()
-
-
-def bootstrap(request, root_class=Root):
-    root = root_class()
-    notify(RootCreated(root), request)
-    return root
+        super(Root, self).__init__()
+        self.registry = registry
 
 
 def root_factory(request, root_class=Root):
     root = getattr(request.registry, '_restfw_root', None)
     if not root:
-        root = bootstrap(request, root_class)
+        root = root_class(registry=request.registry)
         request.registry._restfw_root = root
+        notify(RootCreated(root), request)
     return root

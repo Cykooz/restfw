@@ -6,6 +6,7 @@
 from __future__ import unicode_literals
 
 import six
+
 from pyramid.interfaces import ILocation
 from zope.interface import Attribute, Interface
 
@@ -118,8 +119,8 @@ class IResource(ILocation):
 
 class IRoot(IResource):
     """Interface for root resource"""
-
-    request = Attribute('Current request object')
+    registry = Attribute('Registry of Pyramid application')
+    request = Attribute('Current request object (deprecated)')
 
 
 class ISubResourceFabric(Interface):
@@ -166,6 +167,29 @@ class IHalResourceWithEmbedded(IResource):
         :type request: pyramid.request.Request
         :type params: dict
         :rtype: EmbeddedResult
+        """
+
+
+class IExternalLinkAdapter(Interface):
+    title = Attribute('Title for schema node')
+    description = Attribute('Description for schema node')
+    optional = Attribute('Link is optional')
+    templated = Attribute('Link is templated')
+
+    def get_link(request):
+        """
+        :type request: pyramid.request.Request
+        :rtype: str or None
+        """
+
+
+class IExternalLinkFabric(Interface):
+
+    def __call__(request, resource):
+        """
+        :type request: pyramid.request.Request
+        :type resource: IHalResource
+        :rtype: str or None
         """
 
 

@@ -4,9 +4,11 @@
 :Date: 13.12.2017
 """
 import itertools
-
 import six
+
 from pyramid.interfaces import ILocation
+from pyramid.registry import Registry
+from pyramid.request import Request
 from pyramid.traversal import quote_path_segment
 from zope.interface import implementer
 
@@ -22,32 +24,51 @@ class HalResource(Resource):
 
     def get_links(self, request):
         """
-        :type request: pyramid.request.Request
+        :type request: Request
         :rtype: dict
         """
         return {'self': {'href': request.resource_url(self)}}
 
     def __json__(self, request):
         """
-        :type request: pyramid.request.Request
+        :type request: Request
         :rtype: dict
         """
         result = self.as_dict(request)
         links = self.get_links(request)
+        registry = request.registry  # type: Registry
+
+        # Add external links
+        for name, link_fabric in self.get_external_links(registry):
+            link = link_fabric.get_link(request)
+            if not link:
+                continue
+            link = {'href': link}
+            if link_fabric.templated:
+                link['templated'] = True
+            links[name] = link
+
         # Add links to sub-resources
         self_url = links['self']['href']
-        for name, _ in self.get_sub_resources(request.registry):
+        for name, _ in self.get_sub_resources(registry):
             links[name] = {'href': self_url + quote_path_segment(name) + '/'}
         result['_links'] = links
         return result
 
+    def get_external_links(self, registry):
+        """
+        :type registry: Registry
+        """
+        for name, fabric in registry.getAdapters((self,), interfaces.IExternalLinkAdapter):
+            yield name, fabric
+
     def as_embedded(self, request):
         """
-        :type request: pyramid.request.Request
+        :type request: Request
         :rtype: dict
         """
         result = self.as_dict(request)
-        # Embedded version of resource has not links to sub-resources
+        # The embedded version of resource has not links to sub-resources
         result['_links'] = self.get_links(request)
         return result
 
@@ -85,7 +106,7 @@ class HalResourceWithEmbedded(HalResource):
 
     def get_embedded(self, request, params):
         """
-        :type request: pyramid.request.Request
+        :type request: Request
         :type params: dict
         :rtype: EmbeddedResources
         """
@@ -95,7 +116,7 @@ class HalResourceWithEmbedded(HalResource):
 
     def http_get(self, request, params):
         """
-        :type request: pyramid.request.Request
+        :type request: Request
         :type params: dict
         :rtype: dict
         """

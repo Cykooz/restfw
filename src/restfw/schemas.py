@@ -3,10 +3,10 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
+import six
 from functools import partial
 
 import colander
-import six
 from pyramid.interfaces import ILocation
 from pyramid.traversal import find_resource
 from six.moves.urllib_parse import urlsplit
@@ -342,18 +342,32 @@ class HalLinksSchema(colander.MappingSchema):
     self = HalLinkNode(title='Link to this resource')
 
     def after_bind(self, node, kw):
-        """Add links to sub-resources.
+        """Add external links and links to sub-resources
         :type node: colander.SchemaNode
         :type kw: dict
         """
         if kw.get('is_embedded', False):
-            # Do not add links to sub-resources into schema of embedded resource.
-            # Because current ``context`` is not an embedded resource.
+            # Do not add external links and links to sub-resources into schema
+            # of embedded resource. Because current ``context`` is not
+            # an embedded resource.
             return
         request = kw.get('request')
         context = kw.get('context')
         if not request or not context:
             return
+
+        for name, link_fabric in context.get_external_links(request.registry):
+            if name and not node.get(name):
+                missing = colander.drop if link_fabric.optional else colander.required
+                title = link_fabric.title or ('Link to %s' % name)
+                child = HalLinkNode(
+                    name=name,
+                    title=title,
+                    description=link_fabric.description,
+                    missing=missing,
+                ).bind(**kw)
+                node.add(child)
+
         for name, _ in context.get_sub_resources(request.registry):
             if name and not node.get(name):
                 child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(**kw)

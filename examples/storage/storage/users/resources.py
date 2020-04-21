@@ -3,7 +3,7 @@
 :Authors: cykooz
 :Date: 24.01.2020
 """
-from pyramid.security import Allow, ALL_PERMISSIONS
+from pyramid.security import ALL_PERMISSIONS, Allow
 
 from restfw.hal import HalResource, HalResourceWithEmbedded, list_to_embedded_resources
 from restfw.interfaces import MethodOptions
@@ -53,7 +53,7 @@ class Users(HalResourceWithEmbedded):
     def get_embedded(self, request, params):
         users = [
             User(model, parent=self)
-            for model in UserModel.get_models(request)
+            for model in UserModel.get_models(request.registry)
         ]
         return list_to_embedded_resources(
             request, params, users,
@@ -71,7 +71,7 @@ class Users(HalResourceWithEmbedded):
         """
         name = params['name']
 
-        if UserModel.get_model(request, name):
+        if UserModel.get_model(request.registry, name):
             raise create_validation_error(
                 self.options_for_post.input_schema,
                 'Name "%s" is busy' % name,
