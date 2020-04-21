@@ -24,6 +24,7 @@ Features
   ``add_external_link_fabric_predicate``.
 - Added decorator ``restfw.config.external_link_config`` to
   declarative registration of fabric of external link.
+- Added method ``Resource.get_registry()``.
 
 Backward Incompatible Changes
 -----------------------------
