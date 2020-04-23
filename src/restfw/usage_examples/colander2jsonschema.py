@@ -87,9 +87,7 @@ def convert_oneof_validator_factory(null_values=(None,)):
 
 
 def convert_oneof_string_validator_factory():
-    """
-    :type null_values: iter
-    """
+
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -100,20 +98,13 @@ def convert_oneof_string_validator_factory():
         if isinstance(validator, colander.OneOf):
             converted = OrderedDict()
             converted['enum'] = list(validator.choices)
-            if not schema_node.required:
-                null_values = (None,)
-                if getattr(schema_node, 'allow_empty', False):
-                    null_values = ('', None)
-                converted['enum'].extend(list(null_values))
         return converted
 
     return validator_converter
 
 
 def convert_noneof_string_validator_factory():
-    """
-    :type null_values: iter
-    """
+
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -255,7 +246,6 @@ class TypeConverter(object):
 
 
 class BaseStringTypeConverter(TypeConverter):
-
     type = 'string'
     format = None
 
@@ -379,6 +369,7 @@ class NullableTypeConverter(TypeConverter):
             raise NoSuchConverter(str(schema_type))
         converter = converter_class(self.dispatcher)
         converted = converter(schema_node, converted=converted)
+        converted['type'] = [converted['type'], 'null']
         return converted
 
 

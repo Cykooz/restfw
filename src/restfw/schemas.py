@@ -37,20 +37,29 @@ class Nullable(colander.SchemaType):
         )
     """
 
-    def __init__(self, typ):
+    def __init__(self, typ, null_values=None):
         self.typ = typ
+        self.null_values = null_values or ['']
 
     def serialize(self, node, appstruct):
         if appstruct is None:
             return appstruct
-
         return self.typ.serialize(node, appstruct)
 
     def deserialize(self, node, cstruct):
-        if cstruct == '' or cstruct is None:
+        if cstruct is None or cstruct in self.null_values:
             return None
-
         return self.typ.deserialize(node, cstruct)
+
+
+class NullableValidator(object):
+
+    def __init__(self, validator):
+        self.validator = validator
+
+    def __call__(self, node, value):
+        if value is not None:
+            return self.validator(node, value)
 
 
 class EmptyString(colander.String):
@@ -107,7 +116,6 @@ class ResourceType(colander.SchemaType):
 
 # Basic nodes
 
-
 class MappingSchema(colander.SchemaNode):
     """Use this class instead of colander.MappingSchema
     to support urlencoded input data represented as instance of MultiDict."""
@@ -119,7 +127,19 @@ class PreserveMappingSchema(colander.MappingSchema):
         return UrlEncodeMapping(unknown='preserve')
 
 
-class StringNode(colander.SchemaNode):
+class BaseNode(colander.SchemaNode):
+
+    def __init__(self, *args, **kwargs):
+        nullable = kwargs.pop('nullable', False)
+        if nullable:
+            schema_type = self.schema_type
+            self.schema_type = lambda: Nullable(schema_type())
+        super(BaseNode, self).__init__(*args, **kwargs)
+        if nullable and self.validator is not None:
+            self.validator = NullableValidator(self.validator)
+
+
+class StringNode(BaseNode):
     schema_type = colander.String
 
     def __init__(self, *args, **kwargs):
@@ -139,6 +159,10 @@ class EmptyStringNode(colander.SchemaNode):
 
     def __init__(self, *args, **kwargs):
         self.strip = kwargs.pop('strip', True)
+        nullable = kwargs.pop('nullable', False)
+        if nullable:
+            schema_type = self.schema_type
+            self.schema_type = lambda: Nullable(schema_type(), null_values=[])
         super(EmptyStringNode, self).__init__(*args, **kwargs)
 
     def preparer(self, appstruct):
@@ -149,60 +173,57 @@ class EmptyStringNode(colander.SchemaNode):
         return appstruct
 
 
-class IntegerNode(colander.SchemaNode):
+class IntegerNode(BaseNode):
     schema_type = colander.Integer
 
     def __init__(self, *args, **kwargs):
         if kwargs.pop('allow_empty', False):
-            schema_type = self.schema_type
-            self.schema_type = lambda: Nullable(schema_type())
+            kwargs['nullable'] = True
         super(IntegerNode, self).__init__(*args, **kwargs)
 
 
-class UnsignedIntegerNode(colander.SchemaNode):
+class UnsignedIntegerNode(BaseNode):
     schema_type = colander.Integer
     validator = colander.Range(min=0)
 
 
-class FloatNode(colander.SchemaNode):
+class FloatNode(BaseNode):
     schema_type = colander.Float
 
 
-class MoneyNode(colander.SchemaNode):
+class MoneyNode(BaseNode):
     schema_type = colander.Money
 
 
-class BooleanNode(colander.SchemaNode):
+class BooleanNode(BaseNode):
     schema_type = colander.Boolean
 
 
-class DateTimeNode(colander.SchemaNode):
+class DateTimeNode(BaseNode):
     schema_type = colander.DateTime
 
     def __init__(self, *args, **kwargs):
         if kwargs.pop('allow_empty', False):
-            schema_type = self.schema_type
-            self.schema_type = lambda: Nullable(schema_type())
+            kwargs['nullable'] = True
         super(DateTimeNode, self).__init__(*args, **kwargs)
 
 
-class DateNode(colander.SchemaNode):
+class DateNode(BaseNode):
     schema_type = colander.Date
 
     def __init__(self, *args, **kwargs):
         if kwargs.pop('allow_empty', False):
-            schema_type = self.schema_type
-            self.schema_type = lambda: Nullable(schema_type())
+            kwargs['nullable'] = True
         super(DateNode, self).__init__(*args, **kwargs)
 
 
-class EmailNode(colander.SchemaNode):
+class EmailNode(BaseNode):
     title = 'Email'
     schema_type = colander.String
     validator = colander.All(colander.Length(max=250), colander.Email())
 
 
-class EmbeddedNode(colander.SchemaNode):
+class EmbeddedNode(BaseNode):
     schema_type = colander.Mapping
     title = 'Embedded resources'
 
@@ -212,7 +233,7 @@ class EmbeddedNode(colander.SchemaNode):
         return super(EmbeddedNode, self)._bind(kw)
 
 
-class SequenceNode(colander.SequenceSchema):
+class SequenceNode(BaseNode, colander.SequenceSchema):
 
     def __init__(self, *args, **kwargs):
         self.accept_scalar = kwargs.pop('accept_scalar', False)
@@ -222,7 +243,7 @@ class SequenceNode(colander.SequenceSchema):
         return colander.Sequence(accept_scalar=self.accept_scalar)
 
 
-class MappingNode(colander.MappingSchema):
+class MappingNode(BaseNode, colander.MappingSchema):
 
     def __init__(self, *args, **kwargs):
         self.unknown = kwargs.pop('unknown', 'ignore')
@@ -232,7 +253,7 @@ class MappingNode(colander.MappingSchema):
         return colander.Mapping(unknown=self.unknown)
 
 
-class ResourceNode(colander.SchemaNode):
+class ResourceNode(BaseNode):
     schema_type = ResourceType
 
 
@@ -331,10 +352,8 @@ class ResourceSchema(colander.MappingSchema):
 # HAL Schemas
 
 class HalLinkNode(colander.MappingSchema):
-    href = colander.SchemaNode(colander.String(), title='URL to a resource',
-                               validator=colander.url)
-    templated = colander.SchemaNode(colander.Boolean(), title='URL is templated',
-                                    default=False, missing=colander.drop)
+    href = StringNode(title='URL to a resource', validator=colander.url)
+    templated = BooleanNode(title='URL is templated', missing=colander.drop)
 
 
 class HalLinksSchema(colander.MappingSchema):
@@ -386,8 +405,16 @@ class DynamicHalLinksNode(colander.SchemaNode):
 
 
 class PagesHalLinksSchema(HalLinksSchema):
-    next = HalLinkNode(title='Link to the next page of list of embedded resources', missing=colander.drop)
-    prev = HalLinkNode(title='Link to the previous page of list of embedded resources', missing=colander.drop)
+    next = HalLinkNode(
+        title='Next page',
+        description='Link to the next page of list of embedded resources',
+        missing=colander.drop,
+    )
+    prev = HalLinkNode(
+        title='Previous page',
+        description='Link to the previous page of list of embedded resources',
+        missing=colander.drop,
+    )
 
 
 class HalResourceSchema(colander.MappingSchema):
@@ -406,17 +433,19 @@ def prepare_limit(value):
 
 class GetEmbeddedSchema(GetResourceSchema):
     """This schema can be used to get pagination parameters."""
-    embedded = colander.SchemaNode(colander.Boolean(), title='Include an embedded resources',
-                                   missing=True)
-    offset = colander.SchemaNode(colander.Integer(), title='Offset',
-                                 description='Offset from the start of children resources.',
-                                 default=0, missing=0,
-                                 validator=colander.Range(min=0))
-    limit = colander.SchemaNode(colander.Integer(), title='Limit',
-                                preparer=prepare_limit, missing=missing_limit,
-                                validator=colander.Range(min=0))
-    total_count = colander.SchemaNode(colander.Boolean(), title='Calculate total count',
-                                      missing=False)
+    embedded = BooleanNode(title='Include an embedded resources', missing=True)
+    offset = IntegerNode(
+        title='Offset',
+        description='Offset from the start of children resources.',
+        default=0, missing=0,
+        validator=colander.Range(min=0),
+    )
+    limit = IntegerNode(
+        title='Limit',
+        preparer=prepare_limit, missing=missing_limit,
+        validator=colander.Range(min=0),
+    )
+    total_count = BooleanNode(title='Calculate total count', missing=False)
 
 
 class EmbeddedItemsSchema(colander.MappingSchema):

@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-4.0b0 (2020-04-21)
-==================
+Next release
+============
 
 Features
 --------
@@ -25,6 +25,8 @@ Features
 - Added decorator ``restfw.config.external_link_config`` to
   declarative registration of fabric of external link.
 - Added method ``Resource.get_registry()``.
+- Added to all schema-nodes argument ``nullable``.
+- Added support of ``nullable`` nodes into ``colander2jsonschema`` converter.
 
 Backward Incompatible Changes
 -----------------------------
