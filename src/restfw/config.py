@@ -49,10 +49,10 @@ def add_sub_resource_fabric(config, fabric, name, parent=interfaces.IResource, *
         parent = (parent,)
 
     intr = config.introspectable(
-        'sub_resource_fabrics',
-        id(fabric),
-        config.object_description(fabric),
-        'sub_resource_fabric'
+        category_name='Sub-resource fabrics',
+        discriminator=id(fabric),
+        title=config.object_description(fabric),
+        type_name='sub-resource fabric',
     )
     intr['fabric'] = fabric
     intr['parent'] = parent
@@ -204,10 +204,10 @@ def add_external_link_fabric(config, fabric, name, resource_type=interfaces.IHal
         resource_type = (resource_type,)
 
     intr = config.introspectable(
-        category_name='external_link_fabric',
+        category_name='External link fabrics',
         discriminator=id(fabric),
         title=config.object_description(fabric),
-        type_name='external_link_fabric',
+        type_name='external link fabric',
     )
     intr['fabric'] = fabric
     intr['resource_type'] = resource_type

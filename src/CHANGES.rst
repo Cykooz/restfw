@@ -14,6 +14,16 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added method ``Resource.get_etag()`` and response header ``ETag``.
+- Added support of conditional requests with headers ``If-Match``
+  and ``If-None-Match``.
+
 4.0 (2020-06-10)
 ================
 

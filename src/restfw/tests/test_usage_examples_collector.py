@@ -33,8 +33,8 @@ class PutDummySchema(schemas.MappingSchema):
 
 class DummyResource(HalResource):
     """
-    Narrative documentation
-    =======================
+    The narrative documentation
+    ===========================
 
     Some info about
     DummyResource number.
@@ -279,7 +279,7 @@ def test_usage_examples_collector(web_app, app_config):
     # ... GET
     method = methods['GET']
     assert method.description == [
-        'Returns a resource, any of it representation or any response instance.'
+        'Returns a resource, any of representation or any response instance.'
     ]
     assert method.allowed_principals == {Everyone}
     assert method.input_schema is None

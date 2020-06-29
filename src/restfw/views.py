@@ -45,7 +45,9 @@ def resource_get(context, request):
     :type request: pyramid.request.Request
     :rtype: object
     """
-    return call_resource_method(context, request)
+    result = call_resource_method(context, request)
+    _try_add_etag(request, result)
+    return result
 
 
 @view_config(request_method='POST', context=IResource, permission='post')
@@ -55,14 +57,15 @@ def resource_post(context, request):
     :type request: pyramid.request.Request
     :rtype: object
     """
-    resource, created = call_resource_method(context, request)
-    if resource is None:
+    result, created = call_resource_method(context, request)
+    if result is None:
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        if ILocation.providedBy(resource):
-            request.response.headers['Location'] = request.resource_url(resource)
-    return resource
+        if ILocation.providedBy(result):
+            request.response.headers['Location'] = request.resource_url(result)
+    _try_add_etag(request, result)
+    return result
 
 
 @view_config(request_method='PUT', context=IResource, permission='put')
@@ -72,14 +75,15 @@ def resource_put(context, request):
     :type request: pyramid.request.Request
     :rtype: object
     """
-    resource, created = call_resource_method(context, request)
-    if resource is None:
+    result, created = call_resource_method(context, request)
+    if result is None:
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        if ILocation.providedBy(resource):
-            request.response.headers['Location'] = request.resource_url(resource)
-    return resource
+        if ILocation.providedBy(result):
+            request.response.headers['Location'] = request.resource_url(result)
+    _try_add_etag(request, result)
+    return result
 
 
 @view_config(request_method='PATCH', context=IResource, permission='patch')
@@ -89,14 +93,15 @@ def resource_patch(context, request):
     :type request: pyramid.request.Request
     :rtype: object
     """
-    resource, created = call_resource_method(context, request)
-    if resource is None:
+    result, created = call_resource_method(context, request)
+    if result is None:
         return httpexceptions.HTTPNoContent()
     if created:
         request.response.status = 201
-        if ILocation.providedBy(resource):
-            request.response.headers['Location'] = request.resource_url(resource)
-    return resource
+        if ILocation.providedBy(result):
+            request.response.headers['Location'] = request.resource_url(result)
+    _try_add_etag(request, result)
+    return result
 
 
 @view_config(request_method='DELETE', context=IResource, permission='delete')
@@ -109,4 +114,12 @@ def resource_delete(context, request):
     result = call_resource_method(context, request)
     if result is None:
         return httpexceptions.HTTPNoContent()
+    _try_add_etag(request, result)
     return result
+
+
+def _try_add_etag(request, resource):
+    if IResource.providedBy(resource):
+        etag = resource.get_etag()
+        if etag is not None:
+            request.response.etag = (etag.value, etag.is_strict)

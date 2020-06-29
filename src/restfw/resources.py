@@ -87,6 +87,12 @@ class Resource(object):
         root = find_root(self)
         return root.registry
 
+    def get_etag(self):
+        """Returns value of ETag header for the resource or None.
+        :rtype: restfw.utils.ETag or None
+        """
+        return None
+
     options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.ResourceSchema)
 
     def http_head(self, request, params):
@@ -99,27 +105,27 @@ class Resource(object):
         return self.http_get(request, params)
 
     def http_get(self, request, params):
-        """Returns a resource, any of it representation or any response instance."""
+        """Returns a resource, any of representation or any response instance."""
         return self
 
     options_for_post = None
 
     def http_post(self, request, params):
-        """Returns a new or modified resource and a flag indicating that the
+        """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'POST'})
 
     options_for_put = None
 
     def http_put(self, request, params):
-        """Returns a new or modified resource and a flag indicating that the
+        """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PUT'})
 
     options_for_patch = None
 
     def http_patch(self, request, params):
-        """Returns a new or modified resource and a flag indicating that the
+        """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PATCH'})
 

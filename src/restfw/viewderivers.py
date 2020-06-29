@@ -6,8 +6,9 @@
 import json
 
 import colander
-from pyramid.httpexceptions import HTTPMethodNotAllowed
+from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotModified, HTTPPreconditionFailed
 from pyramid.viewderivers import INGRESS
+from webob.etag import AnyETag, NoETag
 
 from .errors import ResultValidationError
 from .interfaces import IResource
@@ -27,7 +28,11 @@ def check_request_method_view(view, info):
         return view
 
     def mapped_view(context, request):
-        # type: (IResource, pyramid.request.Request) -> object
+        """
+        :type context: IResource
+        :type request: pyramid.request.Request
+        :rtype: object
+        """
         method = request.method
         if (context is not request.root and
                 IResource.providedBy(context) and
@@ -36,6 +41,48 @@ def check_request_method_view(view, info):
                 method = 'GET'
             if method not in context.get_allowed_methods():
                 raise HTTPMethodNotAllowed('The method %s is not allowed for this resource.' % request.method)
+        return view(context, request)
+
+    return mapped_view
+
+
+def process_conditional_requests(view, info):
+    """
+    :type view: Callable[[object, object], object]
+    :type info: pyramid.interfaces.IViewDeriverInfo
+    :rtype: object
+    """
+    if info.exception_only:
+        return view
+    if info.options.get('name'):
+        # Do not wrap a custom named view for resource.
+        return view
+
+    def mapped_view(context, request):
+        """
+        :type context: IResource
+        :type request: pyramid.request.Request
+        :rtype: object
+        """
+        if context is not request.root and IResource.providedBy(context):
+            if_match = request.if_match
+            if_none_match = request.if_none_match
+            if if_match is not AnyETag or if_none_match is not NoETag:
+                etag = context.get_etag()
+                if etag is None:
+                    if None not in if_match:
+                        raise HTTPPreconditionFailed({'etag': None})
+                else:
+                    # https://tools.ietf.org/html/rfc7232#section-6
+                    # https://tools.ietf.org/html/rfc7232#section-2.3.2
+                    if if_match is not AnyETag:
+                        if not etag.is_strict or etag.value not in if_match:
+                            raise HTTPPreconditionFailed({'etag': etag.serialize()})
+                    if etag.value in if_none_match:
+                        if request.method in ('GET', 'HEAD'):
+                            raise HTTPNotModified()
+                        raise HTTPPreconditionFailed({'etag': etag.serialize()})
+
         return view(context, request)
 
     return mapped_view
@@ -105,9 +152,15 @@ def check_result_schema(view, info):
 
 
 def register_view_derivers(config):
-    config.add_view_deriver(check_request_method_view,
-                            name='check_request_method_view',
-                            under=INGRESS)
+    config.add_view_deriver(
+        check_request_method_view,
+        name='check_request_method_view',
+        under=INGRESS,
+    )
+    config.add_view_deriver(
+        process_conditional_requests,
+        name='process_conditional_requests',
+        under='check_request_method_view',
+    )
     if is_testing(config.registry):
-        config.add_view_deriver(check_result_schema,
-                                name='check_result_schema')
+        config.add_view_deriver(check_result_schema, name='check_result_schema')

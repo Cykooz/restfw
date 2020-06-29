@@ -4,15 +4,16 @@
 :Date: 26.08.2016
 """
 import re
+import six
 from contextlib import contextmanager
 
 import colander
-import six
 from pyramid.interfaces import IRequestFactory, IRootFactory
 from pyramid.request import Request, apply_request_extensions
 from pyramid.threadlocal import RequestContext, get_current_request
 from pyramid.traversal import DefaultRootFactory, find_resource
 from typing import ContextManager
+from webob.descriptors import serialize_etag_response
 from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
@@ -240,3 +241,24 @@ def get_object_fullname(o):
     if module is None or module == str.__class__.__module__:
         return o.__name__  # Avoid reporting __builtin__
     return '%s.%s' % (module, o.__name__)
+
+
+class ETag(object):
+    __slots__ = ('value', 'is_strict')
+
+    def __init__(self, value, is_strict=True):
+        """
+        :type value: str
+        :type is_strict: bool
+        """
+        self.value = value
+        self.is_strict = is_strict
+
+    def __repr__(self):
+        return '<ETag %s>' % self.serialize()
+
+    def serialize(self):
+        """
+        :rtype: str
+        """
+        return serialize_etag_response((self.value, self.is_strict))

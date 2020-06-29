@@ -66,6 +66,16 @@ class IResource(ILocation):
         :rtype: set
         """
 
+    def get_registry():
+        """Returns registry instance.
+        :rtype: pyramid.registry.Registry
+        """
+
+    def get_etag():
+        """Returns value of ETag header for the resource or None.
+        :rtype: restfw.utils.ETag or None
+        """
+
     def http_head(request, params):
         """This method may be used in derived classes to overwrite
         a default implementation for HEAD request handler.
@@ -109,11 +119,6 @@ class IResource(ILocation):
         """Delete the resource. Returns None or some resource
         :type request: pyramid.request.Request
         :type params: dict
-        """
-
-    def get_request():
-        """Returns current request instance.
-        :rtype: pyramid.registry.Registry
         """
 
 
