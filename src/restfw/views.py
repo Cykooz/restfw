@@ -46,7 +46,7 @@ def resource_get(context, request):
     :rtype: object
     """
     result = call_resource_method(context, request)
-    _try_add_etag(request, result)
+    _try_add_etag(request, result, context)
     return result
 
 
@@ -82,7 +82,7 @@ def resource_put(context, request):
         request.response.status = 201
         if ILocation.providedBy(result):
             request.response.headers['Location'] = request.resource_url(result)
-    _try_add_etag(request, result)
+    _try_add_etag(request, result, context)
     return result
 
 
@@ -100,7 +100,7 @@ def resource_patch(context, request):
         request.response.status = 201
         if ILocation.providedBy(result):
             request.response.headers['Location'] = request.resource_url(result)
-    _try_add_etag(request, result)
+    _try_add_etag(request, result, context)
     return result
 
 
@@ -118,8 +118,11 @@ def resource_delete(context, request):
     return result
 
 
-def _try_add_etag(request, resource):
-    if IResource.providedBy(resource):
-        etag = resource.get_etag()
-        if etag is not None:
-            request.response.etag = (etag.value, etag.is_strict)
+def _try_add_etag(request, result, context=None):
+    etag = None
+    if IResource.providedBy(result):
+        etag = result.get_etag()
+    elif context is not None:
+        etag = context.get_etag()
+    if etag is not None:
+        request.response.etag = (etag.value, etag.is_strict)

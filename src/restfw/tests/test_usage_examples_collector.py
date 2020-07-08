@@ -15,7 +15,7 @@ from ..interfaces import MethodOptions
 from ..usage_examples import UsageExamples
 from ..usage_examples.collector import UsageExamplesCollector
 from ..usage_examples.utils import sphinx_doc_filter
-from ..utils import get_object_fullname
+from ..utils import ETag, get_object_fullname
 
 
 # Schemas
@@ -48,6 +48,9 @@ class DummyResource(HalResource):
 
     def __init__(self):
         self.value = 0
+
+    def get_etag(self):
+        return ETag(str(self.value))
 
     options_for_get = MethodOptions(None, DummySchema)
 
@@ -229,8 +232,8 @@ def test_usage_examples_collector(web_app, app_config):
     assert info.count_of_entry_points == 2
     assert info.class_name == dummy_class_name
     assert info.description == [
-        'Narrative documentation',
-        '=======================',
+        'The narrative documentation',
+        '===========================',
         '',
         'Some info about',
         'DummyResource number.',
@@ -285,9 +288,12 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.input_schema is None
     assert method.output_schema is not None
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
-    assert len(method.examples_info) == 1
-    assert [ei.response_info.status_code for ei in method.examples_info] == [200]
+    assert len(method.examples_info) == 3
+    assert [ei.response_info.status_code for ei in method.examples_info] == [200, 412, 304]
     assert method.examples_info[0].description == 'Get info about Dummy resource.'
+    assert method.examples_info[0].response_info.headers['ETag'] == '"0"'
+    assert method.examples_info[0].response_info.expected_headers['ETag'] == '"0"'
+
     # ... PUT
     method = methods['PUT']
     assert method.description == [
@@ -301,8 +307,8 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.output_schema is not None
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
     assert method.output_schema.description == ['Some schema description.']
-    assert len(method.examples_info) == 4
-    assert [ei.response_info.status_code for ei in method.examples_info] == [401, 403, 200, 422]
+    assert len(method.examples_info) == 6
+    assert [ei.response_info.status_code for ei in method.examples_info] == [401, 403, 200, 422, 412, 412]
 
     # Dummy Entry Point 2 info
     ep_info = collector.entry_points_info[dummy_usage2_id]

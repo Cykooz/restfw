@@ -6,10 +6,12 @@
 from __future__ import unicode_literals
 
 import logging
+import six
 from collections import OrderedDict
 from copy import deepcopy
 
-import six
+from cykooz.testing import ANY
+from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
@@ -201,6 +203,51 @@ class UsageExamplesCollector(object):
         send = _ExampleInfoCollector(self.web_app, usage_examples, method)
         send_requests(send)
 
+        if send.results and method in ('head', 'get'):
+            etag = usage_examples.resource.get_etag()
+            if etag:
+                etag = etag.serialize()
+                if all(not res.request_info.headers or 'If-Match' not in res.request_info.headers
+                       for res in send.results):
+                    send(
+                        headers={'If-Match': '"__bad_etag__"'},
+                        exception=HTTPPreconditionFailed({'etag': etag}),
+                    )
+                if all(not res.request_info.headers or 'If-None-Match' not in res.request_info.headers
+                       for res in send.results):
+                    send(
+                        headers={'If-None-Match': etag},
+                        exception=HTTPNotModified,
+                    )
+        elif send.results and method in ('put', 'patch'):
+            etag = usage_examples.resource.get_etag()
+            if etag:
+                etag = etag.serialize()
+                if all(not res.request_info.headers or 'If-Match' not in res.request_info.headers
+                       for res in send.results):
+                    send(
+                        headers={'If-Match': '"__bad_etag__"'},
+                        exception=HTTPPreconditionFailed({'etag': ANY}),
+                    )
+                if all(not res.request_info.headers or 'If-None-Match' not in res.request_info.headers
+                       for res in send.results):
+                    # if 'HEAD' in usage_examples.allowed_methods:
+                    #     params, headers = usage_examples.authorize_request(None, None, None)
+                    #     head_res = self.web_app.head(usage_examples.resource_url, params=params, headers=headers)
+                    #     etag = head_res.headers['ETag']
+                    resource = usage_examples.resource
+                    parent = resource.__parent__
+                    if parent and 'GET' in usage_examples.allowed_methods:
+                        # Get a new resource instance with refreshed internal state
+                        etag = parent[resource.__name__].get_etag().serialize()
+                    else:
+                        # WARNING: This value of etag may be obsolete
+                        etag = etag.serialize()
+                    send(
+                        headers={'If-None-Match': etag},
+                        exception=HTTPPreconditionFailed({'etag': ANY}),
+                    )
+
         return send.results
 
     def _get_schema_info(self, schema_class, request, context):
@@ -222,23 +269,23 @@ class UsageExamplesCollector(object):
 
 class _ExampleInfoCollector(resource_testing.RequestsTester):
 
-    def __init__(self, web_app, resource_examples, method):
+    def __init__(self, web_app, usage_examples, method):
         """
         :type web_app: restfw.testing.webapp.WebApp
-        :type resource_examples: UsageExamples
+        :type usage_examples: UsageExamples
         :type method: str
         """
-        super(_ExampleInfoCollector, self).__init__(web_app, resource_examples)
+        super(_ExampleInfoCollector, self).__init__(web_app, usage_examples)
         self.method = method
         self.results = []  # type: List[structs.ExampleInfo]
 
-    def __call__(self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+    def __call__(self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None,
+                 result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False):
         params = params if params is not resource_testing.DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)
 
-        params, headers = self.resource_examples.authorize_request(params, headers, auth)
+        params, headers = self.usage_examples.authorize_request(params, headers, auth)
         response = web_method(
             self.resource_url, params=params, headers=headers,
             exception=exception, status=status
@@ -252,14 +299,19 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
 
         status_code = response.status_code
         status_name = http_client.responses.get(status_code, '')
-        json_body = response.json_body if response.status_code != 204 else None
+        json_body = response.json_body if response.status_code not in (204, 304) else None
         if status_code >= 400 and json_body:
             status_name = json_body.get('code', status_name)
+
+        if 'ETag' in response.headers:
+            result_headers = result_headers or {}
+            if 'ETag' not in result_headers:
+                result_headers['ETag'] = response.headers['ETag']
 
         response_info = structs.ResponseInfo(
             status_code, status_name,
             headers=deepcopy(dict(response.headers)),
             expected_headers=deepcopy(dict(result_headers)) if result_headers else None,
-            json_body=response.json_body if response.status_code != 204 else None
+            json_body=json_body
         )
         self.results.append(structs.ExampleInfo(request_info, response_info, description, exclude_from_doc))
