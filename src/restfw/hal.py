@@ -40,6 +40,9 @@ class HalResource(Resource):
 
         # Add external links
         for name, link_fabric in self.get_external_links(registry):
+            if name in links:
+                # Don't overwrite the link added by resource
+                continue
             link = link_fabric.get_link(request)
             if not link:
                 continue
@@ -51,6 +54,9 @@ class HalResource(Resource):
         # Add links to sub-resources
         self_url = links['self']['href']
         for name, _ in self.get_sub_resources(registry):
+            if name in links:
+                # Don't overwrite the link added by resource
+                continue
             links[name] = {'href': self_url + quote_path_segment(name) + '/'}
         result['_links'] = links
         return result

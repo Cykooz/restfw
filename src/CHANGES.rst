@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-4.1b1 (2020-07-08)
-==================
+Next release
+============
 
 Features
 --------
@@ -23,6 +23,12 @@ Features
 - Added method ``Resource.get_etag()`` and response header ``ETag``.
 - Added support of conditional requests with headers ``If-Match``
   and ``If-None-Match``.
+
+Changes
+-------
+
+- Method ``HalResource.__json__()`` don't overwrite a links,
+  added by ``HalResource.get_links()`` method.
 
 4.0 (2020-06-10)
 ================
