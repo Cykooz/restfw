@@ -432,13 +432,28 @@ def prepare_limit(value):
 
 
 class GetEmbeddedSchema(GetResourceSchema):
-    """This schema can be used to get pagination parameters."""
+    """This schema can be used to get pagination parameters based on offset of page start."""
     embedded = BooleanNode(title='Include an embedded resources', missing=True)
     offset = IntegerNode(
         title='Offset',
         description='Offset from the start of children resources.',
         default=0, missing=0,
         validator=colander.Range(min=0),
+    )
+    limit = IntegerNode(
+        title='Limit',
+        preparer=prepare_limit, missing=missing_limit,
+        validator=colander.Range(min=0),
+    )
+    total_count = BooleanNode(title='Calculate total count', missing=False)
+
+
+class GetNextPageSchema(GetResourceSchema):
+    """This schema can be used to get pagination parameters based on 'cursor' position."""
+    embedded = BooleanNode(title='Include an embedded resources', missing=True)
+    cursor_next = StringNode(
+        title='Next item position', missing='',
+        description='Position of next item used for listing in forward direction.'
     )
     limit = IntegerNode(
         title='Limit',

@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-4.1b2 (2020-07-15)
-==================
+Next release
+============
 
 Features
 --------
@@ -23,6 +23,8 @@ Features
 - Added method ``Resource.get_etag()`` and response header ``ETag``.
 - Added support of conditional requests with headers ``If-Match``
   and ``If-None-Match``.
+- Added schema ``GetNextPageSchema`` and basic support of cursor
+  based pagination.
 
 Changes
 -------

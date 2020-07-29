@@ -410,12 +410,19 @@ def assert_container_listing(usage_examples, web_app):
     embedded = list(res['_embedded'].values())[0]
     assert len(embedded) == min(total_count - 2, 2)
 
-    prev_link = res['_links']['prev']['href']
-    res = web_app.get(prev_link, headers=headers)
-    assert res.headers['X-Total-Count'] == str(total_count)
-    res = res.json_body
-    embedded = list(res['_embedded'].values())[0]
-    assert len(embedded) == 2
+    is_offset_paging = 'offset=' in next_link
+
+    prev_link = res['_links'].get('prev', {}).get('href', '')
+    if is_offset_paging:
+        # Offset based pagination must have a link to previews page
+        assert prev_link > ''
+
+    if prev_link:
+        res = web_app.get(prev_link, headers=headers)
+        assert res.headers['X-Total-Count'] == str(total_count)
+        res = res.json_body
+        embedded = list(res['_embedded'].values())[0]
+        assert len(embedded) == 2
 
     # `limit` is less than `max_value_of_limit`
     params = {'limit': 1, 'total_count': True}
@@ -433,19 +440,20 @@ def assert_container_listing(usage_examples, web_app):
     embedded = list(res.json_body['_embedded'].values())[0]
     assert len(embedded) == 2
 
-    params = {'offset': 2, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
-    res = web_app.get(resource_url, params=params, headers=headers)
-    assert res.headers['X-Total-Count'] == str(total_count)
-    embedded = list(res.json_body['_embedded'].values())[0]
-    assert len(embedded) == min(total_count - 2, 2)
+    if is_offset_paging:
+        params = {'offset': 2, 'total_count': True}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        res = web_app.get(resource_url, params=params, headers=headers)
+        assert res.headers['X-Total-Count'] == str(total_count)
+        embedded = list(res.json_body['_embedded'].values())[0]
+        assert len(embedded) == min(total_count - 2, 2)
 
-    params = {'limit': 1, 'offset': 1, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
-    res = web_app.get(resource_url, params=params, headers=headers)
-    assert res.headers['X-Total-Count'] == str(total_count)
-    embedded = list(res.json_body['_embedded'].values())[0]
-    assert len(embedded) == 1
+        params = {'limit': 1, 'offset': 1, 'total_count': True}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        res = web_app.get(resource_url, params=params, headers=headers)
+        assert res.headers['X-Total-Count'] == str(total_count)
+        embedded = list(res.json_body['_embedded'].values())[0]
+        assert len(embedded) == 1
 
     params = {'embedded': False}
     params, headers = usage_examples.authorize_request(params, base_headers)
@@ -461,14 +469,25 @@ def assert_container_listing(usage_examples, web_app):
 
     ValidationError = usage_examples.ValidationError
 
-    params = {'offset': 'off', 'limit': 'lim'}
-    params, headers = usage_examples.authorize_request(params, base_headers)
-    web_app.get(resource_url, params=params, headers=headers,
-                exception=ValidationError({'limit': '"lim" is not a number',
-                                           'offset': '"off" is not a number'}))
+    if is_offset_paging:
+        params = {'offset': 'off', 'limit': 'lim'}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        web_app.get(resource_url, params=params, headers=headers,
+                    exception=ValidationError({'limit': '"lim" is not a number',
+                                               'offset': '"off" is not a number'}))
 
-    params = {'offset': -1, 'limit': -1}
-    params, headers = usage_examples.authorize_request(params, base_headers)
-    web_app.get(resource_url, params=params, headers=headers,
-                exception=ValidationError({'limit': '-1 is less than minimum value 0',
-                                           'offset': '-1 is less than minimum value 0'}))
+        params = {'offset': -1, 'limit': -1}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        web_app.get(resource_url, params=params, headers=headers,
+                    exception=ValidationError({'limit': '-1 is less than minimum value 0',
+                                               'offset': '-1 is less than minimum value 0'}))
+    else:
+        params = {'limit': 'lim'}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        web_app.get(resource_url, params=params, headers=headers,
+                    exception=ValidationError({'limit': '"lim" is not a number'}))
+
+        params = {'limit': -1}
+        params, headers = usage_examples.authorize_request(params, base_headers)
+        web_app.get(resource_url, params=params, headers=headers,
+                    exception=ValidationError({'limit': '-1 is less than minimum value 0'}))
