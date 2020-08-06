@@ -32,11 +32,12 @@ def simple_app(global_config, **settings):
         return config.make_wsgi_app()
 
 
-def create_app_env(apps=None):
+def create_app_env(apps=None, pyramid_settings=None):
     global_config = {
         'apps': '\n'.join(apps or []),
     }
-    settings = {'testing': True}
+    settings = pyramid_settings or {}
+    settings['testing'] = True
     wsgi_app = simple_app(global_config, **settings)
     env = prepare()
     env['app'] = wsgi_app
@@ -48,12 +49,17 @@ def pyramid_apps_fixture():
     return []
 
 
+@pytest.fixture(name='pyramid_settings', scope='session')
+def pyramid_settings_fixture():
+    return {}
+
+
 @pytest.fixture(name='web_app')
-def web_app_fixture(pyramid_apps):
+def web_app_fixture(pyramid_apps, pyramid_settings):
     """
     :rtype: WebApp
     """
-    app_env_fabric = partial(create_app_env, apps=pyramid_apps)
+    app_env_fabric = partial(create_app_env, apps=pyramid_apps, pyramid_settings=pyramid_settings)
     with WebApp(app_env_fabric) as web_app:
         yield web_app
 

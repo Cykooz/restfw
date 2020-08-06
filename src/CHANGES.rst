@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Added testing fixture ``pyramid_settings`` for change
+  pyramid's settings in tests.
+
 4.1 (2020-07-29)
 ================
 
