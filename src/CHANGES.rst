@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed errors with nullable ``StringNode`` and ``EmptyStringNode``.
+
 4.1.2 (2020-08-06)
 ==================
 

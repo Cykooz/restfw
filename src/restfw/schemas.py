@@ -39,7 +39,7 @@ class Nullable(colander.SchemaType):
 
     def __init__(self, typ, null_values=None):
         self.typ = typ
-        self.null_values = null_values or ['']
+        self.null_values = null_values if null_values is not None else ['']
 
     def serialize(self, node, appstruct):
         if appstruct is None:
@@ -147,9 +147,9 @@ class StringNode(BaseNode):
         super(StringNode, self).__init__(*args, **kwargs)
 
     def preparer(self, appstruct):
-        if appstruct is colander.null:
+        if appstruct is colander.null or appstruct is None:
             return appstruct
-        if self.strip:
+        if self.strip and appstruct:
             appstruct = appstruct.strip()
         return appstruct or colander.null
 
@@ -166,9 +166,9 @@ class EmptyStringNode(colander.SchemaNode):
         super(EmptyStringNode, self).__init__(*args, **kwargs)
 
     def preparer(self, appstruct):
-        if appstruct is colander.null:
+        if appstruct is colander.null or appstruct is None:
             return appstruct
-        if self.strip:
+        if self.strip and appstruct:
             appstruct = appstruct.strip()
         return appstruct
 

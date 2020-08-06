@@ -3,12 +3,13 @@
 :Authors: cykooz
 :Date: 05.02.2018
 """
-import colander
 import datetime
+
+import colander
 import pytest
 import pytz
 
-from ..schemas import IntegerNode, DateTimeNode, DateNode
+from ..schemas import DateNode, DateTimeNode, EmptyStringNode, IntegerNode, StringNode
 
 
 def test_serialize_empty_integer():
@@ -20,7 +21,7 @@ def test_serialize_empty_integer():
         node.serialize('')
     assert ex.value.msg == '"${val}" is not a number'
 
-    node = IntegerNode(allow_empty=True)
+    node = IntegerNode(nullable=True)
     assert node.serialize(0) == '0'
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is None
@@ -40,7 +41,7 @@ def test_deserialize_empty_integer():
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
 
-    node = IntegerNode(allow_empty=True)
+    node = IntegerNode(nullable=True)
     assert node.deserialize('0') == 0
     assert node.deserialize(None) is None
     assert node.deserialize('') is None
@@ -57,7 +58,7 @@ def test_serialize_empty_datetime():
     assert node.serialize(None) is colander.null
     assert node.serialize('') is colander.null
 
-    node = DateTimeNode(allow_empty=True)
+    node = DateTimeNode(nullable=True)
     assert node.serialize(now) == now.isoformat()
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is None
@@ -76,7 +77,7 @@ def test_deserialize_empty_datetime():
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
 
-    node = DateTimeNode(allow_empty=True)
+    node = DateTimeNode(nullable=True)
     assert node.deserialize(now.isoformat()) == now
     assert node.deserialize(None) is None
     assert node.deserialize('') is None
@@ -93,7 +94,7 @@ def test_serialize_empty_date():
     assert node.serialize(None) is colander.null
     assert node.serialize('') is colander.null
 
-    node = DateNode(allow_empty=True)
+    node = DateNode(nullable=True)
     assert node.serialize(now.date()) == now.date().isoformat()
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is None
@@ -112,10 +113,58 @@ def test_deserialize_empty_date():
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
 
-    node = DateNode(allow_empty=True)
+    node = DateNode(nullable=True)
     assert node.deserialize(now.date().isoformat()) == now.date()
     assert node.deserialize(None) is None
     assert node.deserialize('') is None
+    with pytest.raises(colander.Invalid) as ex:
+        node.deserialize(colander.null)
+    assert ex.value.msg == 'Required'
+
+
+def test_serialize_null_string():
+    node = StringNode()
+    assert node.serialize('s') == 's'
+    assert node.serialize(colander.null) is colander.null
+    assert node.serialize(None) == 'None'
+    assert node.serialize('') == ''
+
+    node = StringNode(nullable=True)
+    assert node.serialize('s') == 's'
+    assert node.serialize(colander.null) is colander.null
+    assert node.serialize(None) is None
+    assert node.serialize('') == ''
+
+    node = EmptyStringNode(nullable=True)
+    assert node.serialize('s') == 's'
+    assert node.serialize(colander.null) is colander.null
+    assert node.serialize(None) is None
+    assert node.serialize('') == ''
+
+
+def test_deserialize_null_string():
+    node = StringNode()
+    assert node.deserialize('s') == 's'
+    with pytest.raises(colander.Invalid):
+        node.deserialize(None)
+    with pytest.raises(colander.Invalid):
+        node.deserialize('')
+    with pytest.raises(colander.Invalid) as ex:
+        node.deserialize(colander.null)
+    assert ex.value.msg == 'Required'
+
+    node = StringNode(nullable=True)
+    assert node.deserialize('s') == 's'
+    assert node.deserialize(None) is None
+    assert node.deserialize('') is None
+    with pytest.raises(colander.Invalid) as ex:
+        node.deserialize(colander.null)
+    assert ex.value.msg == 'Required'
+
+    node = EmptyStringNode(nullable=True)
+    assert node.deserialize('s') == 's'
+    assert node.deserialize(None) is None
+    assert node.deserialize('') == ''
     with pytest.raises(colander.Invalid) as ex:
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
