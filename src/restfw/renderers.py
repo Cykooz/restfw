@@ -55,4 +55,8 @@ def build_json_renderer(**kwargs):
     return JSON(adapters=adapters, **kwargs)
 
 
-json_renderer = build_json_renderer()
+json_renderer = build_json_renderer(ensure_ascii=False)
+
+
+def add_adapter_into_json_renderer(type_or_iface, adapter):
+    json_renderer.add_adapter(type_or_iface, adapter)

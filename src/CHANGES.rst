@@ -14,6 +14,20 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added function ``add_adapter_into_json_renderer`` to add
+  custom adapters for JSON-renderer.
+
+Changes
+-------
+
+- JSON-renderer configured to produce UTF-8 JSON.
+
 4.1.4 (2020-08-06)
 ==================
 
