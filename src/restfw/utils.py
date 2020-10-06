@@ -218,13 +218,14 @@ def get_pyramid_root(request=None):
 
 
 @contextmanager
-def open_pyramid_request(registry):
+def open_pyramid_request(registry, path='http://localhost'):
     """
     :type registry: pyramid.registry.Registry
+    :type path: str
     :rtype: ContextManager[pyramid.request.Request]
     """
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
-    request = request_factory.blank('http://localhost')
+    request = request_factory.blank(path)
     request.registry = registry
     apply_request_extensions(request)
     get_pyramid_root(request)

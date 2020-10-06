@@ -14,14 +14,15 @@
 CHANGELOG
 *********
 
-4.2b0 (2020-08-28)
-==================
+Next release
+============
 
 Features
 --------
 
 - Added function ``add_adapter_into_json_renderer`` to add
   custom adapters for JSON-renderer.
+- Added argument ``path`` into ``open_pyramid_request()``.
 
 Changes
 -------
