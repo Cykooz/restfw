@@ -3,15 +3,12 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
-from __future__ import unicode_literals
-
-import six
 from pyramid import httpexceptions
 from pyramid.traversal import resource_path
 
 
 def exception__str__(self):
-    return six.text_type(self.detail or self.explanation)
+    return str(self.detail or self.explanation)
 
 
 httpexceptions.HTTPException.__str__ = exception__str__

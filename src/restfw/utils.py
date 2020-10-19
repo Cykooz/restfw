@@ -4,15 +4,14 @@
 :Date: 26.08.2016
 """
 import re
-import six
 from contextlib import contextmanager
+from typing import ContextManager
 
 import colander
 from pyramid.interfaces import IRequestFactory, IRootFactory
 from pyramid.request import Request, apply_request_extensions
 from pyramid.threadlocal import RequestContext, get_current_request
 from pyramid.traversal import DefaultRootFactory, find_resource
-from typing import ContextManager
 from webob.descriptors import serialize_etag_response
 from zope.interface.interfaces import IInterface
 
@@ -196,14 +195,14 @@ def find_resource_by_type(resource, path, class_or_interface):
 
 
 def force_utf8(v):
-    if isinstance(v, six.text_type):
+    if isinstance(v, str):
         return v.encode('utf-8')
     return v
 
 
 def force_dict_utf8(d):
     values = []
-    for k, v in six.iteritems(d):
+    for k, v in d.items():
         values.append((force_utf8(k), force_utf8(v)))
     return dict(values)
 

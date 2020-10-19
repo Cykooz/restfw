@@ -3,13 +3,12 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
-import six
 from functools import partial
+from urllib.parse import urlsplit
 
 import colander
 from pyramid.interfaces import ILocation
 from pyramid.traversal import find_resource
-from six.moves.urllib_parse import urlsplit
 from webob.multidict import MultiDict
 from zope.interface.interfaces import IInterface
 
@@ -488,15 +487,13 @@ def clone_schema_class(name, base_schema, only=None, excludes=None,
     :type replace_validators: dict
     :rtype: colander.SchemaNode
     """
-    if six.PY2 and isinstance(name, six.text_type):
-        name = name.encode()
     cloned_schema = type(name, (base_schema,), kwargs)
     all_schema_nodes = base_schema.__all_schema_nodes__[:]
     all_schema_nodes.extend(cloned_schema.__class_schema_nodes__)
     node_by_name = {node.name: node for node in all_schema_nodes}
     excludes = excludes or []
     for exclude in excludes:
-        if isinstance(exclude, six.string_types):
+        if isinstance(exclude, str):
             if exclude in node_by_name:
                 all_schema_nodes.remove(node_by_name[exclude])
                 del node_by_name[exclude]

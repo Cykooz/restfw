@@ -176,7 +176,7 @@ class DummyContainerExamples(UsageExamples):
             )
 
 
-def _prepare_env(request):
+def prepare_env(request):
     root = request.root
     keys = list(root.keys())
     for key in keys:
@@ -189,7 +189,7 @@ def test_usage_examples_collector(web_app, app_config):
 
     collector = UsageExamplesCollector(
         web_app,
-        prepare_env=_prepare_env,
+        prepare_env=prepare_env,
         docstring_filter=sphinx_doc_filter,
         logger=logger
     )

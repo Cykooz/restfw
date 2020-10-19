@@ -14,6 +14,20 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of different package prefixes for ``RstDocGenerator``.
+
+Backward Incompatible Changes
+-----------------------------
+
+- Dropped support of Python 2 and 3.5.
+- Argument ``app_prefix`` of ``RstDocGenerator`` class replaced by ``package_prefixes``.
+
 4.2 (2020-10-06)
 ================
 

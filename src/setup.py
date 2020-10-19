@@ -1,7 +1,10 @@
 # encoding: utf-8
 import os
 import sys
-from setuptools import setup, find_packages
+
+from setuptools import find_packages, setup
+
+
 sys.path.append('.')
 import version
 
@@ -29,9 +32,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
@@ -62,20 +63,17 @@ setup(
             'WebTest',
             'sphinx',
             'jinja2',
-            'pathlib2;python_version<"3.4"',
             'requests',
         ]
     },
     install_requires=[
         'setuptools',
-        'six',
         'colander',
         'pyramid>=1.8.3',
         'WebOb>=1.8.1',
         'zope.interface',
         'lru-dict',
         'venusian',
-        'typing;python_version<"3.6"',
     ],
     entry_points={
         'console_scripts':

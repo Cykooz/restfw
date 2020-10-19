@@ -3,25 +3,15 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
-from __future__ import print_function, unicode_literals
-
 import base64
 import re
 import sys
+from pathlib import Path
 
-import six
 from zope.interface import provider
 
-from ..utils import force_utf8
-
-
-try:
-    from pathlib import Path
-except ImportError:
-    # Python < 3.4
-    from pathlib2 import Path
-
 from . import interfaces
+from ..utils import force_utf8
 
 
 def get_relative_path(to_path, from_path, from_file=True):
@@ -85,7 +75,7 @@ def default_docstring_extractor(code_object):
     if not docstring:
         return []
 
-    if not isinstance(docstring, six.text_type):
+    if not isinstance(docstring, str):
         docstring = docstring.decode('utf-8')
 
     ignore = 1

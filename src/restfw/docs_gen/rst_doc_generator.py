@@ -3,45 +3,45 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
-from __future__ import unicode_literals
-
+import dataclasses
 import json
 import logging
 import os
 import shutil
+from pathlib import Path
+from typing import Dict, List, Optional
 
-import six
-from jinja2 import Environment, PackageLoader, ChoiceLoader
+from jinja2 import ChoiceLoader, Environment, PackageLoader
 from pyramid.encode import urlencode
 from sphinx.pycode import ModuleAnalyzer
 from sphinx.util import force_decode
 from sphinx.util.docstrings import prepare_docstring
 from zope.interface import provider
 
-
-try:
-    from pathlib import Path
-except ImportError:
-    # Python < 3.4
-    from pathlib2 import Path
-
+from ..testing.webapp import WebApp
 from ..usage_examples import interfaces
 from ..usage_examples.collector import UsageExamplesCollector
 from ..usage_examples.utils import get_relative_path
 
 
+@dataclasses.dataclass()
+class PackagePrefix:
+    prefix: str
+    name: str
+    slug: str
+
+
 class RstDocGenerator(object):
-    """Utility that generates rst-files (reStructuredText) with documentation
+    """Utility for generate rst-files (reStructuredText) with a documentation
     based of information collected from usage examples.
     """
 
-    def __init__(self, web_app, prepare_env=None, principal_formatter=None,
-                 app_prefix=None, templates_loader=None, logger=None):
+    def __init__(self, web_app: WebApp, prepare_env=None, principal_formatter=None,
+                 package_prefixes: Optional[List[PackagePrefix]] = None, templates_loader=None, logger=None):
         """
         :type web_app: restfw.testing.webapp.WebApp
         :type prepare_env: interfaces.IPrepareEnv or None
         :type principal_formatter: interfaces.IPrincipalFormatter or None
-        :type app_prefix: str or unicode or None
         :param templates_loader: Jinja2 templates loader to overwrite all or some templates
         :type templates_loader: jinja2.loaders.BaseLoader or None
         :param logger: logger instance
@@ -53,7 +53,7 @@ class RstDocGenerator(object):
             docstring_extractor=docstring_extractor,
             logger=logger
         )
-        self._app_prefix = app_prefix
+        self._package_prefixes = package_prefixes or []
         self._logger = logger or logging
 
         loader = PackageLoader('restfw.docs_gen', 'templates')
@@ -64,12 +64,10 @@ class RstDocGenerator(object):
             ])
         self._jinja_env = Environment(loader=loader, trim_blocks=True)
         self._jinja_env.filters['rst_header'] = _rst_header
-        self._ep_id_2_doc_path = {}  # type: dict[str, Path]
+        self._ep_id_2_doc_path: Dict[str, Path] = {}
 
-    def generate(self, dst_dir):
-        """Generate directories and files with API documentation.
-        :type dst_dir: Path
-        """
+    def generate(self, dst_dir: Path):
+        """Generate directories and files with API documentation."""
         self._collector.collect()
 
         self._logger.info('Generate ".rst" files...')
@@ -78,10 +76,8 @@ class RstDocGenerator(object):
         self._create_entry_points_rst()
 
     @staticmethod
-    def _prepare_dst_directory(dst_dir):
-        """Create destination directory or remove all it children except 'index.rst'.
-        :type dst_dir: Path
-        """
+    def _prepare_dst_directory(dst_dir: Path):
+        """Create destination directory or remove all it children except 'index.rst'."""
         if not dst_dir:
             dst_dir = Path.cwd()
         if dst_dir.is_dir():
@@ -94,16 +90,14 @@ class RstDocGenerator(object):
             dst_dir.mkdir(parents=True, exist_ok=True)
         return dst_dir
 
-    def _create_dirs_and_collect_ep_paths(self, dst_dir):
-        """Create directories and collect paths to entry points docs.
-        :type dst_dir: Path
-        """
+    def _create_dirs_and_collect_ep_paths(self, dst_dir: Path):
+        """Create directories and collect paths to entry points docs."""
         self._ep_id_2_doc_path = {}
         resources_info = self._collector.resources_info
 
-        for ep_id, entry_point_info in six.iteritems(self._collector.entry_points_info):
-            app_name = self._get_app_name(entry_point_info.examples_class_name)
-            app_dir_path = self._init_app_dir(app_name, dst_dir)
+        for ep_id, entry_point_info in self._collector.entry_points_info.items():
+            class_name = entry_point_info.examples_class_name
+            app_dir_path = self._init_app_dir(class_name, dst_dir)
 
             resource_info = resources_info[entry_point_info.resource_class_name]
             resource_dir_path = self._init_resource_dir(resource_info, app_dir_path)
@@ -120,7 +114,7 @@ class RstDocGenerator(object):
         """Create .rst files with entry point documentation."""
         resources_info = self._collector.resources_info
 
-        for ep_id, entry_point_info in six.iteritems(self._collector.entry_points_info):
+        for ep_id, entry_point_info in self._collector.entry_points_info.items():
             entry_point_path = self._ep_id_2_doc_path[ep_id]
             entry_point_url = self._get_entry_point_url(ep_id)
             resource_info = resources_info[entry_point_info.resource_class_name]
@@ -130,7 +124,7 @@ class RstDocGenerator(object):
 
             available_methods = ', '.join('`%s`_' % m for m in entry_point_info.methods.keys())
             methods = []
-            for method, method_info in six.iteritems(entry_point_info.methods):
+            for method, method_info in entry_point_info.methods.items():
                 methods.append(
                     self._render_method_to_rst(method, method_info)
                 )
@@ -151,37 +145,55 @@ class RstDocGenerator(object):
     def _get_template(self, name):
         return self._jinja_env.get_template(name)
 
-    def _get_app_name(self, class_name):
-        if self._app_prefix and class_name.startswith(self._app_prefix):
-            class_name = class_name[len(self._app_prefix):]
-        app_name = class_name.split('.')[0]
-        app_name = app_name.replace('_', ' ')
+    def _get_app_info(self, class_name):
+        package_name = ''
+        package_slug = ''
+        for package_prefix in self._package_prefixes:
+            prefix = package_prefix.prefix
+            if prefix and class_name.startswith(prefix):
+                package_name = package_prefix.name
+                package_slug = package_prefix.slug
+                class_name = class_name[len(prefix):]
+                break
+        class_package = class_name.partition('.')[0]
+        app_slug = class_package.replace(' ', '_').lower()
+        app_name = class_package.replace('_', ' ')
         app_name = app_name.upper() if len(app_name) <= 2 else app_name.title()
-        return app_name
+        package_dir_name = f'{package_slug}_pkg' if package_slug else ''
+        app_dir_name = f'{app_slug}_app'
+        return package_name, package_dir_name, app_dir_name, app_name
 
-    @staticmethod
-    def _get_app_dir_name(app_name):
-        dir_name = app_name.replace(' ', '_').lower() + '_app'
-        return dir_name
-
-    def _init_app_dir(self, app_name, parent_dir):
-        """Create directory and index.rst for application.
-        :type app_name: str
+    def _init_app_dir(self, class_name, parent_dir):
+        """Create a directory and index.rst for application.
+        :type class_name: str
         :type parent_dir: Path
         :rtype: Path
         """
-        app_dir_name = self._get_app_dir_name(app_name)
-        app_dir_path = parent_dir / app_dir_name
-        if app_dir_path.exists():
-            return app_dir_path
+        package_name, package_dir_name, app_dir_name, app_name = self._get_app_info(class_name)
+        if package_dir_name:
+            package_dir_path = parent_dir / package_dir_name
+            if not package_dir_path.exists():
+                # Create a directory and index.rst for package
+                package_dir_path.mkdir(parents=True, exist_ok=True)
+                template = self._get_template('package_index.rst')
+                index_path = package_dir_path / 'index.rst'
+                with index_path.open('w', encoding='utf-8-sig') as f:
+                    text = template.render(package_name=package_name)
+                    f.write(text)
 
-        # Create directory and index.rst for app
-        app_dir_path.mkdir(parents=True, exist_ok=True)
-        template = self._get_template('app_index.rst')
-        index_path = app_dir_path / 'index.rst'
-        with index_path.open('w', encoding='utf-8-sig') as f:
-            text = template.render(app_name=app_name + ' App')
-            f.write(text)
+        if package_dir_name:
+            app_dir_path = parent_dir / package_dir_name / app_dir_name
+        else:
+            app_dir_path = parent_dir / app_dir_name
+        if not app_dir_path.exists():
+            # Create a directory and index.rst for app
+            app_dir_path.mkdir(parents=True, exist_ok=True)
+            template = self._get_template('app_index.rst')
+            index_path = app_dir_path / 'index.rst'
+            with index_path.open('w', encoding='utf-8-sig') as f:
+                text = template.render(package_name=package_name, app_name=app_name + ' App')
+                f.write(text)
+
         return app_dir_path
 
     @staticmethod
@@ -355,7 +367,7 @@ def docstring_extractor(code_object):
     if not docstring:
         return []
 
-    if not isinstance(docstring, six.text_type):
+    if not isinstance(docstring, str):
         analyzer = ModuleAnalyzer.for_module(code_object.__module__)
         docstring = force_decode(docstring, analyzer.encoding)
     return prepare_docstring(docstring)

@@ -3,10 +3,6 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
-from __future__ import unicode_literals
-
-import six
-
 from pyramid.interfaces import ILocation
 from zope.interface import Attribute, Interface
 
@@ -27,7 +23,7 @@ class MethodOptions(object):
         """
         kwargs = {
             key: value
-            for key, value in six.iteritems(kwargs)
+            for key, value in kwargs.items()
             if key in self.__slots__
         }
         for key in self.__slots__:

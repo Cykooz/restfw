@@ -3,20 +3,17 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
-from __future__ import unicode_literals
-
 import logging
-import six
 from collections import OrderedDict
 from copy import deepcopy
+from http import client as http_client
+from typing import Dict, List
 
 from cykooz.testing import ANY
 from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
-from six.moves import http_client
-from typing import Dict, List
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
@@ -105,7 +102,7 @@ class UsageExamplesCollector(object):
                 url_to_ep_id[url] = ep_id
 
         # Fill property 'ep_id' in url elements
-        for entry_point_info in six.itervalues(entry_points_info):
+        for entry_point_info in entry_points_info.values():
             url = ''
             for element in entry_point_info.url_elements:
                 if url:

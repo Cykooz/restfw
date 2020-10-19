@@ -4,7 +4,6 @@
 :Date: 13.12.2017
 """
 import itertools
-import six
 
 from pyramid.interfaces import ILocation
 from pyramid.registry import Registry
@@ -88,7 +87,7 @@ class EmbeddedResources(object):
 
     def __json__(self, request):
         result = {}
-        for key, resources in six.iteritems(self.embedded):
+        for key, resources in self.embedded.items():
             if resources is None:
                 continue
             if not isinstance(resources, dict) and hasattr(resources, '__iter__'):

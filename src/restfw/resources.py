@@ -3,10 +3,11 @@
 :Authors: cykooz
 :Date: 19.08.2016
 """
+from typing import Generator, Tuple
+
 from pyramid.httpexceptions import HTTPMethodNotAllowed
 from pyramid.registry import Registry
 from pyramid.traversal import find_root
-from typing import Generator, Tuple
 from zope.interface import implementer
 
 from . import interfaces, schemas
@@ -29,7 +30,7 @@ class Resource(object):
         resource = None
         registry = self.get_registry()
         key = str(key)
-        if registry:
+        if registry is not None:
             try:
                 resource = registry.queryAdapter(self, interfaces.IResource, name=key)
             except KeyError:
