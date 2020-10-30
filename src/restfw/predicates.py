@@ -17,7 +17,7 @@ class TestingPredicate(object):
 
     phash = text
 
-    def __call__(self, context, request):
+    def __call__(self, *args, **kwargs):
         return self.result
 
 
@@ -32,7 +32,7 @@ class DebugPredicate(object):
 
     phash = text
 
-    def __call__(self, context, request):
+    def __call__(self, *args, **kwargs):
         return self.result
 
 
@@ -47,5 +47,5 @@ class DebugOrTestingPredicate(object):
 
     phash = text
 
-    def __call__(self, context, request):
+    def __call__(self, *args, **kwargs):
         return self.result

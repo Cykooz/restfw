@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added subscriber predicates ``testing``, ``debug`` and ``debug_or_testing``.
+
 5.0 (2020-10-29)
 ================
 

@@ -10,15 +10,20 @@ def includeme(config):
     :type config: pyramid.config.Configurator
     """
     from .authorization import RestACLAuthorizationPolicy
-    from .predicates import DebugPredicate, DebugOrTestingPredicate, TestingPredicate
+    from . import predicates
     from .viewderivers import register_view_derivers
 
     config.set_authorization_policy(RestACLAuthorizationPolicy())
     config.set_root_factory('restfw.root.root_factory')
     config.add_renderer(None, 'restfw.renderers.json_renderer')
-    config.add_view_predicate('debug', DebugPredicate)
-    config.add_view_predicate('testing', TestingPredicate)
-    config.add_view_predicate('debug_or_testing', DebugOrTestingPredicate)
+    predicates = [
+        ('debug', predicates.DebugPredicate),
+        ('testing', predicates.TestingPredicate),
+        ('debug_or_testing', predicates.DebugOrTestingPredicate),
+    ]
+    for name, fabric in predicates:
+        config.add_view_predicate(name, fabric)
+        config.add_subscriber_predicate(name, fabric)
 
     from .config import add_sub_resource_fabric, add_sub_resource_fabric_predicate
     config.add_directive('add_sub_resource_fabric', add_sub_resource_fabric)
