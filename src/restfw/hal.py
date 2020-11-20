@@ -90,7 +90,7 @@ class EmbeddedResources(object):
         for key, resources in self.embedded.items():
             if resources is None:
                 continue
-            if not isinstance(resources, dict) and hasattr(resources, '__iter__'):
+            if not isinstance(resources, (dict, str)) and hasattr(resources, '__iter__'):
                 rendered = []
                 for resource in resources:
                     if interfaces.IHalResource.providedBy(resource):

@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed converting ```EmbeddedResources`` instance into dictionary
+  for JSON encoding.
+
 5.1 (2020-10-30)
 ================
 
