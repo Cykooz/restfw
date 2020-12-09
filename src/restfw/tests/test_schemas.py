@@ -6,8 +6,8 @@
 import datetime
 
 import colander
+import pendulum
 import pytest
-import pytz
 
 from ..schemas import DateNode, DateTimeNode, EmptyStringNode, IntegerNode, StringNode
 
@@ -50,24 +50,35 @@ def test_deserialize_empty_integer():
     assert ex.value.msg == 'Required'
 
 
-def test_serialize_empty_datetime():
+def test_serialize_datetime():
     node = DateTimeNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
-    assert node.serialize(now) == now.isoformat()
+    tz_info = pendulum.timezone('Europe/Moscow')
+    now_local = datetime.datetime(2020, 11, 8, 10, 41, 31, 345678)
+    now = now_local.replace(tzinfo=tz_info)
+    assert node.serialize(now_local) == '2020-11-08T10:41:31.345678'
+    assert node.serialize(now) == '2020-11-08T10:41:31.345678+03:00'
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is colander.null
     assert node.serialize('') is colander.null
 
     node = DateTimeNode(nullable=True)
-    assert node.serialize(now) == now.isoformat()
+    assert node.serialize(now_local) == '2020-11-08T10:41:31.345678'
+    assert node.serialize(now) == '2020-11-08T10:41:31.345678+03:00'
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is None
     assert node.serialize('') is colander.null
 
+    node = DateTimeNode(default_tzinfo=tz_info)
+    assert node.serialize(now_local) == '2020-11-08T10:41:31.345678+03:00'
+    assert node.serialize(now) == '2020-11-08T10:41:31.345678+03:00'
 
-def test_deserialize_empty_datetime():
+
+def test_deserialize_datetime():
     node = DateTimeNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+    tz_info = pendulum.timezone('Europe/Moscow')
+    now_local = datetime.datetime(2020, 11, 8, 10, 41, 31, 345678)
+    now = now_local.replace(tzinfo=tz_info)
+    assert node.deserialize(now_local.isoformat()) == now_local
     assert node.deserialize(now.isoformat()) == now
     with pytest.raises(colander.Invalid):
         node.deserialize(None)
@@ -78,6 +89,7 @@ def test_deserialize_empty_datetime():
     assert ex.value.msg == 'Required'
 
     node = DateTimeNode(nullable=True)
+    assert node.deserialize(now_local.isoformat()) == now_local
     assert node.deserialize(now.isoformat()) == now
     assert node.deserialize(None) is None
     assert node.deserialize('') is None
@@ -88,7 +100,7 @@ def test_deserialize_empty_datetime():
 
 def test_serialize_empty_date():
     node = DateNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+    now = datetime.datetime.utcnow().replace(tzinfo=pendulum.UTC)
     assert node.serialize(now.date()) == now.date().isoformat()
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is colander.null
@@ -103,7 +115,7 @@ def test_serialize_empty_date():
 
 def test_deserialize_empty_date():
     node = DateNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+    now = datetime.datetime.utcnow().replace(tzinfo=pendulum.UTC)
     assert node.deserialize(now.date().isoformat()) == now.date()
     with pytest.raises(colander.Invalid):
         node.deserialize(None)

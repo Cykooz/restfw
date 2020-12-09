@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- For ``DateTimeNode`` added arguments ``default_tzinfo`` and ``dt_format``
+  with ``None`` as default value.
+
 5.1.2 (2020-11-20)
 ==================
 

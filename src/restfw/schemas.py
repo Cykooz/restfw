@@ -199,12 +199,19 @@ class BooleanNode(BaseNode):
 
 
 class DateTimeNode(BaseNode):
-    schema_type = colander.DateTime
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, default_tzinfo=None, dt_format=None, **kwargs):
         if kwargs.pop('allow_empty', False):
             kwargs['nullable'] = True
+        self.default_tzinfo = default_tzinfo
+        self.dt_format = dt_format
         super(DateTimeNode, self).__init__(*args, **kwargs)
+
+    def schema_type(self):
+        return colander.DateTime(
+            default_tzinfo=self.default_tzinfo,
+            format=self.dt_format,
+        )
 
 
 class DateNode(BaseNode):

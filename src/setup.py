@@ -95,6 +95,7 @@ setup(
             'WebTest',
             'cykooz.testing',
             'requests',
+            'pendulum',
         ],
         'docs': [
             'WebTest',
