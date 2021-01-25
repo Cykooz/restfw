@@ -5,13 +5,15 @@
 """
 import logging
 
+import pytest
 from cykooz.testing import ANY, D
 from pyramid import httpexceptions
 from pyramid.security import Allow, Authenticated, DENY_ALL, Everyone
 
-from .. import schemas
+from .. import schemas, views
 from ..hal import HalResource, SimpleContainer
 from ..interfaces import MethodOptions
+from ..typing import Json
 from ..usage_examples import UsageExamples
 from ..usage_examples.collector import UsageExamplesCollector
 from ..usage_examples.utils import sphinx_doc_filter
@@ -39,7 +41,6 @@ class DummyResource(HalResource):
     Some info about
     DummyResource number.
     """
-
     __acl__ = [
         (Allow, Everyone, 'get'),
         (Allow, 'auth_user', 'get'),
@@ -51,13 +52,6 @@ class DummyResource(HalResource):
 
     def get_etag(self):
         return ETag(str(self.value))
-
-    options_for_get = MethodOptions(None, DummySchema)
-
-    def as_dict(self, request):
-        return {'value': self.value}
-
-    options_for_put = MethodOptions(PutDummySchema, DummySchema, permission='dummy.edit')
 
     def http_put(self, request, params):
         """Replace resource with new version.
@@ -71,11 +65,20 @@ class DummyResource(HalResource):
         In some cases this method produce magic ether.
         """
         self.value = params['value']
-        return self, False
+        return False
+
+
+@views.resource_view_config(DummyResource)
+class DummyResourceView(views.HalResourceView):
+    resource: DummyResource
+    options_for_get = MethodOptions(None, DummySchema)
+    options_for_put = MethodOptions(PutDummySchema, DummySchema, permission='dummy.edit')
+
+    def as_dict(self) -> Json:
+        return {'value': self.resource.value}
 
 
 class DummyContainer(SimpleContainer):
-
     __acl__ = [
         (Allow, 'auth_user', 'get'),
         (Allow, Authenticated, 'get'),
@@ -174,6 +177,12 @@ class DummyContainerExamples(UsageExamples):
                     'value': 0
                 },
             )
+
+
+@pytest.fixture(autouse=True)
+def register(app_config):
+    app_config.scan('restfw.tests.test_usage_examples_collector')
+    app_config.commit()
 
 
 def prepare_env(request):
@@ -282,7 +291,7 @@ def test_usage_examples_collector(web_app, app_config):
     # ... GET
     method = methods['GET']
     assert method.description == [
-        'Returns a resource, any of representation or any response instance.'
+        'Returns a resource representation.'
     ]
     assert method.allowed_principals == {Everyone}
     assert method.input_schema is None

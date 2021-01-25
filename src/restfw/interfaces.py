@@ -3,12 +3,15 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+from typing import Any, Set, Tuple
+
 from pyramid.interfaces import ILocation
 from zope.interface import Attribute, Interface
 
+from .typing import PyramidRequest
 
-class MethodOptions(object):
 
+class MethodOptions:
     __slots__ = ('input_schema', 'output_schema', 'permission')
 
     def __init__(self, input_schema, output_schema, permission=None):
@@ -16,11 +19,8 @@ class MethodOptions(object):
         self.output_schema = output_schema
         self.permission = permission
 
-    def replace(self, **kwargs):
-        """Create copy of current instance and replace some fields in it.
-        :param kwargs:
-        :rtype: MethodOptions
-        """
+    def replace(self, **kwargs) -> 'MethodOptions':
+        """Create copy of current instance and replace some fields in it."""
         kwargs = {
             key: value
             for key, value in kwargs.items()
@@ -37,11 +37,6 @@ class IResource(ILocation):
 
     # __resource_name__ = Attribute('Name of resource')
     # url_placeholder = Attribute('Placeholder for resource URL in documentation.')
-    options_for_get = Attribute('Options for GET HTTP method.')
-    options_for_post = Attribute('Options for POST HTTP method.')
-    options_for_put = Attribute('Options for PUT HTTP method.')
-    options_for_patch = Attribute('Options for PATCH HTTP method.')
-    options_for_delete = Attribute('Options for DELETE HTTP method.')
 
     def __getitem__(key):
         """Returns a sub-resource or raises exception KeyError.
@@ -49,17 +44,6 @@ class IResource(ILocation):
         :type key: str
         :rtype: IResource
         :raise: KeyError
-        """
-
-    def as_dict(request):
-        """Returns a dict that represents the resource.
-        :type request: pyramid.request.Request
-        :rtype: dict
-        """
-
-    def get_allowed_methods():
-        """Returns a set of allowed HTTP methods for the resource.
-        :rtype: set
         """
 
     def get_registry():
@@ -72,54 +56,76 @@ class IResource(ILocation):
         :rtype: restfw.utils.ETag or None
         """
 
-    def http_head(request, params):
+    def http_post(request: PyramidRequest, params: dict) -> Tuple['IResource', bool]:
+        """Returns a new or modified resource and a flag indicating that the
+           resource was created or not.
+        """
+
+    def http_put(request: PyramidRequest, params: dict) -> bool:
+        """Returns a new or modified resource and a flag indicating that the
+           resource was created or not.
+        """
+
+    def http_patch(request: PyramidRequest, params: dict) -> bool:
+        """Returns a new or modified resource and a flag indicating that the
+           resource was created or not.
+        """
+
+    def http_delete(request: PyramidRequest, params: dict):
+        """Delete the resource. Returns None or some resource."""
+
+
+class IResourceView(Interface):
+    """Interface for minimal resource view."""
+
+    request = Attribute('Current request instance')
+    resource = Attribute('Instance of resource')
+    options_for_get = Attribute('Options for GET HTTP method.')
+    options_for_post = Attribute('Options for POST HTTP method.')
+    options_for_put = Attribute('Options for PUT HTTP method.')
+    options_for_patch = Attribute('Options for PATCH HTTP method.')
+    options_for_delete = Attribute('Options for DELETE HTTP method.')
+
+    def __json__():
+        """Returns a representation of resource as object
+        suitable for JSON encoding."""
+
+    def get_allowed_methods() -> Set[str]:
+        """Returns a set of allowed HTTP methods for the resource view."""
+
+    def http_options() -> Any:
+        """Returns response for OPTIONS method of HTTP."""
+
+    def http_head() -> Any:
         """This method may be used in derived classes to overwrite
         a default implementation for HEAD request handler.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: IResource
         """
 
-    def http_get(request, params):
-        """Returns representation of the resource.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: IResource
-        """
+    def http_get() -> Any:
+        """Returns representation of the resource as any object that
+        can be processed by default render or as raw response."""
 
-    def http_post(request, params):
+    def http_post() -> Any:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: (IResource, bool)
+        resource was created or not.
         """
 
-    def http_put(request, params):
+    def http_put() -> Any:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: (IResource, bool)
+        resource was created or not.
         """
 
-    def http_patch(request, params):
+    def http_patch() -> Any:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: (IResource, bool)
+        resource was created or not.
         """
 
-    def http_delete(request, params):
-        """Delete the resource. Returns None or some resource
-        :type request: pyramid.request.Request
-        :type params: dict
-        """
+    def http_delete() -> Any:
+        """Delete the resource. Returns None or some resource."""
 
 
 class IRoot(IResource):
-    """Interface for root resource"""
+    """Interface for root resource."""
     registry = Attribute('Registry of Pyramid application')
     request = Attribute('Current request object (deprecated)')
 
@@ -136,17 +142,25 @@ class ISubResourceFabric(Interface):
 # HAL (https://tools.ietf.org/html/draft-kelly-json-hal-08)
 
 class IHalResource(IResource):
+    """Interface of HAL-resources."""
 
-    def get_links(request):
-        """Returns dict with links (content of '_links' field from HAL) for resource.
-        :type request: pyramid.request.Request
-        :rtype: dict
-        """
 
-    def as_embedded(request):
-        """Returns resource representation when it is used as an embedded resource.
-        :type request: pyramid.request.Request
-        :rtype: dict
+class IHalResourceView(IResourceView):
+    """Interface for view that MAY contains embedded resources."""
+
+    def get_links() -> dict:
+        """Returns dict with links (content of '_links' field from HAL) for resource."""
+
+    def as_embedded() -> dict:
+        """Returns resource representation when it is used as an embedded resource."""
+
+
+class IHalResourceWithEmbeddedView(IResourceView):
+    """Interface for view that MAY contains embedded resources."""
+
+    def get_embedded(params: dict):
+        """Returns EmbeddedResources instance.
+        :rtype: EmbeddedResources
         """
 
 
@@ -157,17 +171,6 @@ class IHalResourceLinks(Interface):
         """Returns dict with links (content of "_links" field from HAL) for resource.
         :type request: pyramid.request.Request
         :rtype: dict
-        """
-
-
-class IHalResourceWithEmbedded(IResource):
-    """Interface for resource that MAY contains embedded resources."""
-
-    def get_embedded(request, params):
-        """Returns EmbeddedResult instance.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: EmbeddedResult
         """
 
 

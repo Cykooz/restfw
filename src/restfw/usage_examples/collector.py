@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 :Authors: cykooz
 :Date: 25.01.2019
@@ -7,7 +6,7 @@ import logging
 from collections import OrderedDict
 from copy import deepcopy
 from http import client as http_client
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from cykooz.testing import ANY
 from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
@@ -19,7 +18,10 @@ from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
 from .fabric import UsageExamples
 from .utils import default_docstring_extractor, sphinx_doc_filter
+from ..resources import Resource
 from ..testing import resource_testing
+from ..testing.webapp import WebApp
+from ..typing import PyramidRequest
 from ..utils import get_object_fullname, open_pyramid_request
 
 
@@ -29,13 +31,16 @@ class UsageExamplesCollector(object):
     """
     ALL_POSSIBLE_METHODS = ('GET', 'PUT', 'PATCH', 'POST', 'DELETE')
 
-    def __init__(self, web_app, prepare_env=None, schema_serializer=None,
-                 principal_formatter=None,
-                 docstring_extractor=default_docstring_extractor,
-                 docstring_filter=sphinx_doc_filter,
-                 logger=None):
+    def __init__(
+            self, web_app: WebApp,
+            prepare_env=None,
+            schema_serializer=None,
+            principal_formatter=None,
+            docstring_extractor=default_docstring_extractor,
+            docstring_filter=sphinx_doc_filter,
+            logger=None,
+    ):
         """
-        :type web_app: restfw.testing.webapp.WebApp
         :type prepare_env: interfaces.IPrepareEnv or None
         :type schema_serializer: interfaces.ISchemaSerializer or None
         :type principal_formatter: interfaces.IPrincipalFormatter or None
@@ -52,9 +57,9 @@ class UsageExamplesCollector(object):
         self._docstring_filter = docstring_filter
         self._logger = logger or logging
 
-        self.resources_info = {}  # type: Dict[str, structs.ResourceInfo]
-        self.entry_points_info = {}  # type: Dict[str, structs.EntryPointInfo]
-        self.url_to_ep_id = {}  # type: Dict[str, str]
+        self.resources_info: Dict[str, structs.ResourceInfo] = {}
+        self.entry_points_info: Dict[str, structs.EntryPointInfo] = {}
+        self.url_to_ep_id: Dict[str, str] = {}
 
     def collect(self):
         resources_info = {}
@@ -65,7 +70,7 @@ class UsageExamplesCollector(object):
             with open_pyramid_request(self.registry) as request:
                 if self._prepare_env:
                     self._prepare_env(request)
-                usage_examples = fabric(request)  # type: interfaces.IUsageExamples
+                usage_examples: Optional[UsageExamples] = fabric(request)
                 if usage_examples is None:
                     # Examples do not support current environment
                     continue
@@ -114,10 +119,7 @@ class UsageExamplesCollector(object):
         self.entry_points_info = entry_points_info
         self.url_to_ep_id = url_to_ep_id
 
-    def _get_code_object_doc(self, code_object):
-        """
-        :rtype: list[unicode]
-        """
+    def _get_code_object_doc(self, code_object) -> List[str]:
         lines = self._docstring_extractor(code_object)
         if self._docstring_filter:
             lines = [line for line in lines if not self._docstring_filter(line)]
@@ -127,10 +129,7 @@ class UsageExamplesCollector(object):
         return lines
 
     @staticmethod
-    def _get_resource_path_elements(resource, skip_root=True):
-        """
-        :rtype: list[structs.UrlElement]
-        """
+    def _get_resource_path_elements(resource, skip_root=True) -> List[structs.UrlElement]:
         elements = []
         for resource in lineage(resource):
             value = getattr(resource, 'url_placeholder', None)
@@ -144,21 +143,18 @@ class UsageExamplesCollector(object):
             elements = elements[1:]
         return elements
 
-    def _get_methods_info(self, usage_examples):
-        """
-        :type usage_examples: interfaces.IUsageExamples
-        :rtype: dict[str, structs.MethodInfo]
-        """
+    def _get_methods_info(self, usage_examples: UsageExamples) -> Dict[str, structs.MethodInfo]:
         request = usage_examples.request
         resource = usage_examples.resource
-        allowed_methods = resource.get_allowed_methods()
+        allowed_methods = usage_examples.allowed_methods
         available_methods = [m.lower() for m in self.ALL_POSSIBLE_METHODS if m in allowed_methods]
 
         result = OrderedDict()
+        view = usage_examples.view
 
         for method in available_methods:
-            method_func = getattr(resource, 'http_%s' % method, None)
-            method_options = getattr(resource, 'options_for_%s' % method, None)
+            method_func = getattr(view, 'http_%s' % method, None)
+            method_options = getattr(view, 'options_for_%s' % method, None)
             if not method_func or not method_options:
                 continue
 
@@ -177,22 +173,25 @@ class UsageExamplesCollector(object):
                     for p in allowed_principals
                 }
 
+            description = self._get_code_object_doc(method_func)
+            if not description:
+                # Method of view don't have doc-string.
+                # Try to get doc-string from method of resource.
+                method_func = getattr(resource, 'http_%s' % method, None)
+                if method_func:
+                    description = self._get_code_object_doc(method_func)
+
             result[method.upper()] = structs.MethodInfo(
                 examples_info=self._get_examples_info(usage_examples, method),
                 input_schema=self._get_schema_info(method_options.input_schema, request, resource),
                 output_schema=self._get_schema_info(method_options.output_schema, request, resource),
                 allowed_principals=allowed_principals,
-                description=self._get_code_object_doc(method_func),
+                description=description,
             )
         return result
 
-    def _get_examples_info(self, usage_examples, method):
-        """Execute all examples of method and return list of ExampleInfo.
-
-        :type usage_examples: interfaces.IUsageExamples
-        :param method:
-        :rtype: list[structs.ExampleInfo]
-        """
+    def _get_examples_info(self, usage_examples: UsageExamples, method: str) -> List[structs.ExampleInfo]:
+        """Execute all examples of method and return list of ExampleInfo."""
         send_requests = getattr(usage_examples, '%s_requests' % method, None)
         if send_requests is None:
             return []
@@ -247,13 +246,10 @@ class UsageExamplesCollector(object):
 
         return send.results
 
-    def _get_schema_info(self, schema_class, request, context):
-        """Build SchemaInfo instance for given schema class.
-        :type schema_class: colander.SchemaNode
-        :type request: pyramid.interfaces.IRequest
-        :type context: restfw.interfaces.IResource
-        :rtype: SchemaInfo or None
-        """
+    def _get_schema_info(
+            self, schema_class, request: PyramidRequest, context: Resource
+    ) -> Optional[structs.SchemaInfo]:
+        """Build SchemaInfo instance for given schema class."""
         serialized_schema = self._schema_serializer(schema_class, request, context)
         if not serialized_schema:
             return
@@ -266,18 +262,15 @@ class UsageExamplesCollector(object):
 
 class _ExampleInfoCollector(resource_testing.RequestsTester):
 
-    def __init__(self, web_app, usage_examples, method):
-        """
-        :type web_app: restfw.testing.webapp.WebApp
-        :type usage_examples: UsageExamples
-        :type method: str
-        """
-        super(_ExampleInfoCollector, self).__init__(web_app, usage_examples)
+    def __init__(self, web_app: WebApp, usage_examples: UsageExamples, method: str):
+        super().__init__(web_app, usage_examples)
         self.method = method
-        self.results = []  # type: List[structs.ExampleInfo]
+        self.results: List[structs.ExampleInfo] = []
 
-    def __call__(self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None,
-                 result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False):
+    def __call__(
+            self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None,
+            result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False
+    ):
         params = params if params is not resource_testing.DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)

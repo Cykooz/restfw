@@ -12,7 +12,9 @@ from .. import schemas
 from ..errors import ResultValidationError
 from ..interfaces import MethodOptions
 from ..resources import Resource
+from ..typing import Json
 from ..utils import ETag
+from ..views import ResourceView, resource_view_config
 
 
 class DummySchema(schemas.MappingSchema):
@@ -37,16 +39,21 @@ class DummyResource(Resource):
     def get_etag(self):
         return self.etag
 
-    options_for_get = MethodOptions(None, DummySchema, permission='get')
-
     def as_dict(self, request):
         return self.model
 
-    options_for_put = MethodOptions(DummyEditSchema, DummySchema, permission='put')
-
     def http_put(self, request, params):
         self.model = params
-        return self, False
+        return False
+
+
+@resource_view_config(DummyResource)
+class DummyResourceView(ResourceView):
+    options_for_get = MethodOptions(None, DummySchema, permission='get')
+    options_for_put = MethodOptions(DummyEditSchema, DummySchema, permission='put')
+
+    def as_dict(self) -> Json:
+        return self.resource.model
 
 
 @view_config(name='custom_view', request_method={'GET', 'PATCH'},
@@ -56,10 +63,13 @@ def custom_view(context, request):
     return context.model
 
 
-def test_check_request_method_view(web_app, pyramid_request, app_config):
+@pytest.fixture(autouse=True)
+def register(app_config):
     app_config.scan('restfw.tests.test_viewderivers')
     app_config.commit()
 
+
+def test_check_request_method_view(web_app, pyramid_request):
     root = pyramid_request.root
     root['resource'] = DummyResource({'foo': 'Hello', 'bar': 123})
     resource_url = pyramid_request.resource_url(root['resource'])
@@ -82,10 +92,7 @@ def test_check_request_method_view(web_app, pyramid_request, app_config):
     assert res.json_body == {'custom': 'view', 'result': 789}
 
 
-def test_check_result_schema(web_app, pyramid_request, app_config):
-    app_config.scan('restfw.tests.test_viewderivers')
-    app_config.commit()
-
+def test_check_result_schema(web_app, pyramid_request):
     root = pyramid_request.root
     root['resource'] = resource = DummyResource({'foo': 'Hello', 'bar': 123})
     resource_url = pyramid_request.resource_url(root['resource'])
@@ -146,10 +153,8 @@ def test_check_result_schema(web_app, pyramid_request, app_config):
         (ETag('etag'), 'W/"etag"', '"other"', 412),
     ]
 )
-def test_process_conditional_get_head_requests(web_app, pyramid_request, app_config,
+def test_process_conditional_get_head_requests(web_app, pyramid_request,
                                                etag, if_match, if_none_match, status_code):
-    app_config.scan('restfw.tests.test_viewderivers')
-    app_config.commit()
     root = pyramid_request.root
     root['resource'] = resource = DummyResource({'foo': 'Hello', 'bar': 123})
     resource.etag = etag
@@ -216,10 +221,8 @@ def test_process_conditional_get_head_requests(web_app, pyramid_request, app_con
         (ETag('etag'), 'W/"etag"', '"other"', 412),
     ]
 )
-def test_process_conditional_put_requests(web_app, pyramid_request, app_config,
+def test_process_conditional_put_requests(web_app, pyramid_request,
                                           etag, if_match, if_none_match, status_code):
-    app_config.scan('restfw.tests.test_viewderivers')
-    app_config.commit()
     root = pyramid_request.root
     root['resource'] = resource = DummyResource({'foo': 'Hello', 'bar': 123})
     resource.etag = etag

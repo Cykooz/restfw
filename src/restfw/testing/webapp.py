@@ -11,7 +11,7 @@ import requests
 from pyramid import httpexceptions
 from pyramid.encode import urlencode
 from requests.exceptions import RequestException
-from webtest import TestApp
+from webtest import TestApp, TestResponse
 from webtest.utils import NoDefault
 
 from ..utils import force_dict_utf8
@@ -19,23 +19,23 @@ from ..utils import force_dict_utf8
 
 class WebApp(object):
 
-    def __init__(self, app_env_fabric, url_prefix=''):
+    def __init__(self, app_env_fabric, url_prefix='', json_encoder=None):
         self.app_env_fabric = app_env_fabric
         self.env = None
         self.registry = None
+        self.test_app = None
+        self.json_encoder = json_encoder
+        self.url_prefix = url_prefix.strip('/')
         self._root = None
         self._request = None
-        self.test_app = None
-        self.url_prefix = url_prefix.strip('/')
 
     def __enter__(self):
         self.env = self.app_env_fabric()
         self.registry = self.env['registry']
-        #: :type: restfw.root.Root
         self._request = self.env['request']
         self._request.root = self._root = self.env['root']
         app = self.env['app']
-        self.test_app = TestApp(app)
+        self.test_app = TestApp(app, json_encoder=self.json_encoder)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -50,14 +50,14 @@ class WebApp(object):
     def _format_error(self, title, response, method_name, url, **kwargs):
         res = [
             title,
-            '{} {}'.format(method_name.upper(), url),
+            f'{method_name.upper()} {url}',
         ]
         for key, value in kwargs.items():
             if value:
                 value = str(value)
                 if len(value) > 512:
                     value = value[:512] + '...'
-                res.append('{}: {}'.format(key, value))
+                res.append(f'{key}: {value}')
         body = response.text if hasattr(response, 'body') else response.content
         body = body.strip()
         if len(body) > 512:
@@ -69,11 +69,15 @@ class WebApp(object):
         if status is None:
             assert 200 <= response.status_code < 400, self._format_error(
                 'Response status is bad.',
-                response, method_name, url, **kwargs)
+                response, method_name, url,
+                **kwargs
+            )
         else:
             assert response.status_code == status, self._format_error(
                 'Response status is bad.',
-                response, method_name, url, **kwargs)
+                response, method_name, url,
+                **kwargs
+            )
 
     def _check_error_code(self, response, method_name, url, exception, **kwargs):
         code = description = detail = None
@@ -94,24 +98,29 @@ class WebApp(object):
             assert 'code' in json_body
             assert json_body['code'] == code, self._format_error(
                 'Code of error is not equal to required.',
-                response, method_name, url, **kwargs)
+                response, method_name, url,
+                **kwargs
+            )
             assert json_body['description'] == description, self._format_error(
                 'Description of error is not equal to required.',
-                response, method_name, url, **kwargs)
+                response, method_name, url,
+                **kwargs
+            )
             if detail is not None:
                 assert json_body['detail'] == detail, self._format_error(
                     'Detail of error is not equal to required.',
-                    response, method_name, url, **kwargs)
+                    response, method_name, url,
+                    **kwargs
+                )
 
-    def _app_method(self, method_name, url, params=None,
-                    exception=None, headers=None,
-                    content_type=None, upload_files=None, status=None,
-                    check_response=True, **kwargs):
-        """
-        :rtype: webtest.TestResponse
-        """
+    def _app_method(
+            self, method_name, url, params=None,
+            exception=None, headers=None,
+            content_type=None, upload_files=None, status=None,
+            check_response=True, **kwargs
+    ) -> TestResponse:
         if not url.startswith(('/', 'http://', 'https://')):
-            url = '/%s/%s' % (self.url_prefix, url.lstrip('/'))
+            url = f"/{self.url_prefix}/{url.lstrip('/')}"
         headers = headers or {}
         kwargs['headers'] = headers
 

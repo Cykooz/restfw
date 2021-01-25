@@ -17,6 +17,7 @@ class IUsageExamples(Interface):
     entry_point_name = Attribute('Unique name of entry point described by this examples')
     resource = Attribute('Resource instance')
     resource_url = Attribute('The resource url')
+    view = Attribute('Instance of ResourceView class.')
     allowed_methods = Attribute('Allowed HTTP methods')
     request = Attribute("Pyramid's request instance")
     default_auth = Attribute('Authorization string used by default for all requests')

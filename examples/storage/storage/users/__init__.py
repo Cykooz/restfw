@@ -3,12 +3,10 @@
 :Authors: cykooz
 :Date: 24.01.2020
 """
+from pyramid.config import Configurator
 
 
-def includeme(config):
-    """
-    :type config: pyramid.config.Configurator
-    """
+def includeme(config: Configurator):
     config.include('restfw')
     config.include('storage.authentication')
 

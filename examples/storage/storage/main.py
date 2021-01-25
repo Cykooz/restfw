@@ -4,22 +4,16 @@
 :Date: 23.01.2020
 """
 from functools import partial
+from pathlib import Path
 
 from pyramid.config import Configurator
 from pyramid.settings import asbool
 
 from restfw.root import root_factory as base_root_factory
 
-try:
-    from pathlib import Path
-except ImportError:
-    # Python < 3.4
-    from pathlib2 import Path
-
 
 def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
-    """
+    """ This function returns a Pyramid WSGI application."""
     settings['testing'] = asbool(global_config.get('testing', False))
     settings['is_doc_building'] = asbool(global_config.get('is_doc_building', False))
     settings.setdefault('pyramid.includes', [

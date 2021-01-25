@@ -3,11 +3,11 @@
 :Authors: cykooz
 :Date: 30.03.2017
 """
-from zope.interface import implementer
+from pyramid.compat import is_nonstr_iter
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
-from pyramid.compat import is_nonstr_iter
-from pyramid.security import ACLAllowed, ACLDenied, Allow, Deny, Everyone, ALL_PERMISSIONS
+from pyramid.security import ACLAllowed, ACLDenied, ALL_PERMISSIONS, Allow, Deny, Everyone
+from zope.interface import implementer
 
 
 @implementer(IAuthorizationPolicy)
@@ -73,7 +73,7 @@ class RestACLAuthorizationPolicy(object):
 
     @staticmethod
     def _match_permission(permission, ace_permissions):
-        """ Match permission with list of permissions from ACE (Access Control Entries).
+        """Match permission with list of permissions from ACE (Access Control Entries).
         If ACE permission ends with dot then it interpreted as permission prefix.
         """
         if ace_permissions is ALL_PERMISSIONS:
@@ -158,14 +158,14 @@ class RestACLAuthorizationPolicy(object):
                     if ace_principal not in denied_here:
                         allowed_here.add(ace_principal)
                 if (ace_action == Deny) and is_match:
-                        denied_here.add(ace_principal)
-                        if ace_principal == Everyone:
-                            # clear the entire allowed set, as we've hit a
-                            # deny of Everyone ala (Deny, Everyone, ALL)
-                            allowed = set()
-                            break
-                        elif ace_principal in allowed:
-                            allowed.remove(ace_principal)
+                    denied_here.add(ace_principal)
+                    if ace_principal == Everyone:
+                        # clear the entire allowed set, as we've hit a
+                        # deny of Everyone ala (Deny, Everyone, ALL)
+                        allowed = set()
+                        break
+                    elif ace_principal in allowed:
+                        allowed.remove(ace_principal)
 
             allowed.update(allowed_here)
 

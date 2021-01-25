@@ -6,15 +6,16 @@
 import pytest
 from pyramid.traversal import find_interface
 
-from ..config import external_link_config
-from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources
+from ..external_links import external_link_config
+from ..hal import HalResource, SimpleContainer
+from ..views import HalResourceWithEmbeddedView, list_to_embedded_resources, resource_view_config
 
 
 class DummyApiVersion(SimpleContainer):
     pass
 
 
-class DummyMinApiVersion(object):
+class DummyMinApiVersion:
     """Testing predicate for fabric of external link"""
 
     def __init__(self, val, config):
@@ -33,7 +34,7 @@ class DummyMinApiVersion(object):
         return version >= self.val
 
 
-class DummyMaxApiVersion(object):
+class DummyMaxApiVersion:
     """Testing predicate for fabric of external link"""
 
     def __init__(self, val, config):
@@ -76,13 +77,18 @@ def dummy23_external_link(request, resource):
     return 'http://dummy.com/resource/lte_two__gte_three'
 
 
-class Container(SimpleContainer, HalResourceWithEmbedded):
+class Container(SimpleContainer):
+    pass
 
-    def get_embedded(self, request, params):
+
+@resource_view_config(Container)
+class ContainerView(HalResourceWithEmbeddedView):
+
+    def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            request, params,
-            resources=list(self.values()),
-            parent=self,
+            self.request, params,
+            resources=list(self.resource.values()),
+            parent=self.resource,
             embedded_name='items'
         )
 

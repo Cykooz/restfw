@@ -12,6 +12,8 @@ from pyramid.traversal import find_resource
 from webob.multidict import MultiDict
 from zope.interface.interfaces import IInterface
 
+from .external_links import get_external_links
+
 
 LISTING_CONF = {
     'max_limit': 500
@@ -381,7 +383,7 @@ class HalLinksSchema(colander.MappingSchema):
         if not request or not context:
             return
 
-        for name, link_fabric in context.get_external_links(request.registry):
+        for name, link_fabric in get_external_links(context, request.registry):
             if name and not node.get(name):
                 missing = colander.drop if link_fabric.optional else colander.required
                 title = link_fabric.title or ('Link to %s' % name)

@@ -6,15 +6,16 @@
 import pytest
 from pyramid.traversal import find_interface
 
-from ..config import sub_resource_config
-from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources
+from ..hal import HalResource, SimpleContainer
+from ..resources import sub_resource_config
+from ..views import HalResourceWithEmbeddedView, list_to_embedded_resources, resource_view_config
 
 
 class DummyApiVersion(SimpleContainer):
     pass
 
 
-class DummyMinApiVersion(object):
+class DummyMinApiVersion:
     """Testing predicate for sub resource fabric"""
 
     def __init__(self, val, config):
@@ -33,7 +34,7 @@ class DummyMinApiVersion(object):
         return version >= self.val
 
 
-class DummyMaxApiVersion(object):
+class DummyMaxApiVersion:
     """Testing predicate for sub resource fabric"""
 
     def __init__(self, val, config):
@@ -58,51 +59,40 @@ class DummyResource(HalResource):
 
 @sub_resource_config('sub', DummyResource)
 class SubDummyResource(HalResource):
-
     def __init__(self, parent):
         pass
-
-    def as_dict(self, request):
-        return {'title': 'Sub resource'}
 
 
 @sub_resource_config('sub1', DummyResource, min_api_version=1)
 class Sub1DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
-
-    def as_dict(self, request):
-        return {'title': 'Sub resource for API 1+'}
 
 
 @sub_resource_config('sub2', DummyResource, max_api_version=2)
 class Sub2DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
-
-    def as_dict(self, request):
-        return {'title': 'Sub resource for API <= 2'}
 
 
 @sub_resource_config('sub23', DummyResource, min_api_version=2, max_api_version=3)
 class Sub23DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
-    def as_dict(self, request):
-        return {'title': 'Sub resource for API >=2,<=3'}
+
+class Container(SimpleContainer):
+    pass
 
 
-class Container(SimpleContainer, HalResourceWithEmbedded):
+@resource_view_config(Container)
+class ContainerView(HalResourceWithEmbeddedView):
 
-    def get_embedded(self, request, params):
+    def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            request, params,
-            resources=list(self.values()),
-            parent=self,
+            self.request, params,
+            resources=list(self.resource.values()),
+            parent=self.resource,
             embedded_name='items'
         )
 

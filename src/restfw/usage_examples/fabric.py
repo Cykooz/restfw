@@ -8,6 +8,8 @@ from zope.interface import implementer, provider
 from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
 from .utils import basic_auth_value
 from ..errors import ValidationError
+from ..typing import PyramidRequest
+from ..views import get_resource_view
 
 
 @provider(IUsageExamplesFabric)
@@ -19,23 +21,18 @@ class UsageExamples(object):
     default_auth = ''
     test_listing = True
 
-    def __init__(self, request):
-        """
-        :type request: pyramid.request.Request
-        """
+    def __init__(self, request: PyramidRequest):
         self.registry = request.registry
         self.root = request.root
         self.request = request
         self.resource = self.prepare_resource()
         self.request.context = self.resource
         self.resource_url = self.request.resource_url(self.resource)
-        self.allowed_methods = self.resource.get_allowed_methods()
+        self.view = get_resource_view(self.resource, request)
+        self.allowed_methods = self.view.get_allowed_methods()
 
     @property
-    def entry_point_name(self):
-        """
-        :rtype: str
-        """
+    def entry_point_name(self) -> str:
         name = self.__class__.__name__
         suffix = 'Examples'
         if name.endswith(suffix):

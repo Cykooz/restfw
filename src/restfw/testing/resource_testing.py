@@ -9,7 +9,7 @@ from pyramid.httpexceptions import HTTPException, HTTPNotModified, HTTPPrecondit
 from webtest.forms import Upload
 from zope.interface import implementer
 
-from ..interfaces import IHalResourceWithEmbedded
+from ..interfaces import IHalResourceWithEmbeddedView
 from ..schemas import LISTING_CONF
 from ..usage_examples import UsageExamples
 from ..usage_examples.interfaces import ISendTestingRequest
@@ -18,7 +18,7 @@ from ..usage_examples.interfaces import ISendTestingRequest
 DEFAULT = object()
 
 
-class RequestsTester(object):
+class RequestsTester:
 
     def __init__(self, web_app, usage_examples):
         """
@@ -279,7 +279,7 @@ def _assert_get_and_head(usage_examples, web_app):
             )
 
     # Test listing of embedded resources
-    if (IHalResourceWithEmbedded.providedBy(usage_examples.resource) and
+    if (IHalResourceWithEmbeddedView.providedBy(usage_examples.view) and
             usage_examples.test_listing):
         orig_listing_conf = deepcopy(LISTING_CONF)
         try:

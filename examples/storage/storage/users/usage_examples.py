@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 :Authors: cykooz
 :Date: 14.03.2020
@@ -6,7 +5,6 @@
 from cykooz.testing import ANY, D
 from pyramid.httpexceptions import HTTPForbidden, HTTPUnauthorized
 
-from restfw.testing import basic_auth_value
 from restfw.usage_examples import UsageExamples, examples_config
 from .resources import get_users
 from .testing import create_user
@@ -14,7 +12,7 @@ from .testing import create_user
 
 @examples_config()
 class UsersExamples(UsageExamples):
-    headers_for_listing = {'Authorization': basic_auth_value('admin', '')}
+    default_auth = 'admin:'
 
     def prepare_resource(self):
         create_user(self.request, 'admin')
@@ -23,13 +21,12 @@ class UsersExamples(UsageExamples):
         return get_users(self.root)
 
     def get_requests(self, send):
-        send(exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('bad_user', '')}, exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('user0', '')}, exception=HTTPForbidden())
+        send(auth='', exception=HTTPUnauthorized())
+        send(auth='bad_user:', exception=HTTPUnauthorized())
+        send(auth='user0:', exception=HTTPForbidden())
 
         send(
             params={'total_count': True, 'limit': 2},
-            headers={'Authorization': basic_auth_value('admin', '')},
             result={
                 '_links': {
                     'self': {'href': self.resource_url},
@@ -46,13 +43,12 @@ class UsersExamples(UsageExamples):
         )
 
     def post_requests(self, send):
-        send(exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('bad_user', '')}, exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('user0', '')}, exception=HTTPForbidden())
+        send(auth='', exception=HTTPUnauthorized())
+        send(auth='bad_user:', exception=HTTPUnauthorized())
+        send(auth='user0:', exception=HTTPForbidden())
 
         send(
             params={'name': 'new_user'},
-            headers={'Authorization': basic_auth_value('admin', '')},
             result={
                 '_links': {
                     'self': {'href': ANY},
@@ -65,6 +61,7 @@ class UsersExamples(UsageExamples):
 
 @examples_config()
 class UserExamples(UsageExamples):
+    default_auth = 'user:'
 
     def prepare_resource(self):
         create_user(self.request, 'admin')
@@ -72,12 +69,11 @@ class UserExamples(UsageExamples):
         return create_user(self.request, 'user')
 
     def get_requests(self, send):
-        send(exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('bad_user', '')}, exception=HTTPUnauthorized())
-        send(headers={'Authorization': basic_auth_value('other_user', '')}, exception=HTTPForbidden())
+        send(auth='', exception=HTTPUnauthorized())
+        send(auth='bad_user:', exception=HTTPUnauthorized())
+        send(auth='other_user:', exception=HTTPForbidden())
 
         send(
-            headers={'Authorization': basic_auth_value('user', '')},
             result={
                 '_links': {
                     'self': {'href': ANY},

@@ -1,5 +1,5 @@
 graft storage
-include README.txt CHANGES.txt
+include README.rst CHANGES.rst
 
 global-exclude __pycache__ *.py[cod]
 global-exclude .DS_Store

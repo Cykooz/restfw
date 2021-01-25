@@ -14,6 +14,44 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added a new abstraction layer ``IResourceView`` as separate from resource component.
+  All HTTP-related code moved from resources into this layer.
+- Added configurator directive ``add_resource_view()`` and corresponding decorator
+  ``resource_view_config()``.
+- Added a new exception ``ParameterError`` for use it in a resource code
+  instead of  ``create_validation_error()`` function.
+- Added a new optional argument ``json_encoder`` for ``WebApp`` class.
+- Added function ``get_resource_view()`` for getting instance of resource view
+  corresponding to given resource and request instance.
+
+Changes
+-------
+
+- Removed ``check_request_method_view`` viewderiver.
+
+Breaking Changes
+----------------
+
+- Module ``restfw.config`` replaced by package ``restfw.config`` with separate modules
+  for each configurator directive.
+- Helper decorators for configurator moved from ``restfw.config`` into other
+  modules (``.resources`` and ``.external_links``).
+- Methods ``__json__()``, ``as_dict()``, ``get_allowed_methods()``, ``http_options()``,
+  ``http_head()``, ``http_get`` of ``IResource`` and properties like
+  ``options_for_*`` moved into ``IResourceView``.
+- Methods ``as_embedded()``, ``get_links()`` of ``IHalResource`` moved
+  into ``IHalResourceView``.
+- Method ``get_embedded()`` of ``IHalResourceWithEmbedded`` moved
+  into ``IHalResourceWithEmbeddedView``.
+- Removed class ``HalResourceWithEmbedded`` (you must use view
+  ``HalResourceWithEmbeddedView`` instead).
+
 5.2 (2020-12-09)
 ================
 

@@ -12,6 +12,7 @@ from pyramid.config import Configurator
 from pyramid.scripting import prepare
 
 from restfw.testing.webapp import WebApp
+from restfw.typing import PyramidRequest
 from restfw.utils import open_pyramid_request
 from .main import main
 
@@ -32,22 +33,18 @@ def data_root_fixture():
 
 def _create_app_env(data_root, apps=None):
     settings = {
-        'testing': True,
         'storage.data_root': data_root,
     }
     if apps:
         settings['pyramid.includes'] = apps
-    wsgi_app = main({}, **settings)
+    wsgi_app = main({'testing': True}, **settings)
     env = prepare()
     env['app'] = wsgi_app
     return env
 
 
 @pytest.fixture(name='web_app')
-def web_app_fixture(pyramid_apps, data_root):
-    """
-    :rtype: WebApp
-    """
+def web_app_fixture(pyramid_apps, data_root) -> WebApp:
     app_env_fabric = partial(_create_app_env, data_root=data_root, apps=pyramid_apps)
     with WebApp(app_env_fabric) as web_app:
         yield web_app
@@ -56,11 +53,7 @@ def web_app_fixture(pyramid_apps, data_root):
 # Pyramid request
 
 @pytest.fixture(name='pyramid_request')
-def pyramid_request_fixture(web_app):
-    """
-    :type web_app: WebApp
-    :rtype: pyramid.request.Request
-    """
+def pyramid_request_fixture(web_app: WebApp) -> PyramidRequest:
     with open_pyramid_request(web_app.registry) as request:
         yield request
 

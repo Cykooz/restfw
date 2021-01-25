@@ -3,19 +3,31 @@
 :Authors: cykooz
 :Date: 15.01.2019
 """
+import pytest
 from pyramid import httpexceptions
 
-from restfw.hal import HalResource, SimpleContainer
+from .. import views
+from ..hal import HalResource, SimpleContainer
 
 
 class DummyResource(HalResource):
 
     def __init__(self, exception):
-        super(DummyResource, self).__init__()
         self.exception = exception
 
-    def http_get(self, request, params):
-        raise self.exception
+
+@views.resource_view_config(DummyResource)
+class DummyResourceView(views.HalResourceView):
+    resource: DummyResource
+
+    def http_get(self):
+        raise self.resource.exception
+
+
+@pytest.fixture(autouse=True)
+def register(app_config):
+    app_config.scan('restfw.tests.test_exception_views')
+    app_config.commit()
 
 
 def test_http_exception_view(web_app, pyramid_request):

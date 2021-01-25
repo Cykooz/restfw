@@ -3,13 +3,12 @@
 :Authors: cykooz
 :Date: 24.01.2020
 """
-try:
-    from pathlib import Path
-except ImportError:
-    # Python < 3.4
-    from pathlib2 import Path
+from pathlib import Path
+from typing import Optional
 
-from storage.main import get_data_root
+from pyramid.registry import Registry
+
+from ..main import get_data_root
 
 
 class UserModel(object):
@@ -23,35 +22,22 @@ class UserModel(object):
         self.path = path
 
     @classmethod
-    def get_model(cls, registry, name):
-        """
-        :type registry: pyramid.registry.Registry
-        :type name: str
-        :rtype: UserModel or None
-        """
+    def get_model(cls, registry: Registry, name: str) -> Optional['UserModel']:
         data_root = get_data_root(registry)
         path = data_root / name
         if path.exists():
             return cls(name, path)
 
     @classmethod
-    def create_model(cls, request, name):
-        """
-        :type request: pyramid.request.Request
-        :type name: str
-        :rtype: UserModel
-        """
-        data_root = get_data_root(request.registry)
+    def create_model(cls, registry: Registry, name: str) -> 'UserModel':
+        data_root = get_data_root(registry)
         path = data_root / name
         if not path.exists():
             path.mkdir()
         return cls(name, path)
 
     @classmethod
-    def get_models(cls, registry):
-        """
-        :type registry: pyramid.registry.Registry
-        """
+    def get_models(cls, registry: Registry):
         data_root = get_data_root(registry)
         return sorted(
             (

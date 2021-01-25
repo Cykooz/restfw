@@ -14,7 +14,8 @@ def runtests():
 
     args = sys.argv[1:]
     if not args or args[0].startswith('-'):
-        args = args + ['storage']
+        args += ['--pyargs', 'storage']
     args = ['-c', cfg_path] + args
     environ['IS_TESTING'] = 'True'
-    pytest.main(args)
+
+    return pytest.main(args)

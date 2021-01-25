@@ -8,14 +8,15 @@ import pytest
 from cykooz.testing import D
 from pyramid.traversal import find_interface
 
-from ..hal import HalResource, HalResourceWithEmbedded, SimpleContainer, list_to_embedded_resources
+from ..hal import HalResource, SimpleContainer
+from ..views import HalResourceWithEmbeddedView, get_resource_view, list_to_embedded_resources, resource_view_config
 
 
 class DummyApiVersion(SimpleContainer):
     pass
 
 
-class DummyMinApiVersion(object):
+class DummyMinApiVersion:
     """A testing predicate for fabric of external link"""
 
     def __init__(self, val, config):
@@ -34,7 +35,7 @@ class DummyMinApiVersion(object):
         return version >= self.val
 
 
-class DummyMaxApiVersion(object):
+class DummyMaxApiVersion:
     """A testing predicate for fabric of external link"""
 
     def __init__(self, val, config):
@@ -73,19 +74,25 @@ def dummy23_external_link(request, resource):
     return 'http://dummy.com/resource/lte_two__gte_three'
 
 
-class Container(SimpleContainer, HalResourceWithEmbedded):
+class Container(SimpleContainer):
+    pass
 
-    def get_embedded(self, request, params):
+
+@resource_view_config(Container)
+class ContainerView(HalResourceWithEmbeddedView):
+
+    def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            request, params,
-            resources=list(self.values()),
-            parent=self,
+            self.request, params,
+            resources=list(self.resource.values()),
+            parent=self.resource,
             embedded_name='items'
         )
 
 
 @pytest.fixture(name='root')
 def root_fixture(app_config, pyramid_request):
+    app_config.scan('restfw.tests.test_add_external_link_fabric')
     root = pyramid_request.root
     root['container'] = Container()
     root['container']['resource'] = DummyResource()
@@ -127,7 +134,8 @@ def test_external_links(web_app, root, app_config, pyramid_request):
     }
 
     resource = root['container']['resource']
-    schema = resource.options_for_get.output_schema().bind(
+    view = get_resource_view(resource, pyramid_request)
+    schema = view.options_for_get.output_schema().bind(
         request=pyramid_request,
         context=resource,
     )
@@ -172,7 +180,8 @@ def test_external_links(web_app, root, app_config, pyramid_request):
     }
 
     resource = root['1']['resource']
-    schema = resource.options_for_get.output_schema().bind(
+    view = get_resource_view(resource, pyramid_request)
+    schema = view.options_for_get.output_schema().bind(
         request=pyramid_request,
         context=resource,
     )

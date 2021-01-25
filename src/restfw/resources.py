@@ -3,18 +3,20 @@
 :Authors: cykooz
 :Date: 19.08.2016
 """
-from typing import Generator, Tuple
+from typing import Generator, Optional, Tuple
 
+import venusian
 from pyramid.httpexceptions import HTTPMethodNotAllowed
 from pyramid.registry import Registry
 from pyramid.traversal import find_root
 from zope.interface import implementer
 
-from . import interfaces, schemas
+from . import interfaces
+from .utils import ETag
 
 
 @implementer(interfaces.IResource)
-class Resource(object):
+class Resource:
     __parent__ = None
     __name__ = None
 
@@ -41,97 +43,101 @@ class Resource(object):
         resource.__parent__ = self
         return resource
 
-    def get_sub_resources(self, registry):
-        """
-        :type registry: Registry
-        :rtype: Generator[Tuple[str, interfaces.IResource]]
-        """
+    def get_sub_resources(self, registry: Registry) -> Generator[Tuple[str, interfaces.IResource], None, None]:
         for name, sub_resource in registry.getAdapters((self,), interfaces.IResource):
             yield name, sub_resource
-
-    def as_dict(self, request):
-        """
-        :type request: pyramid.request.Request
-        :rtype: dict
-        """
-        return {}
-
-    def __json__(self, request):
-        """
-        :type request: pyramid.request.Request
-        :rtype: dict
-        """
-        return self.as_dict(request)
 
     @property
     def __resource_name__(self):
         return self.__class__.__name__
 
-    def get_allowed_methods(self):
-        """
-        :rtype: set[str]
-        """
-        methods = {'OPTIONS'}
-        for method in ('get', 'put', 'patch', 'delete', 'post'):
-            method_options = 'options_for_%s' % method
-            method_options = getattr(self, method_options, None)
-            if method_options is not None:
-                methods.add(method.upper())
-        if 'GET' in methods:
-            methods.add('HEAD')
-        return methods
-
-    def get_registry(self):
-        """
-        :rtype: pyramid.registry.Registry
-        """
+    def get_registry(self) -> Registry:
         root = find_root(self)
         return root.registry
 
-    def get_etag(self):
-        """Returns value of ETag header for the resource or None.
-        :rtype: restfw.utils.ETag or None
-        """
+    def get_etag(self) -> Optional[ETag]:
+        """Returns value of ETag header for the resource or None."""
         return None
-
-    options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.ResourceSchema)
-
-    def http_head(self, request, params):
-        """This method may be used in derived classes to overwrite
-        a default implementation for HEAD request handler.
-        :type request: pyramid.request.Request
-        :type params: dict
-        :rtype: IResource
-        """
-        return self.http_get(request, params)
-
-    def http_get(self, request, params):
-        """Returns a resource, any of representation or any response instance."""
-        return self
-
-    options_for_post = None
 
     def http_post(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'POST'})
 
-    options_for_put = None
-
     def http_put(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PUT'})
-
-    options_for_patch = None
 
     def http_patch(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
            resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PATCH'})
 
-    options_for_delete = None
-
     def http_delete(self, request, params):
         """Delete the resource."""
         raise HTTPMethodNotAllowed(detail={'method': 'DELETE'})
+
+
+class sub_resource_config(object):
+    """ A function, class or method :term:`decorator` which allows a
+    developer to create sub-resource fabric registrations nearer to it
+    definition than use :term:`imperative configuration` to do the same.
+
+    For example, this code in a module ``resources.py``::
+
+      @sub_resource_config(name='classes', parent=IUser)
+      class UserClasses(Resource):
+
+        def __init__(self, parent):
+            self.__parent__ = parent
+
+    Might replace the following call to the
+    :meth:`restfw.config.add_sub_resource_fabric` method::
+
+       from .resources import UserClasses
+       config.add_sub_resource_fabric(UserClasses, name='classes', parent=IUser)
+
+    Any ``**predicate`` arguments will be passed along to
+    :meth:`restfw.config.add_sub_resource_fabric`.
+
+    Two additional keyword arguments which will be passed to the
+    :term:`venusian` ``attach`` function are ``_depth`` and ``_category``.
+
+    ``_depth`` is provided for people who wish to reuse this class from another
+    decorator. The default value is ``0`` and should be specified relative to
+    the ``view_config`` invocation. It will be passed in to the
+    :term:`venusian` ``attach`` function as the depth of the callstack when
+    Venusian checks if the decorator is being used in a class or module
+    context. It's not often used, but it can be useful in this circumstance.
+
+    ``_category`` sets the decorator category name. It can be useful in
+    combination with the ``category`` argument of ``scan`` to control which
+    views should be processed.
+
+    See the :py:func:`venusian.attach` function in Venusian for more
+    information about the ``_depth`` and ``_category`` arguments.
+
+    .. warning::
+
+        ``sub_resource`` will work ONLY on module top level members
+        because of the limitation of ``venusian.Scanner.scan``.
+
+    """
+    venusian = venusian  # for testing injection
+
+    def __init__(self, name, parent=interfaces.IResource, **predicates):
+        self.name = name
+        self.parent = parent
+        self.predicates = predicates
+        self.depth = predicates.pop('_depth', 0)
+        self.category = predicates.pop('_category', 'restfw')
+
+    def register(self, scanner, name, wrapped):
+        config = scanner.config
+        config.add_sub_resource_fabric(wrapped, self.name, self.parent, **self.predicates)
+
+    def __call__(self, wrapped):
+        self.venusian.attach(wrapped, self.register, category=self.category,
+                             depth=self.depth + 1)
+        return wrapped

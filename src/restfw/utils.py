@@ -9,6 +9,7 @@ from typing import ContextManager
 
 import colander
 from pyramid.interfaces import IRequestFactory, IRootFactory
+from pyramid.registry import Registry
 from pyramid.request import Request, apply_request_extensions
 from pyramid.threadlocal import RequestContext, get_current_request
 from pyramid.traversal import DefaultRootFactory, find_resource
@@ -17,10 +18,7 @@ from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
 from .interfaces import IEvent, IHalResourceLinks
-from .renderers import json_renderer
-
-
-JSON_RENDER = json_renderer(None)
+from .typing import PyramidRequest
 
 
 def is_testing(registry):
@@ -133,6 +131,9 @@ def _create_error(node, message, child_node_path=None, value=None):
 
 
 def create_validation_error(schema_class, message, node_name=None, value=None):
+    if schema_class is None:
+        node_name = node_name or ''
+        return ValidationError({node_name: message})
     error = _create_error(schema_class(), message, node_name, value)
     return colander_invalid_to_response(error)
 
@@ -217,12 +218,7 @@ def get_pyramid_root(request=None):
 
 
 @contextmanager
-def open_pyramid_request(registry, path='http://localhost'):
-    """
-    :type registry: pyramid.registry.Registry
-    :type path: str
-    :rtype: ContextManager[pyramid.request.Request]
-    """
+def open_pyramid_request(registry: Registry, path='http://localhost') -> ContextManager[PyramidRequest]:
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
     request = request_factory.blank(path)
     request.registry = registry
@@ -243,7 +239,7 @@ def get_object_fullname(o):
     return '%s.%s' % (module, o.__name__)
 
 
-class ETag(object):
+class ETag:
     __slots__ = ('value', 'is_strict')
 
     def __init__(self, value, is_strict=True):
