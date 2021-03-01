@@ -148,17 +148,21 @@ class ResourceView:
         try:
             result, created = self.resource.http_post(self.request, params)
         except MultiParametersError as e:
-            raise create_multi_validation_error(
+            error = create_multi_validation_error(
                 self.options_for_post.input_schema,
                 errors=e.errors,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         except ParameterError as e:
-            raise create_validation_error(
+            error = create_validation_error(
                 self.options_for_post.input_schema,
                 message=e.err_message,
                 node_name=e.name,
                 value=e.value,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         return self._process_result(result, created)
 
     options_for_put: Optional[interfaces.MethodOptions] = None
@@ -168,17 +172,21 @@ class ResourceView:
         try:
             created = self.resource.http_put(self.request, params)
         except MultiParametersError as e:
-            raise create_multi_validation_error(
+            error = create_multi_validation_error(
                 self.options_for_put.input_schema,
                 errors=e.errors,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         except ParameterError as e:
-            raise create_validation_error(
+            error = create_validation_error(
                 self.options_for_put.input_schema,
                 message=e.err_message,
                 node_name=e.name,
                 value=e.value,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         self._process_result(result=self.resource, created=created, context=self.resource)
         return self.__json__()
 
@@ -189,17 +197,21 @@ class ResourceView:
         try:
             created = self.resource.http_patch(self.request, params)
         except MultiParametersError as e:
-            raise create_multi_validation_error(
+            error = create_multi_validation_error(
                 self.options_for_patch.input_schema,
                 errors=e.errors,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         except ParameterError as e:
-            raise create_validation_error(
+            error = create_validation_error(
                 self.options_for_patch.input_schema,
                 message=e.err_message,
                 node_name=e.name,
                 value=e.value,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         self._process_result(result=self.resource, created=created, context=self.resource)
         return self.__json__()
 
@@ -210,17 +222,21 @@ class ResourceView:
         try:
             result = self.resource.http_delete(self.request, params)
         except MultiParametersError as e:
-            raise create_multi_validation_error(
+            error = create_multi_validation_error(
                 self.options_for_delete.input_schema,
                 errors=e.errors,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         except ParameterError as e:
-            raise create_validation_error(
+            error = create_validation_error(
                 self.options_for_delete.input_schema,
                 message=e.err_message,
                 node_name=e.name,
                 value=e.value,
-            ) from e
+            )
+            error.headers = e.headers
+            raise error from e
         return self._process_result(result)
 
     def get_allowed_methods(self) -> Set[str]:
