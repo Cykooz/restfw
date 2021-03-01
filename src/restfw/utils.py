@@ -5,7 +5,7 @@
 """
 import re
 from contextlib import contextmanager
-from typing import ContextManager
+from typing import ContextManager, Dict
 
 import colander
 from pyramid.interfaces import IRequestFactory, IRootFactory
@@ -135,6 +135,18 @@ def create_validation_error(schema_class, message, node_name=None, value=None):
         node_name = node_name or ''
         return ValidationError({node_name: message})
     error = _create_error(schema_class(), message, node_name, value)
+    return colander_invalid_to_response(error)
+
+
+def create_multi_validation_error(schema_class, errors: Dict[str, str]):
+    if schema_class is None:
+        return ValidationError(errors.copy())
+    schema = schema_class()
+    error = colander.Invalid(schema)
+    for node_name, message in errors.items():
+        error.add(
+            _create_error(schema, message, node_name)
+        )
     return colander_invalid_to_response(error)
 
 

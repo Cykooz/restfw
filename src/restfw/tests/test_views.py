@@ -11,6 +11,7 @@ from cykooz.testing import D
 from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 
 from .. import interfaces, schemas, views
+from ..errors import MultiParametersError, ParameterError
 from ..hal import HalResource, SimpleContainer
 from ..testing import assert_resource
 from ..typing import Json
@@ -22,8 +23,14 @@ class DummyHalResource(HalResource):
     def __init__(self, title, description):
         self.title = title
         self.description = description
+        self.put_errors = {}
 
     def http_put(self, request, params):
+        if len(self.put_errors) == 1:
+            name, message = list(self.put_errors.items())[0]
+            raise ParameterError(name, message)
+        elif len(self.put_errors) > 1:
+            raise MultiParametersError(self.put_errors)
         self.title = params['title']
         self.description = params['description']
         return self, False
@@ -88,7 +95,8 @@ class DummyContainerView(views.HalResourceWithEmbeddedView):
         )
 
 
-class DummyResourceExamples(UsageExamples):
+class DummyHalResourceExamples(UsageExamples):
+    resource: DummyHalResource
 
     def prepare_resource(self):
         container = DummyContainer()
@@ -122,6 +130,21 @@ class DummyResourceExamples(UsageExamples):
             params={'title': 'T' * 51},
             exception=self.ValidationError({'title': 'Longer than maximum length 50'}),
         )
+
+        self.resource.put_errors = {'description': 'Description error'}
+        send(
+            params=params,
+            exception=self.ValidationError(self.resource.put_errors),
+        )
+        self.resource.put_errors = {
+            'title': 'Title error',
+            'description': 'Description error',
+        }
+        send(
+            params=params,
+            exception=self.ValidationError(self.resource.put_errors),
+        )
+        self.resource.put_errors = {}
 
     def delete_requests(self, send):
         send(status=204)
@@ -172,7 +195,7 @@ def register(app_config):
 
 
 def test_resource(web_app, pyramid_request):
-    resource_info = DummyResourceExamples(pyramid_request)
+    resource_info = DummyHalResourceExamples(pyramid_request)
     assert_resource(resource_info, web_app)
 
 

@@ -3,6 +3,8 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
+from typing import Dict
+
 from pyramid import httpexceptions
 from pyramid.traversal import resource_path
 
@@ -65,7 +67,7 @@ class ResultValidationError(httpexceptions.HTTPInternalServerError):
 
 class ParameterError(httpexceptions.HTTPInternalServerError):
     title = 'Parameter Validation Error'
-    explanation = 'The input parameter(s) has wrong value.'
+    explanation = 'The input parameter has wrong value.'
 
     def __init__(self, name: str, message: str, value=None):
         self.name = name
@@ -75,6 +77,22 @@ class ParameterError(httpexceptions.HTTPInternalServerError):
 
     def __str__(self):
         return f'<{self.__class__.__name__} "{self.name}": {self.message}>'
+
+    def __repr__(self):
+        return str(self)
+
+
+class MultiParametersError(httpexceptions.HTTPInternalServerError):
+    title = 'Parameters Validation Error'
+    explanation = 'The input parameters has wrong value.'
+
+    def __init__(self, errors: Dict[str, str]):
+        self.errors = errors.copy()
+        super().__init__(self.errors)
+
+    def __str__(self):
+        err_text = ', '.join(f'"{node}": {msg}>' for node, msg in self.errors)
+        return f'<{self.__class__.__name__} {err_text}>'
 
     def __repr__(self):
         return str(self)
