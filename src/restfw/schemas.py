@@ -3,7 +3,6 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
-from functools import partial
 from urllib.parse import urlsplit
 
 import colander
@@ -117,21 +116,9 @@ class ResourceType(colander.SchemaType):
 
 # Basic nodes
 
-class MappingSchema(colander.SchemaNode):
-    """Use this class instead of colander.MappingSchema
-    to support urlencoded input data represented as instance of MultiDict."""
-    schema_type = UrlEncodeMapping
-
-
-class PreserveMappingSchema(colander.MappingSchema):
-    def schema_type(self):
-        return UrlEncodeMapping(unknown='preserve')
-
-
 class BaseNode(colander.SchemaNode):
 
-    def __init__(self, *args, **kwargs):
-        nullable = kwargs.pop('nullable', False)
+    def __init__(self, *args, nullable=False, **kwargs):
         if nullable:
             schema_type = self.schema_type
             self.schema_type = lambda: Nullable(schema_type())
@@ -140,11 +127,35 @@ class BaseNode(colander.SchemaNode):
             self.validator = NullableValidator(self.validator)
 
 
+class MappingNode(BaseNode):
+    unknown = 'ignore'
+
+    def __init__(self, *args, **kwargs):
+        self.unknown = kwargs.pop('unknown', self.unknown)
+        super().__init__(*args, **kwargs)
+
+    def schema_type(self):
+        return UrlEncodeMapping(unknown=self.unknown)
+
+
+class PreserveMappingSchema(MappingNode):
+    unknown = 'preserve'
+
+
+class MappingSchema(BaseNode):
+    """Use this class instead of colander.MappingSchema
+    to support urlencoded input data represented as instance of MultiDict.
+
+    DEPRECATED: Use MappingNode instead.
+    """
+    schema_type = UrlEncodeMapping
+
+
 class StringNode(BaseNode):
     schema_type = colander.String
 
-    def __init__(self, *args, **kwargs):
-        self.strip = kwargs.pop('strip', True)
+    def __init__(self, *args, strip=True, **kwargs):
+        self.strip = strip
         super(StringNode, self).__init__(*args, **kwargs)
 
     def preparer(self, appstruct):
@@ -158,9 +169,8 @@ class StringNode(BaseNode):
 class EmptyStringNode(colander.SchemaNode):
     schema_type = EmptyString
 
-    def __init__(self, *args, **kwargs):
-        self.strip = kwargs.pop('strip', True)
-        nullable = kwargs.pop('nullable', False)
+    def __init__(self, *args, strip=True, nullable=False, **kwargs):
+        self.strip = strip
         if nullable:
             schema_type = self.schema_type
             self.schema_type = lambda: Nullable(schema_type(), null_values=[])
@@ -238,27 +248,17 @@ class EmbeddedNode(BaseNode):
     def _bind(self, kw):
         kw = kw.copy()
         kw['is_embedded'] = True
-        return super(EmbeddedNode, self)._bind(kw)
+        return super()._bind(kw)
 
 
 class SequenceNode(BaseNode, colander.SequenceSchema):
 
-    def __init__(self, *args, **kwargs):
-        self.accept_scalar = kwargs.pop('accept_scalar', False)
-        super(SequenceNode, self).__init__(*args, **kwargs)
+    def __init__(self, *args, accept_scalar=False, **kwargs):
+        self.accept_scalar = accept_scalar
+        super().__init__(*args, **kwargs)
 
     def schema_type(self):
         return colander.Sequence(accept_scalar=self.accept_scalar)
-
-
-class MappingNode(BaseNode, colander.MappingSchema):
-
-    def __init__(self, *args, **kwargs):
-        self.unknown = kwargs.pop('unknown', 'ignore')
-        super(MappingNode, self).__init__(*args, **kwargs)
-
-    def schema_type(self):
-        return colander.Mapping(unknown=self.unknown)
 
 
 class ResourceNode(BaseNode):
@@ -267,7 +267,7 @@ class ResourceNode(BaseNode):
 
 # Validators
 
-class LazyAll(object):
+class LazyAll:
     """Composite validator which fail if one of its
     subvalidators raises an :class:`colander.Invalid` exception"""
 
@@ -279,7 +279,7 @@ class LazyAll(object):
             validator(node, value)
 
 
-class LazyAny(object):
+class LazyAny:
     """Composite validator which fail if all of its
     subvalidators raises an :class:`colander.Invalid` exception"""
 
@@ -321,7 +321,7 @@ class LaconicNoneOf(colander.OneOf):
             raise colander.Invalid(node, err)
 
 
-class ResourceInterface(object):
+class ResourceInterface:
     """Validator which succeeds if the type or interface of value passed to it
     is one of a fixed set of interfaces and classes."""
 
@@ -349,22 +349,22 @@ class ResourceInterface(object):
 
 # Schemas
 
-class GetResourceSchema(MappingSchema):
+class GetResourceSchema(MappingNode):
     pass
 
 
-class ResourceSchema(colander.MappingSchema):
+class ResourceSchema(MappingNode):
     pass
 
 
 # HAL Schemas
 
-class HalLinkNode(colander.MappingSchema):
+class HalLinkNode(MappingNode):
     href = StringNode(title='URL to a resource', validator=colander.url)
     templated = BooleanNode(title='URL is templated', missing=colander.drop)
 
 
-class HalLinksSchema(colander.MappingSchema):
+class HalLinksSchema(MappingNode):
     title = 'HAL links'
     self = HalLinkNode(title='Link to this resource')
 
@@ -401,9 +401,8 @@ class HalLinksSchema(colander.MappingSchema):
                 node.add(child)
 
 
-class DynamicHalLinksNode(colander.SchemaNode):
+class DynamicHalLinksNode(PreserveMappingSchema):
     title = 'HAL links'
-    schema_type = partial(colander.Mapping, unknown='preserve')
 
     @staticmethod
     def validator(node, mapping):
@@ -425,7 +424,7 @@ class PagesHalLinksSchema(HalLinksSchema):
     )
 
 
-class HalResourceSchema(colander.MappingSchema):
+class HalResourceSchema(MappingNode):
     _links = HalLinksSchema()
 
 
@@ -471,7 +470,7 @@ class GetNextPageSchema(GetResourceSchema):
     total_count = BooleanNode(title='Calculate total count', missing=False)
 
 
-class EmbeddedItemsSchema(colander.MappingSchema):
+class EmbeddedItemsSchema(MappingNode):
     items = colander.SchemaNode(colander.List(), title='List of items',
                                 missing=colander.drop)
 
