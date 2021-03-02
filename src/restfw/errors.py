@@ -65,26 +65,9 @@ class ResultValidationError(httpexceptions.HTTPInternalServerError):
     explanation = 'The result has wrong parameters.'
 
 
-class ParameterError(httpexceptions.HTTPInternalServerError):
-    title = 'Parameter Validation Error'
-    explanation = 'The input parameter has wrong value.'
-
-    def __init__(self, name: str, message: str, value=None):
-        self.name = name
-        self.err_message = message
-        self.value = value
-        super().__init__({name: message})
-
-    def __str__(self):
-        return f'<{self.__class__.__name__} "{self.name}": {self.message}>'
-
-    def __repr__(self):
-        return str(self)
-
-
-class MultiParametersError(httpexceptions.HTTPInternalServerError):
+class ParametersError(httpexceptions.HTTPInternalServerError):
     title = 'Parameters Validation Error'
-    explanation = 'The input parameters has wrong value.'
+    explanation = 'The input parameter(s) has wrong value.'
 
     def __init__(self, errors: Dict[str, str]):
         self.errors = errors.copy()

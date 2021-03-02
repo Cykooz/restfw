@@ -14,12 +14,12 @@ from pyramid.traversal import quote_path_segment
 from zope.interface import implementer
 
 from . import interfaces, schemas
-from .errors import MultiParametersError, ParameterError
+from .errors import ParametersError
 from .external_links import get_external_links
 from .hal import HalResource, SimpleContainer
 from .resources import Resource
 from .typing import Json, PyramidRequest
-from .utils import create_multi_validation_error, create_validation_error, get_input_data, get_paging_links
+from .utils import create_multi_validation_error, get_input_data, get_paging_links
 
 
 def get_resource_view(resource, request: PyramidRequest) -> Optional['ResourceView']:
@@ -147,19 +147,10 @@ class ResourceView:
         params = self._get_params()
         try:
             result, created = self.resource.http_post(self.request, params)
-        except MultiParametersError as e:
+        except ParametersError as e:
             error = create_multi_validation_error(
                 self.options_for_post.input_schema,
                 errors=e.errors,
-            )
-            error.headers = e.headers
-            raise error from e
-        except ParameterError as e:
-            error = create_validation_error(
-                self.options_for_post.input_schema,
-                message=e.err_message,
-                node_name=e.name,
-                value=e.value,
             )
             error.headers = e.headers
             raise error from e
@@ -171,19 +162,10 @@ class ResourceView:
         params = self._get_params()
         try:
             created = self.resource.http_put(self.request, params)
-        except MultiParametersError as e:
+        except ParametersError as e:
             error = create_multi_validation_error(
                 self.options_for_put.input_schema,
                 errors=e.errors,
-            )
-            error.headers = e.headers
-            raise error from e
-        except ParameterError as e:
-            error = create_validation_error(
-                self.options_for_put.input_schema,
-                message=e.err_message,
-                node_name=e.name,
-                value=e.value,
             )
             error.headers = e.headers
             raise error from e
@@ -196,19 +178,10 @@ class ResourceView:
         params = self._get_params()
         try:
             created = self.resource.http_patch(self.request, params)
-        except MultiParametersError as e:
+        except ParametersError as e:
             error = create_multi_validation_error(
                 self.options_for_patch.input_schema,
                 errors=e.errors,
-            )
-            error.headers = e.headers
-            raise error from e
-        except ParameterError as e:
-            error = create_validation_error(
-                self.options_for_patch.input_schema,
-                message=e.err_message,
-                node_name=e.name,
-                value=e.value,
             )
             error.headers = e.headers
             raise error from e
@@ -221,19 +194,10 @@ class ResourceView:
         params = self._get_params()
         try:
             result = self.resource.http_delete(self.request, params)
-        except MultiParametersError as e:
+        except ParametersError as e:
             error = create_multi_validation_error(
                 self.options_for_delete.input_schema,
                 errors=e.errors,
-            )
-            error.headers = e.headers
-            raise error from e
-        except ParameterError as e:
-            error = create_validation_error(
-                self.options_for_delete.input_schema,
-                message=e.err_message,
-                node_name=e.name,
-                value=e.value,
             )
             error.headers = e.headers
             raise error from e

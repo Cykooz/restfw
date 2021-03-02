@@ -11,7 +11,7 @@ from cykooz.testing import D
 from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 
 from .. import interfaces, schemas, views
-from ..errors import MultiParametersError, ParameterError
+from ..errors import ParametersError
 from ..hal import HalResource, SimpleContainer
 from ..testing import assert_resource
 from ..typing import Json
@@ -26,11 +26,8 @@ class DummyHalResource(HalResource):
         self.put_errors = {}
 
     def http_put(self, request, params):
-        if len(self.put_errors) == 1:
-            name, message = list(self.put_errors.items())[0]
-            raise ParameterError(name, message)
-        elif len(self.put_errors) > 1:
-            raise MultiParametersError(self.put_errors)
+        if self.put_errors:
+            raise ParametersError(self.put_errors)
         self.title = params['title']
         self.description = params['description']
         return self, False

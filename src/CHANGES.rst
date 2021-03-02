@@ -14,8 +14,8 @@
 CHANGELOG
 *********
 
-6.0b2 (2021-03-01)
-==================
+Next release
+============
 
 Features
 --------
@@ -24,12 +24,10 @@ Features
   All HTTP-related code moved from resources into this layer.
 - Added configurator directive ``add_resource_view()`` and corresponding decorator
   ``resource_view_config()``.
-- Added a new exception ``ParameterError`` for use it in a resource code
+- Added a new exception ``ParametersError`` for use it in a resource code
   instead of  ``create_validation_error()`` function.
 - Added function ``create_multi_validation_error()`` for create ``ValidationError``
   with many nodes.
-- Added a new exception ``MultiParametersError`` for use it in a resource code
-  instead of  ``create_multi_validation_error()`` function.
 - Added a new optional argument ``json_encoder`` for ``WebApp`` class.
 - Added function ``get_resource_view()`` for getting instance of resource view
   corresponding to given resource and request instance.
