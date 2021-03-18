@@ -74,7 +74,7 @@ class ParametersError(httpexceptions.HTTPInternalServerError):
         super().__init__(self.errors)
 
     def __str__(self):
-        err_text = ', '.join(f'"{node}": {msg}>' for node, msg in self.errors)
+        err_text = ', '.join(f'"{node}": {msg}>' for node, msg in self.errors.items())
         return f'<{self.__class__.__name__} {err_text}>'
 
     def __repr__(self):
