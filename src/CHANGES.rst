@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Changes
+-------
+
+- Removed parameter ``total_count`` from links named ``next`` and ``prev``.
+
 6.0 (2021-03-18)
 ================
 

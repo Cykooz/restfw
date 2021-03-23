@@ -176,6 +176,7 @@ def get_paging_links(resource, request, offset, limit, has_next_page):
     """
     links = {}
     query = request.GET.copy()
+    query.pop('total_count', None)
     if has_next_page:
         query['offset'] = offset + limit
         links['next'] = {'href': request.resource_url(resource, query=query)}

@@ -403,9 +403,10 @@ def assert_container_listing(usage_examples, web_app):
     assert len(embedded) == 2
 
     next_link = res['_links']['next']['href']
+    assert 'total_count=' not in next_link
     params, headers = usage_examples.authorize_request(None, base_headers)
     res = web_app.get(next_link, params=params, headers=headers)
-    assert res.headers['X-Total-Count'] == str(total_count)
+    assert 'X-Total-Count' not in res.headers
     res = res.json_body
     embedded = list(res['_embedded'].values())[0]
     assert len(embedded) == min(total_count - 2, 2)
@@ -418,8 +419,9 @@ def assert_container_listing(usage_examples, web_app):
         assert prev_link > ''
 
     if prev_link:
+        assert 'total_count=' not in prev_link
         res = web_app.get(prev_link, headers=headers)
-        assert res.headers['X-Total-Count'] == str(total_count)
+        assert 'X-Total-Count' not in res.headers
         res = res.json_body
         embedded = list(res['_embedded'].values())[0]
         assert len(embedded) == 2
