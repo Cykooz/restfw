@@ -6,6 +6,7 @@
 from pyramid.security import Allow, DENY_ALL, Everyone
 from zope.interface import implementer
 
+from .authorization import ALL_GET_REQUESTS
 from .events import RootCreated
 from .hal import SimpleContainer
 from .interfaces import IRoot
@@ -16,7 +17,7 @@ from .utils import notify
 class Root(SimpleContainer):
 
     __acl__ = [
-        (Allow, Everyone, 'get'),
+        (Allow, Everyone, ALL_GET_REQUESTS),
         DENY_ALL
     ]
 

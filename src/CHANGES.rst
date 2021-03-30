@@ -14,6 +14,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed authorization policy to support ACL rules to allow or
+  deny requests with concrete http-method.
+
 6.0.2 (2021-03-23)
 ==================
 

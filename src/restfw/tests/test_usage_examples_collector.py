@@ -260,7 +260,7 @@ def test_usage_examples_collector(web_app, app_config):
     assert list(methods.keys()) == ['GET']
     # ... GET
     method = methods['GET']
-    assert method.allowed_principals == {Authenticated}
+    assert method.allowed_principals == [Authenticated]
     description = 'Get Dummy Container'
     assert [ei.description for ei in method.examples_info] == [
         None,
@@ -293,7 +293,7 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.description == [
         'Returns a resource representation.'
     ]
-    assert method.allowed_principals == {Everyone}
+    assert method.allowed_principals == [Everyone]
     assert method.input_schema is None
     assert method.output_schema is not None
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
@@ -310,7 +310,7 @@ def test_usage_examples_collector(web_app, app_config):
         '',
         'In some cases this method produce magic ether.',
     ]
-    assert method.allowed_principals == {'auth_user'}
+    assert method.allowed_principals == ['auth_user']
     assert method.input_schema is not None
     assert method.input_schema.class_name == get_object_fullname(PutDummySchema)
     assert method.output_schema is not None

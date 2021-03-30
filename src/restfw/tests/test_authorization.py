@@ -6,12 +6,10 @@
 from pyramid.security import ALL_PERMISSIONS, Allow, Deny
 
 from .vendor import pyramid_test_authorization
-from ..interfaces import MethodOptions
 from ..resources import Resource
 
 
 class DummyContext(Resource):
-
     __acl__ = [
         (Allow, 1, 'get'),
         (Allow, 2, 'dummy.create'),
@@ -21,12 +19,6 @@ class DummyContext(Resource):
         (Allow, 6, 'dummy.'),
         (Allow, 7, ALL_PERMISSIONS),
     ]
-
-    options_for_get = MethodOptions(None, None)
-    options_for_post = MethodOptions(None, None, 'dummy.create')
-    options_for_put = MethodOptions(None, None, 'dummy.edit')
-    options_for_patch = None
-    options_for_delete = MethodOptions(None, None, 'dummy.delete')
 
 
 class TestRestACLAuthorizationPolicy(pyramid_test_authorization.TestACLAuthorizationPolicy):
@@ -39,32 +31,53 @@ class TestRestACLAuthorizationPolicy(pyramid_test_authorization.TestACLAuthoriza
         context = DummyContext()
         policy = self._makeOne()
         assert policy.permits(context, [1], 'get')
-        assert policy.permits(context, [2], 'post')
-        assert policy.permits(context, [3], 'put')
-        assert policy.permits(context, [4], 'patch')
-        assert policy.permits(context, [5], 'delete')
+        assert policy.permits(context, [2], 'post.dummy.create')
+        assert policy.permits(context, [3], 'put.dummy.edit')
+        assert policy.permits(context, [4], 'patch.dummy.patch')
+        assert policy.permits(context, [5], 'delete.dummy.delete')
 
     def test_permits_with_permission_prefix(self):
         context = DummyContext()
         policy = self._makeOne()
-        assert policy.permits(context, [6], 'post')
-        assert policy.permits(context, [6], 'put')
-        assert policy.permits(context, [6], 'delete')
+        assert policy.permits(context, [6], 'post.dummy.create')
+        assert policy.permits(context, [6], 'put.dummy.edit')
+        assert policy.permits(context, [6], 'delete.dummy.delete')
 
         assert not policy.permits(context, [6], 'get')
         assert not policy.permits(context, [6], 'patch')
+
+    def test_principals(self):
+        context = DummyContext()
+        policy = self._makeOne()
+
+        principals = policy.principals_allowed_by_permission(context, 'get')
+        assert principals == {1, 7}
+
+        principals = policy.principals_allowed_by_permission(context, 'patch')
+        assert principals == {4, 7}
+
+        principals = policy.principals_allowed_by_permission(context, 'dummy.create')
+        assert principals == {2, 6, 7}
+
+        principals = policy.principals_allowed_by_permission(context, 'dummy.edit')
+        assert principals == {3, 6, 7}
+
+        principals = policy.principals_allowed_by_permission(context, 'dummy.edit')
+        assert principals == {3, 6, 7}
+
+        principals = policy.principals_allowed_by_permission(context, 'dummy.delete')
+        assert principals == {5, 6, 7}
 
     def test_orig_permission_check(self):
         root = DummyContext()
         child = DummyContext()
         child.__parent__ = root
         child.__acl__ = []
-        child.options_for_get = MethodOptions(None, None, 'child.get')
 
         policy = self._makeOne()
-        assert policy.permits(child, [1], 'get')
+        assert policy.permits(child, [1], 'get.child.get')
 
         child.__acl__ = [
             (Deny, 1, 'child.get')
         ]
-        assert not policy.permits(child, [1], 'get')
+        assert not policy.permits(child, [1], 'get.child.get')

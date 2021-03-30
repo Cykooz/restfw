@@ -42,7 +42,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
             not_allowed_methods.append(http_method.upper())
             continue
 
-        permission = method_options.permission or http_method
+        permission = f'{http_method}.{method_options.permission}' if method_options.permission else http_method
         methods = ['head', 'get'] if http_method == 'get' else [http_method]
         for request_method in methods:
             method = request_method.upper()

@@ -75,7 +75,7 @@ class UsageExamplesCollector(object):
                     # Examples do not support current environment
                     continue
 
-                self._logger.info('Collecting information form "%s".', ep_id)
+                self._logger.info('Collecting information from "%s".', ep_id)
 
                 resource = usage_examples.resource
                 resource_class_name = get_object_fullname(resource.__class__)
@@ -159,19 +159,25 @@ class UsageExamplesCollector(object):
                 continue
 
             authorization_policy = self.registry.queryUtility(IAuthorizationPolicy)
-            method_permission = method_options.permission or method
+            method_permission = method_options.permission
+            if method_permission:
+                method_permission = f'{method}.{method_permission}'
+            else:
+                method_permission = method
             allowed_principals = authorization_policy.principals_allowed_by_permission(
                 resource, method_permission
             )
             if Everyone in allowed_principals:
-                allowed_principals = {Everyone}
+                allowed_principals = [Everyone]
             elif Authenticated in allowed_principals:
-                allowed_principals = {Authenticated}
+                allowed_principals = [Authenticated]
+
+            allowed_principals = sorted(allowed_principals, key=str)
             if self._principal_formatter is not None:
-                allowed_principals = {
+                allowed_principals = [
                     self._principal_formatter(p, request, resource)
                     for p in allowed_principals
-                }
+                ]
 
             description = self._get_code_object_doc(method_func)
             if not description:
