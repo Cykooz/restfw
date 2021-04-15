@@ -5,22 +5,19 @@
 """
 from zope.interface import implementer
 
-from .interfaces import IEvent, IRootCreated, IRoot
+from .interfaces import IEvent, IRoot, IRootCreated
+from .typing import PyramidRequest
 
 
 @implementer(IEvent)
-class Event(object):
-    #: :type: pyramid.request.Request
-    request = None
+class Event:
+    request: PyramidRequest = None
 
 
 @implementer(IRootCreated)
 class RootCreated(Event):
     """An instance of this class is emitted after root object was created."""
 
-    def __init__(self, root):
-        """
-        :type root: IRoot
-        """
-        super(RootCreated, self).__init__()
+    def __init__(self, root: IRoot):
+        super().__init__()
         self.root = root

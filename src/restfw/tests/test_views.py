@@ -102,8 +102,8 @@ class DummyHalResourceExamples(UsageExamples):
         container['resource'] = resource
         return resource
 
-    def get_requests(self, send):
-        send(
+    def get_requests(self):
+        self.send(
             result={
                 '_links': {'self': {'href': self.resource_url}},
                 'title': 'Resource title',
@@ -111,7 +111,7 @@ class DummyHalResourceExamples(UsageExamples):
             }
         )
 
-    def put_requests(self, send):
+    def put_requests(self):
         params = {
             'title': 'New title',
             'description': 'New description'
@@ -120,16 +120,16 @@ class DummyHalResourceExamples(UsageExamples):
             '_links': {'self': {'href': self.resource_url}},
             **params
         }
-        send(params=params, result=result)
+        self.send(params=params, result=result)
 
-        send(exception=self.ValidationError({'title': 'Required'}))
-        send(
+        self.send(exception=self.ValidationError({'title': 'Required'}))
+        self.send(
             params={'title': 'T' * 51},
             exception=self.ValidationError({'title': 'Longer than maximum length 50'}),
         )
 
         self.resource.put_errors = {'description': 'Description error'}
-        send(
+        self.send(
             params=params,
             exception=self.ValidationError(self.resource.put_errors),
         )
@@ -137,14 +137,14 @@ class DummyHalResourceExamples(UsageExamples):
             'title': 'Title error',
             'description': 'Description error',
         }
-        send(
+        self.send(
             params=params,
             exception=self.ValidationError(self.resource.put_errors),
         )
         self.resource.put_errors = {}
 
-    def delete_requests(self, send):
-        send(status=204)
+    def delete_requests(self):
+        self.send(status=204)
 
 
 class DummyContainerExamples(UsageExamples):
@@ -160,8 +160,8 @@ class DummyContainerExamples(UsageExamples):
             resource['res-%d' % i] = child
         return resource
 
-    def get_requests(self, send):
-        send(
+    def get_requests(self):
+        self.send(
             result=D({
                 '_links': {'self': {'href': 'http://localhost/test_container/'}},
                 '_embedded': {
@@ -170,16 +170,16 @@ class DummyContainerExamples(UsageExamples):
             })
         )
 
-    def post_requests(self, send):
+    def post_requests(self):
         params = {
             'title': 'New title',
             'description': 'New description'
         }
         result = D(params)
-        send(params=params, result=result, status=201)
+        self.send(params=params, result=result, status=201)
 
-        send(exception=self.ValidationError({'title': 'Required'}))
-        send(
+        self.send(exception=self.ValidationError({'title': 'Required'}))
+        self.send(
             params={'title': 'T' * 51},
             exception=self.ValidationError({'title': 'Longer than maximum length 50'}),
         )

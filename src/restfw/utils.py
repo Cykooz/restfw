@@ -255,19 +255,12 @@ def get_object_fullname(o):
 class ETag:
     __slots__ = ('value', 'is_strict')
 
-    def __init__(self, value, is_strict=True):
-        """
-        :type value: str
-        :type is_strict: bool
-        """
+    def __init__(self, value: str, is_strict=True):
         self.value = value
         self.is_strict = is_strict
 
     def __repr__(self):
         return '<ETag %s>' % self.serialize()
 
-    def serialize(self):
-        """
-        :rtype: str
-        """
+    def serialize(self) -> str:
         return serialize_etag_response((self.value, self.is_strict))

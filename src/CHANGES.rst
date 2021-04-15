@@ -9,10 +9,26 @@
         - Features
         - Changes
         - Bug Fixes
+        - Breaking Changes
         - Docs
 
 CHANGELOG
 *********
+
+Next release
+============
+
+Features
+--------
+
+- Added method ``UsageExamples.send()`` to replace argument ``send``
+  of ``UsageExamples.<method>_requests()`` methods.
+- Method ``UsageExamples.send()`` returns instance of ``TestResponse``.
+
+Breaking Changes
+----------------
+
+- Removed argument ``send`` from all ``UsageExamples.<method>_requests()`` methods.
 
 6.0.4 (2021-03-30)
 ==================

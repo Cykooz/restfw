@@ -3,19 +3,27 @@
 :Authors: cykooz
 :Date: 21.01.2019
 """
+import abc
+from contextlib import contextmanager
+from typing import Dict, Optional
+
+from webtest import TestResponse
 from zope.interface import implementer, provider
 
 from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
 from .utils import basic_auth_value
 from ..errors import ValidationError
+from ..interfaces import IResource
 from ..typing import PyramidRequest
 from ..views import get_resource_view
 
 
+DEFAULT = object()
+
+
 @provider(IUsageExamplesFabric)
 @implementer(IUsageExamples)
-class UsageExamples(object):
-
+class UsageExamples(abc.ABC):
     ValidationError = ValidationError
     headers_for_listing = None  # Deprecated
     default_auth = ''
@@ -26,10 +34,10 @@ class UsageExamples(object):
         self.root = request.root
         self.request = request
         self.resource = self.prepare_resource()
-        self.request.context = self.resource
         self.resource_url = self.request.resource_url(self.resource)
         self.view = get_resource_view(self.resource, request)
         self.allowed_methods = self.view.get_allowed_methods()
+        self._send: Optional[ISendTestingRequest] = None
 
     @property
     def entry_point_name(self) -> str:
@@ -39,12 +47,9 @@ class UsageExamples(object):
             name = name[:-len(suffix)]
         return name
 
-    def authorize_request(self, params, headers, auth=None):
+    def authorize_request(self, params: Optional[dict], headers: Optional[dict], auth: Optional[str] = None):
         """Add authorization information into request with given params and headers.
-        :type params: dict or None
-        :type headers: dict or None
         :param auth: Some string used for authorization. For example '<login>:<password>'.
-        :type auth: str or None
         :return: Tuple with a new version of params and headers.
         """
         if auth is None:
@@ -55,38 +60,51 @@ class UsageExamples(object):
             headers['Authorization'] = basic_auth_value(user_name, password)
         return params, headers
 
-    def prepare_resource(self):
-        """
-        :rtype: restfw.interfaces.IResource
-        """
-        raise NotImplementedError
+    @abc.abstractmethod
+    def prepare_resource(self) -> IResource:
+        ...
 
-    def get_requests(self, send):
-        """
-        :type send: ISendTestingRequest
-        """
+    @contextmanager
+    def send_function(self, send: ISendTestingRequest):
+        old_send = self._send
+        try:
+            self._send = send
+            yield
+        finally:
+            self._send = old_send
+
+    def send(
+            self,
+            params: Optional[dict] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result=None,
+            result_headers: Optional[dict] = None,
+            exception=None,
+            status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False
+    ) -> TestResponse:
+        assert self._send is not None
+        return self._send(
+            params=params, headers=headers, auth=auth,
+            result=result, result_headers=result_headers,
+            exception=exception, status=status,
+            description=description,
+            exclude_from_doc=exclude_from_doc,
+        )
+
+    def get_requests(self):
         pass
 
-    def put_requests(self, send):
-        """
-        :type send: ISendTestingRequest
-        """
+    def put_requests(self):
         pass
 
-    def patch_requests(self, send):
-        """
-        :type send: ISendTestingRequest
-        """
+    def patch_requests(self):
         pass
 
-    def post_requests(self, send):
-        """
-        :type send: ISendTestingRequest
-        """
+    def post_requests(self):
         pass
 
-    def delete_requests(self, send):
-        """
-        :type send: ISendTestingRequest
-        """
+    def delete_requests(self):
         pass

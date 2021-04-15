@@ -13,10 +13,11 @@ from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
+from webtest import TestResponse
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
-from .fabric import UsageExamples
+from .fabric import DEFAULT, UsageExamples
 from .utils import default_docstring_extractor, sphinx_doc_filter
 from ..resources import Resource
 from ..testing import resource_testing
@@ -203,7 +204,8 @@ class UsageExamplesCollector(object):
             return []
 
         send = _ExampleInfoCollector(self.web_app, usage_examples, method)
-        send_requests(send)
+        with usage_examples.send_function(send):
+            send_requests()
 
         if send.results and method in ('head', 'get'):
             etag = usage_examples.resource.get_etag()
@@ -274,10 +276,10 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
         self.results: List[structs.ExampleInfo] = []
 
     def __call__(
-            self, params=resource_testing.DEFAULT, headers=None, auth=None, result=None,
+            self, params=DEFAULT, headers=None, auth=None, result=None,
             result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False
-    ):
-        params = params if params is not resource_testing.DEFAULT else {}
+    ) -> TestResponse:
+        params = params if params is not DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)
 
@@ -311,3 +313,4 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
             json_body=json_body
         )
         self.results.append(structs.ExampleInfo(request_info, response_info, description, exclude_from_doc))
+        return response

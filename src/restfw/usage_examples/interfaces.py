@@ -3,13 +3,14 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+from webtest import TestResponse
 from zope.interface import Attribute, Interface
 
 
 class ISendTestingRequest(Interface):
 
     def __call__(params=None, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """Send a testing request to resource"""
 
 
@@ -31,30 +32,26 @@ class IUsageExamples(Interface):
         :return: Tuple with a new version of params and headers.
         """
 
-    def get_requests(send):
-        """Calls function 'send' with parameters of GET requests.
-        :type send: ISendTestingRequest
-        """
+    def send(
+            params=None, headers=None, auth=None, result=None, result_headers=None,
+            exception=None, status=None, description=None, exclude_from_doc=False
+    ) -> TestResponse:
+        """Send a testing request to resource"""
 
-    def put_requests(send):
-        """Calls function 'send' with parameters of PUT requests.
-        :type send: ISendTestingRequest
-        """
+    def get_requests():
+        """Calls function 'send' with parameters of GET requests."""
 
-    def patch_requests(send):
-        """Calls function 'send' with parameters of PATCH requests.
-        :type send: ISendTestingRequest
-        """
+    def put_requests():
+        """Calls function 'send' with parameters of PUT requests."""
 
-    def post_requests(send):
-        """Calls function 'send' with parameters of POST requests.
-        :type send: ISendTestingRequest
-        """
+    def patch_requests():
+        """Calls function 'send' with parameters of PATCH requests."""
 
-    def delete_requests(send):
-        """Calls function 'send' with parameters of DELETE requests.
-        :type send: ISendTestingRequest
-        """
+    def post_requests():
+        """Calls function 'send' with parameters of POST requests."""
+
+    def delete_requests():
+        """Calls function 'send' with parameters of DELETE requests."""
 
 
 class IUsageExamplesFabric(Interface):

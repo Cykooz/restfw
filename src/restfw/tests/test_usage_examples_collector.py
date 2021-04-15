@@ -101,8 +101,8 @@ class Dummy1Examples(UsageExamples):
         self.root['container'] = container
         return self.root['container']['dummy1']
 
-    def get_requests(self, send):
-        send(
+    def get_requests(self):
+        self.send(
             description='Get info about Dummy resource.',
             auth='',
             result={
@@ -113,20 +113,20 @@ class Dummy1Examples(UsageExamples):
             },
         )
 
-    def put_requests(self, send):
-        send(auth='', exception=httpexceptions.HTTPUnauthorized)
-        send(
+    def put_requests(self):
+        self.send(auth='', exception=httpexceptions.HTTPUnauthorized)
+        self.send(
             auth='other_user:123',
             exception=httpexceptions.HTTPForbidden
         )
 
         params = {'value': 10}
-        send(
+        self.send(
             params=params,
             result=D(params),
         )
 
-        send(
+        self.send(
             params={'value': 'foo'},
             exception=self.ValidationError({
                 'value': '"foo" is not a number'
@@ -142,8 +142,8 @@ class Dummy2Examples(Dummy1Examples):
         self.root['dummy_container'] = container
         return self.root['dummy_container']['dummy2']
 
-    def get_requests(self, send):
-        send(
+    def get_requests(self):
+        self.send(
             auth='',
             result={
                 '_links': {
@@ -163,10 +163,10 @@ class DummyContainerExamples(UsageExamples):
         self.root['dummy_container'] = container
         return self.root['dummy_container']
 
-    def get_requests(self, send):
-        send(auth='', exception=httpexceptions.HTTPUnauthorized)
+    def get_requests(self):
+        self.send(auth='', exception=httpexceptions.HTTPUnauthorized)
         for user in ['other_user', 'auth_user']:
-            send(
+            self.send(
                 description='Get Dummy Container',
                 auth='%s:123' % user,
                 result={

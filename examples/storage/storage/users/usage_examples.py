@@ -20,12 +20,12 @@ class UsersExamples(UsageExamples):
             create_user(self.request, 'user%d' % i)
         return get_users(self.root)
 
-    def get_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='user0:', exception=HTTPForbidden())
+    def get_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='user0:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             params={'total_count': True, 'limit': 2},
             result={
                 '_links': {
@@ -42,12 +42,12 @@ class UsersExamples(UsageExamples):
             result_headers=D({'X-Total-Count': '3'})
         )
 
-    def post_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='user0:', exception=HTTPForbidden())
+    def post_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='user0:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             params={'name': 'new_user'},
             result={
                 '_links': {
@@ -68,12 +68,12 @@ class UserExamples(UsageExamples):
         create_user(self.request, 'other_user')
         return create_user(self.request, 'user')
 
-    def get_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='other_user:', exception=HTTPForbidden())
+    def get_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='other_user:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             result={
                 '_links': {
                     'self': {'href': ANY},

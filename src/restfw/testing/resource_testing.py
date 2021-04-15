@@ -6,16 +6,15 @@
 from copy import deepcopy
 
 from pyramid.httpexceptions import HTTPException, HTTPNotModified, HTTPPreconditionFailed
+from webtest import TestResponse
 from webtest.forms import Upload
 from zope.interface import implementer
 
 from ..interfaces import IHalResourceWithEmbeddedView
 from ..schemas import LISTING_CONF
 from ..usage_examples import UsageExamples
+from ..usage_examples.fabric import DEFAULT
 from ..usage_examples.interfaces import ISendTestingRequest
-
-
-DEFAULT = object()
 
 
 class RequestsTester:
@@ -31,7 +30,7 @@ class RequestsTester:
         self.calls_count = 0
 
     def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -52,7 +51,7 @@ class GetRequestsTester(RequestsTester):
     was_if_none_match = False
 
     def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -99,6 +98,8 @@ class GetRequestsTester(RequestsTester):
             if 'If-None-Match' in headers:
                 self.was_if_none_match = True
 
+        return get_res
+
 
 @implementer(ISendTestingRequest)
 class PutPatchRequestsTester(RequestsTester):
@@ -115,7 +116,7 @@ class PutPatchRequestsTester(RequestsTester):
         self._method = getattr(self.web_app, method_name)
 
     def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -134,8 +135,10 @@ class PutPatchRequestsTester(RequestsTester):
         method_func = self._json_method
         if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
             method_func = self._method
-        res = method_func(self.resource_url, params=params, headers=headers,
-                          exception=exception, status=status)
+        res = method_func(
+            self.resource_url, params=params, headers=headers,
+            exception=exception, status=status,
+        )
         if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
         if result is not None:
@@ -168,12 +171,14 @@ class PutPatchRequestsTester(RequestsTester):
             if 'If-None-Match' in headers:
                 self.was_if_none_match = True
 
+        return res
+
 
 @implementer(ISendTestingRequest)
 class PostRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -204,12 +209,14 @@ class PostRequestsTester(RequestsTester):
         if result_headers is not None:
             assert dict(res.headers) == result_headers
 
+        return res
+
 
 @implementer(ISendTestingRequest)
 class DeleteRequestsTester(RequestsTester):
 
     def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False):
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
         """
         :type params: dict or list or str or None
         :type headers: dict or None
@@ -237,6 +244,8 @@ class DeleteRequestsTester(RequestsTester):
         if result_headers is not None:
             assert dict(res.headers) == result_headers
 
+        return res
+
 
 def assert_resource(usage_examples, web_app):
     """
@@ -257,7 +266,8 @@ def _assert_get_and_head(usage_examples, web_app):
     info_name = usage_examples.__class__.__name__
     send = GetRequestsTester(web_app, usage_examples)
     if usage_examples.get_requests:
-        usage_examples.get_requests(send)
+        with usage_examples.send_function(send):
+            usage_examples.get_requests()
     if 'GET' not in usage_examples.allowed_methods:
         assert send.calls_count == 0, '{} sends GET requests to resource'.format(info_name)
         return
@@ -302,7 +312,8 @@ def _assert_put_and_patch(usage_examples, web_app):
     for http_method, examples_method in test_params:
         send = PutPatchRequestsTester(web_app, usage_examples, http_method.lower())
         if examples_method:
-            examples_method(send)
+            with usage_examples.send_function(send):
+                examples_method()
         if http_method not in usage_examples.allowed_methods:
             assert send.calls_count == 0, '{} sends {} requests to resource'.format(info_name, http_method)
             continue
@@ -344,7 +355,8 @@ def _assert_post(usage_examples, web_app):
     info_name = usage_examples.__class__.__name__
     send = PostRequestsTester(web_app, usage_examples)
     if usage_examples.post_requests:
-        usage_examples.post_requests(send)
+        with usage_examples.send_function(send):
+            usage_examples.post_requests()
     if 'POST' in usage_examples.allowed_methods:
         assert send.calls_count > 0, '{} has not any POST requests'.format(info_name)
     else:
@@ -359,7 +371,8 @@ def _assert_delete(usage_examples, web_app):
     info_name = usage_examples.__class__.__name__
     send = DeleteRequestsTester(web_app, usage_examples)
     if usage_examples.delete_requests:
-        usage_examples.delete_requests(send)
+        with usage_examples.send_function(send):
+            usage_examples.delete_requests()
     if 'DELETE' in usage_examples.allowed_methods:
         assert send.calls_count > 0, '{} has not any DELETE requests'.format(info_name)
     else:
@@ -474,22 +487,34 @@ def assert_container_listing(usage_examples, web_app):
     if is_offset_paging:
         params = {'offset': 'off', 'limit': 'lim'}
         params, headers = usage_examples.authorize_request(params, base_headers)
-        web_app.get(resource_url, params=params, headers=headers,
-                    exception=ValidationError({'limit': '"lim" is not a number',
-                                               'offset': '"off" is not a number'}))
+        web_app.get(
+            resource_url, params=params, headers=headers,
+            exception=ValidationError({
+                'limit': '"lim" is not a number',
+                'offset': '"off" is not a number'
+            })
+        )
 
         params = {'offset': -1, 'limit': -1}
         params, headers = usage_examples.authorize_request(params, base_headers)
-        web_app.get(resource_url, params=params, headers=headers,
-                    exception=ValidationError({'limit': '-1 is less than minimum value 0',
-                                               'offset': '-1 is less than minimum value 0'}))
+        web_app.get(
+            resource_url, params=params, headers=headers,
+            exception=ValidationError({
+                'limit': '-1 is less than minimum value 0',
+                'offset': '-1 is less than minimum value 0'
+            })
+        )
     else:
         params = {'limit': 'lim'}
         params, headers = usage_examples.authorize_request(params, base_headers)
-        web_app.get(resource_url, params=params, headers=headers,
-                    exception=ValidationError({'limit': '"lim" is not a number'}))
+        web_app.get(
+            resource_url, params=params, headers=headers,
+            exception=ValidationError({'limit': '"lim" is not a number'})
+        )
 
         params = {'limit': -1}
         params, headers = usage_examples.authorize_request(params, base_headers)
-        web_app.get(resource_url, params=params, headers=headers,
-                    exception=ValidationError({'limit': '-1 is less than minimum value 0'}))
+        web_app.get(
+            resource_url, params=params, headers=headers,
+            exception=ValidationError({'limit': '-1 is less than minimum value 0'})
+        )

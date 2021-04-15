@@ -23,12 +23,12 @@ class FileExamples(UsageExamples):
         file_resource.model.write(b'Hello\nWorld!')
         return file_resource
 
-    def get_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='other_user:', exception=HTTPForbidden())
+    def get_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='other_user:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             result={
                 '_links': {
                     'self': {'href': ANY},
@@ -38,12 +38,12 @@ class FileExamples(UsageExamples):
             },
         )
 
-    def put_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='other_user:', exception=HTTPForbidden())
+    def put_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='other_user:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             params='New file content',
             headers={
                 'Content-Type': 'text/plain',
@@ -57,11 +57,11 @@ class FileExamples(UsageExamples):
             },
         )
 
-    def delete_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='other_user:', exception=HTTPForbidden())
-        send(status=204)
+    def delete_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='other_user:', exception=HTTPForbidden())
+        self.send(status=204)
 
 
 @examples_config()
@@ -78,12 +78,12 @@ class FilesExamples(UsageExamples):
             file_resource.model.write(b'Hello\nWorld!')
         return files
 
-    def get_requests(self, send):
-        send(auth='', exception=HTTPUnauthorized())
-        send(auth='bad_user:', exception=HTTPUnauthorized())
-        send(auth='other_user:', exception=HTTPForbidden())
+    def get_requests(self):
+        self.send(auth='', exception=HTTPUnauthorized())
+        self.send(auth='bad_user:', exception=HTTPUnauthorized())
+        self.send(auth='other_user:', exception=HTTPForbidden())
 
-        send(
+        self.send(
             params={'total_count': True, 'limit': 2},
             result={
                 '_links': {
