@@ -59,20 +59,28 @@ class DummyResource(HalResource):
 
 @sub_resource_config('sub', DummyResource)
 class SubDummyResource(HalResource):
+
     def __init__(self, parent):
         pass
 
 
-@sub_resource_config('sub1', DummyResource, min_api_version=1)
+@sub_resource_config('sub1', min_api_version=1)
 class Sub1DummyResource(HalResource):
+    __parent__: DummyResource
+
     def __init__(self, parent):
         pass
 
 
-@sub_resource_config('sub2', DummyResource, max_api_version=2)
 class Sub2DummyResource(HalResource):
+
     def __init__(self, parent):
         pass
+
+
+@sub_resource_config('sub2', max_api_version=2)
+def get_sub2dummy(parent: DummyResource):
+    return Sub2DummyResource(parent)
 
 
 @sub_resource_config('sub23', DummyResource, min_api_version=2, max_api_version=3)
@@ -85,8 +93,9 @@ class Container(SimpleContainer):
     pass
 
 
-@resource_view_config(Container)
+@resource_view_config()
 class ContainerView(HalResourceWithEmbeddedView):
+    resource: Container
 
     def get_embedded(self, params: dict):
         return list_to_embedded_resources(

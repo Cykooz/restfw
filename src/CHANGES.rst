@@ -24,6 +24,9 @@ Features
 - Added method ``UsageExamples.send()`` to replace argument ``send``
   of ``UsageExamples.<method>_requests()`` methods.
 - Method ``UsageExamples.send()`` returns instance of ``TestResponse``.
+- Added support of type-hint for ``__parent__`` field of classes and ``parent`` argument
+  of functions decorated by ``sub_resource_config()`` instead of specify
+  parent type as the decorator's argument.
 
 Breaking Changes
 ----------------

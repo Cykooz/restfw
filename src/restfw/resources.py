@@ -3,7 +3,8 @@
 :Authors: cykooz
 :Date: 19.08.2016
 """
-from typing import Generator, Optional, Tuple
+from inspect import isclass
+from typing import Generator, Optional, Tuple, Type, get_type_hints
 
 import venusian
 from pyramid.httpexceptions import HTTPMethodNotAllowed
@@ -86,11 +87,24 @@ class sub_resource_config(object):
 
     For example, this code in a module ``resources.py``::
 
-      @sub_resource_config(name='classes', parent=IUser)
+      @sub_resource_config('classes', parent=IUser)
       class UserClasses(Resource):
 
         def __init__(self, parent):
             self.__parent__ = parent
+
+
+      @sub_resource_config('rooms')
+      class UserRooms(Resource):
+        __parent__: IUser
+
+        def __init__(self, parent):
+            self.__parent__ = parent
+
+
+      @sub_resource_config('logins')
+      def get_user_logins(parent: IUser):
+        return UserLogins(parent)
 
     Might replace the following call to the
     :meth:`restfw.config.add_sub_resource_fabric` method::
@@ -126,7 +140,7 @@ class sub_resource_config(object):
     """
     venusian = venusian  # for testing injection
 
-    def __init__(self, name, parent=interfaces.IResource, **predicates):
+    def __init__(self, name: str, parent: Optional[Type[Resource]] = None, **predicates):
         self.name = name
         self.parent = parent
         self.predicates = predicates
@@ -138,6 +152,27 @@ class sub_resource_config(object):
         config.add_sub_resource_fabric(wrapped, self.name, self.parent, **self.predicates)
 
     def __call__(self, wrapped):
+        if self.parent is None:
+            hints = get_type_hints(wrapped)
+            is_class = isclass(wrapped)
+            if is_class:
+                parent = hints.get('__parent__')
+                if parent is None:
+                    hints = get_type_hints(wrapped.__init__)
+                    parent = hints.get('parent')
+            else:
+                parent = hints.get('parent')
+
+            if parent is None:
+                if is_class:
+                    suffix = f'of "__parent__" field of class "{wrapped.__class__.__name__}"'
+                else:
+                    suffix = f'of "parent" argument of function "{wrapped.__name__}"'
+                raise RuntimeError(
+                    'You must specify "parent" argument of the decorator "sub_resource_config" '
+                    f'or add type-hint {suffix}.'
+                )
+            self.parent = parent
         self.venusian.attach(wrapped, self.register, category=self.category,
                              depth=self.depth + 1)
         return wrapped
