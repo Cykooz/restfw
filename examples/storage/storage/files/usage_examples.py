@@ -92,8 +92,8 @@ class FilesExamples(UsageExamples):
                 },
                 '_embedded': {
                     'files': [
+                        D({'name': 'readme0.txt', 'size': 12}),
                         D({'name': 'readme1.txt', 'size': 12}),
-                        D({'name': 'readme2.txt', 'size': 12}),
                     ]
                 }
             },

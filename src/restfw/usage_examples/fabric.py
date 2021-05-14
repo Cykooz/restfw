@@ -5,7 +5,7 @@
 """
 import abc
 from contextlib import contextmanager
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from webtest import TestResponse
 from zope.interface import implementer, provider
@@ -19,6 +19,7 @@ from ..views import get_resource_view
 
 
 DEFAULT = object()
+Params = Union[dict, list, str, bytes]
 
 
 @provider(IUsageExamplesFabric)
@@ -47,7 +48,7 @@ class UsageExamples(abc.ABC):
             name = name[:-len(suffix)]
         return name
 
-    def authorize_request(self, params: Optional[dict], headers: Optional[dict], auth: Optional[str] = None):
+    def authorize_request(self, params: Optional[Params], headers: Optional[dict], auth: Optional[str] = None):
         """Add authorization information into request with given params and headers.
         :param auth: Some string used for authorization. For example '<login>:<password>'.
         :return: Tuple with a new version of params and headers.
@@ -75,7 +76,7 @@ class UsageExamples(abc.ABC):
 
     def send(
             self,
-            params: Optional[dict] = DEFAULT,
+            params: Optional[Params] = DEFAULT,
             headers: Optional[Dict[str, str]] = None,
             auth: Optional[str] = None,
             result=None,

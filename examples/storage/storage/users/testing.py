@@ -3,15 +3,11 @@
 :Authors: cykooz
 :Date: 14.03.2020
 """
+from restfw.typing import PyramidRequest
 from .resources import get_users, User
 
 
-def create_user(request, name):
-    """
-    :type request: pyramid.request.Request
-    :type name: str
-    :rtype: User
-    """
+def create_user(request: PyramidRequest, name: str) -> User:
     users = get_users(request.root)
     try:
         user = users[name]

@@ -4,16 +4,18 @@
 :Date: 06.12.2016
 """
 from copy import deepcopy
+from typing import Dict, Optional
 
-from pyramid.httpexceptions import HTTPException, HTTPNotModified, HTTPPreconditionFailed
+from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
 from webtest import TestResponse
 from webtest.forms import Upload
 from zope.interface import implementer
 
+from .webapp import WebApp
 from ..interfaces import IHalResourceWithEmbeddedView
 from ..schemas import LISTING_CONF
 from ..usage_examples import UsageExamples
-from ..usage_examples.fabric import DEFAULT
+from ..usage_examples.fabric import DEFAULT, Params
 from ..usage_examples.interfaces import ISendTestingRequest
 
 
@@ -29,19 +31,17 @@ class RequestsTester:
         self.resource_url = usage_examples.resource_url
         self.calls_count = 0
 
-    def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
-        """
-        :type params: dict or list or str or None
-        :type headers: dict or None
-        :type auth: str or None
-        :type result: dict or None
-        :type result_headers: dict or None
-        :type exception: HTTPException
-        :type status: int
-        :type description: str or None
-        :type exclude_from_doc: bool
-        """
+    def __call__(
+            self,
+            params: Optional[Params] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result: Optional[dict] = None,
+            result_headers: Optional[Dict[str, str]] = None,
+            exception=None, status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False,
+    ) -> TestResponse:
         raise NotImplementedError
 
 
@@ -50,19 +50,17 @@ class GetRequestsTester(RequestsTester):
     was_if_match = False
     was_if_none_match = False
 
-    def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
-        """
-        :type params: dict or list or str or None
-        :type headers: dict or None
-        :type auth: str or None
-        :type result: dict or None
-        :type result_headers: dict or None
-        :type exception: HTTPException
-        :type status: int
-        :type description: str or None
-        :type exclude_from_doc: bool
-        """
+    def __call__(
+            self,
+            params: Optional[Params] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result: Optional[dict] = None,
+            result_headers: Optional[Dict[str, str]] = None,
+            exception=None, status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False,
+    ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
@@ -115,19 +113,17 @@ class PutPatchRequestsTester(RequestsTester):
         self._json_method = getattr(self.web_app, '%s_json' % method_name)
         self._method = getattr(self.web_app, method_name)
 
-    def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
-        """
-        :type params: dict or list or str or None
-        :type headers: dict or None
-        :type auth: str or None
-        :type result: dict or None
-        :type result_headers: dict or None
-        :type exception: HTTPException
-        :type status: int
-        :type description: str or None
-        :type exclude_from_doc: bool
-        """
+    def __call__(
+            self,
+            params: Optional[Params] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result: Optional[dict] = None,
+            result_headers: Optional[Dict[str, str]] = None,
+            exception=None, status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False,
+    ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
@@ -177,19 +173,17 @@ class PutPatchRequestsTester(RequestsTester):
 @implementer(ISendTestingRequest)
 class PostRequestsTester(RequestsTester):
 
-    def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
-        """
-        :type params: dict or list or str or None
-        :type headers: dict or None
-        :type auth: str or None
-        :type result: dict or None
-        :type result_headers: dict or None
-        :type exception: HTTPException
-        :type status: int
-        :type description: str or None
-        :type exclude_from_doc: bool
-        """
+    def __call__(
+            self,
+            params: Optional[Params] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result: Optional[dict] = None,
+            result_headers: Optional[Dict[str, str]] = None,
+            exception=None, status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False,
+    ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
@@ -215,19 +209,17 @@ class PostRequestsTester(RequestsTester):
 @implementer(ISendTestingRequest)
 class DeleteRequestsTester(RequestsTester):
 
-    def __call__(self, params=DEFAULT, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
-        """
-        :type params: dict or list or str or None
-        :type headers: dict or None
-        :type auth: str or None
-        :type result: dict or None
-        :type result_headers: dict or None
-        :type exception: HTTPException
-        :type status: int
-        :type description: str or None
-        :type exclude_from_doc: bool
-        """
+    def __call__(
+            self,
+            params: Optional[Params] = DEFAULT,
+            headers: Optional[Dict[str, str]] = None,
+            auth: Optional[str] = None,
+            result: Optional[dict] = None,
+            result_headers: Optional[Dict[str, str]] = None,
+            exception=None, status: Optional[int] = None,
+            description: Optional[str] = None,
+            exclude_from_doc=False,
+    ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
@@ -258,11 +250,8 @@ def assert_resource(usage_examples, web_app):
     _assert_delete(usage_examples, web_app)
 
 
-def _assert_get_and_head(usage_examples, web_app):
-    """Test GET requests.
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def _assert_get_and_head(usage_examples: UsageExamples, web_app: WebApp):
+    """Test GET requests."""
     info_name = usage_examples.__class__.__name__
     send = GetRequestsTester(web_app, usage_examples)
     if usage_examples.get_requests:
@@ -299,11 +288,8 @@ def _assert_get_and_head(usage_examples, web_app):
             LISTING_CONF.update(orig_listing_conf)
 
 
-def _assert_put_and_patch(usage_examples, web_app):
-    """Test PUT and PATH requests.
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def _assert_put_and_patch(usage_examples: UsageExamples, web_app: WebApp):
+    """Test PUT and PATH requests."""
     info_name = usage_examples.__class__.__name__
     test_params = [
         ('PUT', usage_examples.put_requests),
@@ -347,11 +333,8 @@ def _assert_put_and_patch(usage_examples, web_app):
                 )
 
 
-def _assert_post(usage_examples, web_app):
-    """Test POST requests.
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def _assert_post(usage_examples: UsageExamples, web_app: WebApp):
+    """Test POST requests."""
     info_name = usage_examples.__class__.__name__
     send = PostRequestsTester(web_app, usage_examples)
     if usage_examples.post_requests:
@@ -363,11 +346,8 @@ def _assert_post(usage_examples, web_app):
         assert send.calls_count == 0, '{} sends POST requests to resource'.format(info_name)
 
 
-def _assert_delete(usage_examples, web_app):
-    """Test DELETE requests.
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def _assert_delete(usage_examples: UsageExamples, web_app: WebApp):
+    """Test DELETE requests."""
     info_name = usage_examples.__class__.__name__
     send = DeleteRequestsTester(web_app, usage_examples)
     if usage_examples.delete_requests:
@@ -379,11 +359,7 @@ def _assert_delete(usage_examples, web_app):
         assert send.calls_count == 0, '{} sends DELETE requests to resource'.format(info_name)
 
 
-def assert_container_listing(usage_examples, web_app):
-    """
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
     LISTING_CONF['max_limit'] = 2
     resource_url = usage_examples.resource_url
     base_headers = usage_examples.headers_for_listing  # Deprecated

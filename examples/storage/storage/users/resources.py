@@ -4,12 +4,12 @@
 :Date: 24.01.2020
 """
 from pyramid.security import ALL_PERMISSIONS, Allow
+from storage.authentication.models import UserModel
+from storage.root import StorageRoot
 
 from restfw.hal import HalResource
 from restfw.typing import PyramidRequest
 from restfw.utils import create_validation_error
-from storage.authentication.models import UserModel
-from storage.root import StorageRoot
 
 
 class User(HalResource):

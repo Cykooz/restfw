@@ -11,20 +11,12 @@ from ..users.resources import User
 class File(HalResource):
     url_placeholder = '<file_name>'
 
-    def __init__(self, model, parent):
-        """
-        :type model: FileModel
-        :type parent: Files
-        """
+    def __init__(self, model: FileModel, parent: 'Files'):
         self.model = model
         self.__parent__ = parent
         self.__name__ = model.name
 
     def http_put(self, request, params):
-        """
-        :type request: pyramid.request.Request
-        :type params: dict
-        """
         self.model.write(request.body)
         created = True
         return created
@@ -33,13 +25,11 @@ class File(HalResource):
         self.model.delete()
 
 
-@sub_resource_config('files', User)
+@sub_resource_config('files')
 class Files(HalResource):
 
-    def __init__(self, parent):
-        """
-        :type parent: User
-        """
+    def __init__(self, parent: User):
+        self.__parent__ = parent
         self.user = parent
         self.dir_path = parent.model.path
 

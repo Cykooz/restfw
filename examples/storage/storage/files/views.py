@@ -38,7 +38,7 @@ class FilesView(views.HalResourceWithEmbeddedView):
                                     permission='files.get')
 
     def get_embedded(self, params):
-        paths = (
+        paths = sorted(
             path
             for path in self.resource.dir_path.iterdir()
             if path.is_file()
