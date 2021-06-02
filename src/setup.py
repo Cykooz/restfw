@@ -99,7 +99,7 @@ setup(
         ],
         'docs': [
             'WebTest',
-            'sphinx',
+            'sphinx>=4.0',
             'jinja2',
             'requests',
         ]

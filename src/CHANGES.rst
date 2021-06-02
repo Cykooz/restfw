@@ -32,6 +32,7 @@ Breaking Changes
 ----------------
 
 - Removed argument ``send`` from all ``UsageExamples.<method>_requests()`` methods.
+- Version of ``Sphinx`` updated to 4.x.
 
 6.0.4 (2021-03-30)
 ==================

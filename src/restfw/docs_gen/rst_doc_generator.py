@@ -13,8 +13,6 @@ from typing import Dict, List, Optional
 
 from jinja2 import ChoiceLoader, Environment, PackageLoader
 from pyramid.encode import urlencode
-from sphinx.pycode import ModuleAnalyzer
-from sphinx.util import force_decode
 from sphinx.util.docstrings import prepare_docstring
 from zope.interface import provider
 
@@ -358,16 +356,8 @@ def _remove_file_or_dir(path):
 
 
 @provider(interfaces.IDocStringExtractor)
-def docstring_extractor(code_object):
-    """Improved docstring extractor. It can determine docstring encoding.
-    :type code_object: Any
-    :rtype: list[unicode]
-    """
+def docstring_extractor(code_object) -> List[str]:
     docstring = code_object.__doc__ or ''
     if not docstring:
         return []
-
-    if not isinstance(docstring, str):
-        analyzer = ModuleAnalyzer.for_module(code_object.__module__)
-        docstring = force_decode(docstring, analyzer.encoding)
     return prepare_docstring(docstring)

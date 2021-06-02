@@ -35,6 +35,7 @@ class UsageExamples(abc.ABC):
         self.root = request.root
         self.request = request
         self.resource = self.prepare_resource()
+        self.request.context = self.resource
         self.resource_url = self.request.resource_url(self.resource)
         self.view = get_resource_view(self.resource, request)
         self.allowed_methods = self.view.get_allowed_methods()
