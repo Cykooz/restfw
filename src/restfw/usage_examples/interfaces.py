@@ -3,14 +3,14 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
-from webtest import TestResponse
+from webob import Response
 from zope.interface import Attribute, Interface
 
 
 class ISendTestingRequest(Interface):
 
     def __call__(params=None, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> TestResponse:
+                 exception=None, status=None, description=None, exclude_from_doc=False) -> Response:
         """Send a testing request to resource"""
 
 
@@ -35,7 +35,7 @@ class IUsageExamples(Interface):
     def send(
             params=None, headers=None, auth=None, result=None, result_headers=None,
             exception=None, status=None, description=None, exclude_from_doc=False
-    ) -> TestResponse:
+    ) -> Response:
         """Send a testing request to resource"""
 
     def get_requests():

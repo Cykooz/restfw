@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Replaced import from ``webtest`` onto import from ``webob`` in ``usage_examples`` module.
+
 7.0 (2021-06-02)
 ================
 

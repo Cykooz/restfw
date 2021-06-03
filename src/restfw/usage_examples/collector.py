@@ -13,7 +13,7 @@ from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
 from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
 from pyramid.security import Authenticated, Everyone
-from webtest import TestResponse
+from webob import Response
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
@@ -278,7 +278,7 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
     def __call__(
             self, params=DEFAULT, headers=None, auth=None, result=None,
             result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False
-    ) -> TestResponse:
+    ) -> Response:
         params = params if params is not DEFAULT else {}
         web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
         web_method = getattr(self.web_app, web_method_name, None)

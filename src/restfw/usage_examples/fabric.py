@@ -7,7 +7,7 @@ import abc
 from contextlib import contextmanager
 from typing import Dict, Optional, Union
 
-from webtest import TestResponse
+from webob import Response
 from zope.interface import implementer, provider
 
 from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabric
@@ -86,7 +86,7 @@ class UsageExamples(abc.ABC):
             status: Optional[int] = None,
             description: Optional[str] = None,
             exclude_from_doc=False
-    ) -> TestResponse:
+    ) -> Response:
         assert self._send is not None
         return self._send(
             params=params, headers=headers, auth=auth,

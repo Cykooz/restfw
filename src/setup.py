@@ -112,6 +112,7 @@ setup(
         'zope.interface',
         'lru-dict',
         'venusian',
+        'WebOb',
     ],
     entry_points={
         'console_scripts':
