@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed handling of ``JSONDecodeError`` in ``get_input_data()`` function (merged from v6.0.6).
+
 7.0.2 (2021-06-03)
 ==================
 
@@ -41,6 +49,14 @@ Breaking Changes
 
 - Removed argument ``send`` from all ``UsageExamples.<method>_requests()`` methods.
 - Version of ``Sphinx`` updated to 4.x.
+
+6.0.6 (2021-06-22)
+==================
+
+Bug Fixes
+---------
+
+- Fixed handling of ``JSONDecodeError`` in ``get_input_data()`` function.
 
 6.0.4 (2021-03-30)
 ==================
