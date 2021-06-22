@@ -14,6 +14,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed handling of ``JSONDecodeError`` in ``get_input_data()`` function.
+
 6.0.4 (2021-03-30)
 ==================
 

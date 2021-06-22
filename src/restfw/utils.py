@@ -88,7 +88,7 @@ def get_input_data(context, request, schema):
         try:
             data_dict = request.json_body
         except ValueError as e:
-            raise InvalidBodyFormat(detail=e.message)
+            raise InvalidBodyFormat(detail=str(e))
     else:
         data_dict = request.params
 
