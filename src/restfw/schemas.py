@@ -9,6 +9,7 @@ import colander
 from pyramid.interfaces import ILocation
 from pyramid.traversal import find_resource
 from webob.multidict import MultiDict
+from zope.deprecation import deprecate
 from zope.interface.interfaces import IInterface
 
 from .external_links import get_external_links
@@ -148,6 +149,11 @@ class MappingSchema(BaseNode):
 
     DEPRECATED: Use MappingNode instead.
     """
+
+    @deprecate('restfw.schemas.MappingSchema is deprecated. Use MappingNode instead.')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     schema_type = UrlEncodeMapping
 
 

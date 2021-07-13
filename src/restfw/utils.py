@@ -5,9 +5,10 @@
 """
 import re
 from contextlib import contextmanager
-from typing import ContextManager, Dict
+from typing import ContextManager, Dict, Optional, Union
 
 import colander
+from pyramid.config import Configurator
 from pyramid.interfaces import IRequestFactory, IRootFactory
 from pyramid.registry import Registry
 from pyramid.request import Request, apply_request_extensions
@@ -17,48 +18,34 @@ from webob.descriptors import serialize_etag_response
 from zope.interface.interfaces import IInterface
 
 from .errors import InvalidBodyFormat, ValidationError
-from .interfaces import IEvent, IHalResourceLinks
+from .events import Event
+from .interfaces import IEvent, IHalResourceLinks, MethodOptions
 from .typing import PyramidRequest
 
 
-def is_testing(registry):
-    """
-    :type registry: pyramid.registry.Registry
-    :rtype: bool
-    """
+def is_testing(registry: Registry) -> bool:
     return registry.settings.get('testing', False) or registry.__name__ == 'testing'
 
 
 is_testing_env = is_testing  # bw compatibility
 
 
-def is_doc_building(registry):
-    """
-    :type registry: pyramid.registry.Registry
-    :rtype: bool
-    """
+def is_doc_building(registry: Registry) -> bool:
     return registry.settings.get('is_doc_building', False)
 
 
-def is_debug(registry):
-    """
-    :type registry: pyramid.registry.Registry
-    :rtype: bool
-    """
+def is_debug(registry: Registry) -> bool:
     return registry.settings.get('debug', False)
 
 
-def notify(event, request):
-    """Send event.
-    :param event: restfw.events.Event
-    :param request: pyramid.request.Request
-    """
+def notify(event: Event, request: PyramidRequest):
+    """Send event."""
     assert IEvent.providedBy(event), "Event object doesn't provide the IEvent"
     event.request = request
     request.registry.notify(event)
 
 
-def scan_ignore(registry):
+def scan_ignore(registry: Registry):
     result = [
         re.compile('tests$').search,
         re.compile('testing$').search,
@@ -73,13 +60,7 @@ def scan_ignore(registry):
 METHODS_WITH_BODY = {'POST', 'PUT', 'PATCH', 'DELETE'}
 
 
-def get_input_data(context, request, schema):
-    """
-    :type context: IResource
-    :type request: pyramid.request.Request
-    :type schema: colander.SchemaNode
-    :rtype: dict or list
-    """
+def get_input_data(context, request: PyramidRequest, schema: colander.SchemaNode) -> Union[dict, list]:
     if not schema:
         return {}
 
@@ -99,22 +80,16 @@ def get_input_data(context, request, schema):
         raise colander_invalid_to_response(e)
 
 
-def colander_invalid_to_response(exc):
-    """
-    :type exc: colander.Invalid
-    :rtype: pyramid.response.Response
-    """
+def colander_invalid_to_response(exc: colander.Invalid):
     return ValidationError(exc.asdict())
 
 
-def _create_error(node, message, child_node_path=None, value=None):
-    """
-    :type node: colander.SchemaNode
-    :type message: str
-    :type child_node_path: str
-    :type value: Any
-    :rtype: colander.Invalid
-    """
+def _create_error(
+        node: colander.SchemaNode,
+        message: str,
+        child_node_path=None,
+        value=None
+) -> colander.Invalid:
     if child_node_path:
         pos = None
         child_node_name, _, child_node_path = child_node_path.partition('.')
@@ -150,30 +125,26 @@ def create_multi_validation_error(schema_class, errors: Dict[str, str]):
     return colander_invalid_to_response(error)
 
 
-def get_method_params(context, request):
-    """
-    :type context: IResource
-    :type request: pyramid.request.Request
-    :rtype: Union[dict, list]
-    """
+def get_method_params(context, request: PyramidRequest) -> Union[dict, list]:
     request_method = request.method.lower()
     request_method = 'get' if request_method == 'head' else request_method
 
-    #: :type: MethodOptions
-    method_options = getattr(context, 'options_for_%s' % request_method, None)
+    method_options: Optional[MethodOptions] = getattr(
+        context,
+        'options_for_%s' % request_method,
+        None
+    )
     input_schema = method_options.input_schema if method_options else None
     return get_input_data(context, request, input_schema) if input_schema else {}
 
 
-def get_paging_links(resource, request, offset, limit, has_next_page):
-    """
-    :type resource: IResource
-    :type request: pyramid.request.Request
-    :type offset: int
-    :type limit: int
-    :type has_next_page: bool
-    :rtype: dict
-    """
+def get_paging_links(
+        resource,
+        request: PyramidRequest,
+        offset: int,
+        limit: int,
+        has_next_page: bool,
+) -> dict:
     links = {}
     query = request.GET.copy()
     query.pop('total_count', None)
@@ -187,10 +158,9 @@ def get_paging_links(resource, request, offset, limit, has_next_page):
     return links
 
 
-def register_resource_links_extender(config, adapter, resource_class):
+def register_resource_links_extender(config: Configurator, adapter, resource_class):
     """Add into the pyramid registry an adapter for extend resource links.
     :param config: A pyramid configurator.
-    :type config: pyramid.config.Configurator
     :param adapter: Some callable object (takes only resource instance) which implements IResourceLinks.
     :param resource_class: Class or interface of resource which links will be extended by adapter.
     """

@@ -127,7 +127,6 @@ class IResourceView(Interface):
 class IRoot(IResource):
     """Interface for root resource."""
     registry = Attribute('Registry of Pyramid application')
-    request = Attribute('Current request object (deprecated)')
 
 
 class ISubResourceFabric(Interface):

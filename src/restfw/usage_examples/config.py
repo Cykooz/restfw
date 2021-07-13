@@ -157,7 +157,7 @@ class examples_config(object):
         self.name = name
         self.predicates = predicates
         self.depth = predicates.pop('_depth', 0)
-        self.category = predicates.pop('_category', 'restfw')
+        self.category = predicates.pop('_category', 'pyramid')
 
     def register(self, scanner, name, wrapped):
         config = scanner.config

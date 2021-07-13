@@ -8,7 +8,7 @@ import logging
 import pytest
 from cykooz.testing import ANY, D
 from pyramid import httpexceptions
-from pyramid.security import Allow, Authenticated, DENY_ALL, Everyone
+from pyramid.authorization import Allow, Authenticated, DENY_ALL, Everyone
 
 from .. import schemas, views
 from ..hal import HalResource, SimpleContainer
@@ -27,7 +27,7 @@ class DummySchema(schemas.HalResourceSchema):
     value = schemas.IntegerNode(title='Some value')
 
 
-class PutDummySchema(schemas.MappingSchema):
+class PutDummySchema(schemas.MappingNode):
     value = schemas.IntegerNode(title='Some value')
 
 

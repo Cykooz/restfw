@@ -3,7 +3,7 @@
 :Authors: cykooz
 :Date: 05.03.2020
 """
-from pyramid.security import Allow, Everyone, DENY_ALL, ALL_PERMISSIONS
+from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL, Everyone
 
 from restfw.interfaces import MethodOptions
 from restfw.root import Root

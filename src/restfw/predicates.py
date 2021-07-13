@@ -3,17 +3,19 @@
 :Authors: cykooz
 :Date: 25.08.2017
 """
+from pyramid.interfaces import IPredicateInfo
+
 from .utils import is_debug, is_testing
 
 
-class TestingPredicate(object):
+class TestingPredicate:
 
-    def __init__(self, val, config):
+    def __init__(self, val, info: IPredicateInfo):
         self.val = val
-        self.result = val == is_testing(config.registry)
+        self.result = val == is_testing(info.registry)
 
     def text(self):
-        return 'testing = %s' % (self.val,)
+        return f'testing = {self.val}'
 
     phash = text
 
@@ -21,14 +23,14 @@ class TestingPredicate(object):
         return self.result
 
 
-class DebugPredicate(object):
+class DebugPredicate:
 
-    def __init__(self, val, config):
+    def __init__(self, val, info: IPredicateInfo):
         self.val = val
-        self.result = val == is_debug(config.registry)
+        self.result = val == is_debug(info.registry)
 
     def text(self):
-        return 'debug = %s' % (self.val,)
+        return f'debug = {self.val}'
 
     phash = text
 
@@ -36,14 +38,14 @@ class DebugPredicate(object):
         return self.result
 
 
-class DebugOrTestingPredicate(object):
+class DebugOrTestingPredicate:
 
-    def __init__(self, val, config):
+    def __init__(self, val, info: IPredicateInfo):
         self.val = val
-        self.result = val == (is_debug(config.registry) or is_testing(config.registry))
+        self.result = val == (is_debug(info.registry) or is_testing(info.registry))
 
     def text(self):
-        return 'debug_or_testing = %s' % (self.val,)
+        return f'debug_or_testing = {self.val}'
 
     phash = text
 

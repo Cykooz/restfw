@@ -8,7 +8,7 @@ import uuid
 import colander
 import pytest
 from cykooz.testing import D
-from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
+from pyramid.authorization import ALL_PERMISSIONS, Allow, Everyone
 
 from .. import interfaces, schemas, views
 from ..errors import ParametersError

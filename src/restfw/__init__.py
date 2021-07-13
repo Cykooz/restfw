@@ -10,10 +10,8 @@ def includeme(config: Configurator):
     config.include('restfw.config')
 
     from . import predicates
-    from .authorization import RestACLAuthorizationPolicy
     from .viewderivers import register_view_derivers
 
-    config.set_authorization_policy(RestACLAuthorizationPolicy())
     config.set_root_factory('restfw.root.root_factory')
     config.add_renderer(None, 'restfw.renderers.json_renderer')
     predicates = [

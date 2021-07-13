@@ -21,11 +21,7 @@ from ..usage_examples.interfaces import ISendTestingRequest
 
 class RequestsTester:
 
-    def __init__(self, web_app, usage_examples):
-        """
-        :type web_app: restfw.testing.webapp.WebApp
-        :type usage_examples: UsageExamples
-        """
+    def __init__(self, web_app: WebApp, usage_examples: UsageExamples):
         self.web_app = web_app
         self.usage_examples = usage_examples
         self.resource_url = usage_examples.resource_url
@@ -104,11 +100,7 @@ class PutPatchRequestsTester(RequestsTester):
     was_if_match = False
     was_if_none_match = False
 
-    def __init__(self, web_app, usage_examples, method_name):
-        """
-        :type web_app: restfw.testing.webapp.WebApp
-        :type usage_examples: UsageExamples
-        """
+    def __init__(self, web_app: WebApp, usage_examples: UsageExamples, method_name: str):
         super(PutPatchRequestsTester, self).__init__(web_app, usage_examples)
         self._json_method = getattr(self.web_app, '%s_json' % method_name)
         self._method = getattr(self.web_app, method_name)
@@ -239,11 +231,7 @@ class DeleteRequestsTester(RequestsTester):
         return res
 
 
-def assert_resource(usage_examples, web_app):
-    """
-    :type usage_examples: UsageExamples
-    :type web_app: restfw.testing.webapp.WebApp
-    """
+def assert_resource(usage_examples: UsageExamples, web_app: WebApp):
     _assert_get_and_head(usage_examples, web_app)
     _assert_put_and_patch(usage_examples, web_app)
     _assert_post(usage_examples, web_app)

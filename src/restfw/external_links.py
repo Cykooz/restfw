@@ -69,7 +69,7 @@ class external_link_config(object):
         self.templated = templated
         self.predicates = predicates
         self.depth = predicates.pop('_depth', 0)
-        self.category = predicates.pop('_category', 'restfw')
+        self.category = predicates.pop('_category', 'pyramid')
 
     def register(self, scanner, name, wrapped):
         config = scanner.config

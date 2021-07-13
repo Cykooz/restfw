@@ -4,8 +4,8 @@
 :Date: 27.12.2019
 """
 import pytest
+from pyramid.authorization import ALL_PERMISSIONS, Allow, Everyone
 from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotModified, HTTPPreconditionFailed
-from pyramid.security import ALL_PERMISSIONS, Allow, Everyone
 from pyramid.view import view_config
 
 from .. import schemas
@@ -17,12 +17,12 @@ from ..utils import ETag
 from ..views import ResourceView, resource_view_config
 
 
-class DummySchema(schemas.MappingSchema):
+class DummySchema(schemas.MappingNode):
     foo = schemas.StringNode()
     bar = schemas.IntegerNode()
 
 
-class DummyEditSchema(schemas.MappingSchema):
+class DummyEditSchema(schemas.MappingNode):
     foo = schemas.StringNode()
     bar = schemas.IntegerNode()
 

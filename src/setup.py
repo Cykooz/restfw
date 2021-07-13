@@ -102,12 +102,13 @@ setup(
             'sphinx>=4.0',
             'jinja2',
             'requests',
+            'cykooz.testing',
         ]
     },
     install_requires=[
         'setuptools',
         'colander',
-        'pyramid>=1.8.3',
+        'pyramid>=2.0',
         'WebOb>=1.8.1',
         'zope.interface',
         'lru-dict',

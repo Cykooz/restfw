@@ -9,16 +9,16 @@ from http import client as http_client
 from typing import Dict, List, Optional
 
 from cykooz.testing import ANY
+from pyramid.authorization import Authenticated, Everyone
 from pyramid.httpexceptions import HTTPNotModified, HTTPPreconditionFailed
-from pyramid.interfaces import IAuthorizationPolicy
 from pyramid.location import lineage
-from pyramid.security import Authenticated, Everyone
 from webob import Response
 
 from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
 from .fabric import DEFAULT, UsageExamples
 from .utils import default_docstring_extractor, sphinx_doc_filter
+from ..authorization import principals_allowed_by_permission
 from ..resources import Resource
 from ..testing import resource_testing
 from ..testing.webapp import WebApp
@@ -159,13 +159,12 @@ class UsageExamplesCollector(object):
             if not method_func or not method_options:
                 continue
 
-            authorization_policy = self.registry.queryUtility(IAuthorizationPolicy)
             method_permission = method_options.permission
             if method_permission:
                 method_permission = f'{method}.{method_permission}'
             else:
                 method_permission = method
-            allowed_principals = authorization_policy.principals_allowed_by_permission(
+            allowed_principals = principals_allowed_by_permission(
                 resource, method_permission
             )
             if Everyone in allowed_principals:

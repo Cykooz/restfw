@@ -3,8 +3,8 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+from pyramid.authorization import Allow, DENY_ALL, Everyone
 from pyramid.registry import Registry
-from pyramid.security import Allow, DENY_ALL, Everyone
 from zope.interface import implementer
 
 from .authorization import ALL_GET_REQUESTS

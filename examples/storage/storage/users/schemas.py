@@ -23,5 +23,5 @@ class UsersSchema(schemas.HalResourceWithEmbeddedSchema):
     )
 
 
-class CreateUserSchema(schemas.MappingSchema):
+class CreateUserSchema(schemas.MappingNode):
     name = schemas.StringNode(title='Name', validator=colander.Length(max=250))

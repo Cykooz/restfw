@@ -49,7 +49,7 @@ class UserModel(object):
         )
 
 
-def get_user_principals(user_name, password, request):
+def get_authenticated_user_name(user_name, password, request):
     user_model = UserModel.get_model(request.registry, user_name)
     if user_model:
-        return [user_model.name]
+        return user_model.name

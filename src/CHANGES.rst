@@ -15,6 +15,25 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of ``pyramid 2+``.
+
+Breaking Changes
+----------------
+
+- Dropped support of ``pyramid < 2.0``:
+
+    - ``RestACLAuthorizationPolicy`` removed. You can use ``RestAclHelper``
+      to write implementation of ``ISecurityPolicy``. See
+      `"Upgrading Authentication/Authorization" <https://docs.pylonsproject.org/projects/pyramid/en/latest/whatsnew-2.0.html#upgrading-auth-20>`_
+      in Pyramid documentation. Also you can use ``TestingSecurityPolicy``
+      as example of implementation of ``ISecurityPolicy``.
+
 7.0.6 (2021-06-22)
 ==================
 

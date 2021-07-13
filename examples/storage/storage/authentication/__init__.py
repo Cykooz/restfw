@@ -3,17 +3,12 @@
 :Authors: cykooz
 :Date: 23.01.2020
 """
+from pyramid.config import Configurator
 
 
-def includeme(config):
-    """
-    :type config: pyramid.config.Configurator
-    """
-    from pyramid.authentication import BasicAuthAuthenticationPolicy
-    from .models import get_user_principals
-
-    auth_policy = BasicAuthAuthenticationPolicy(get_user_principals, realm='Storage Example')
-    config.set_authentication_policy(auth_policy)
+def includeme(config: Configurator):
+    from .policy import ExampleSecurityPolicy
+    config.set_security_policy(ExampleSecurityPolicy())
 
     from restfw.utils import scan_ignore
     config.scan(ignore=scan_ignore(config.registry))
