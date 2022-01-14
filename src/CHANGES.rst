@@ -15,6 +15,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Added root instance into request before ``RootCreated`` event will
+  be sent.
+
 8.0 (2021-12-09)
 ================
 

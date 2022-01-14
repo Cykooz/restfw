@@ -31,5 +31,6 @@ def root_factory(request, root_class=Root):
     if not root:
         root = root_class(registry=request.registry)
         request.registry._restfw_root = root
+        request.root = root
         notify(RootCreated(root), request)
     return root
