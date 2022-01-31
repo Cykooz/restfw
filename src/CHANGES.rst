@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed assertion of headers from HEAD and GET responses.
+
 8.0.2 (2022-01-14)
 ==================
 

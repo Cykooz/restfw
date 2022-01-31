@@ -76,7 +76,17 @@ class GetRequestsTester(RequestsTester):
             assert dict(get_res.headers) == result_headers
 
         if get_res.headers is not None:
-            assert dict(head_res.headers) == dict(get_res.headers)
+            cleaned_head_res = {
+                k: v
+                for k, v in head_res.headers.items()
+                if not k.lower().startswith('x-')
+            }
+            cleaned_get_headers = {
+                k: v
+                for k, v in get_res.headers.items()
+                if not k.lower().startswith('x-')
+            }
+            assert cleaned_head_res == cleaned_get_headers
 
         if get_res.status_code in (200, 201, 204):
             etag = self.usage_examples.resource.get_etag()
