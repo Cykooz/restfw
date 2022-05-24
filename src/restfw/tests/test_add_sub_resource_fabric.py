@@ -111,13 +111,20 @@ def root_fixture(app_config, pyramid_request):
 
     app_config.add_sub_resource_fabric(SubDummyResource, 'sub', DummyResource)
     app_config.add_sub_resource_fabric(
+        SubDummyResource, 'static_sub', DummyResource,
+        add_link_into_embedded=True
+    )
+    app_config.add_sub_resource_fabric(
         Sub1DummyResource, 'sub1', DummyResource, min_api_version=1
     )
     app_config.add_sub_resource_fabric(
         Sub2DummyResource, 'sub2', DummyResource, max_api_version=2
     )
     app_config.add_sub_resource_fabric(
-        Sub23DummyResource, 'sub23', DummyResource, min_api_version=2, max_api_version=3
+        Sub23DummyResource, 'sub23', DummyResource,
+        add_link_into_embedded=True,
+        min_api_version=2, max_api_version=3,
+
     )
     app_config.scan('restfw.tests.test_add_sub_resource_fabric')
     app_config.commit()
@@ -157,6 +164,7 @@ def test_links_to_sub_resource(web_app, root, app_config):
         '_links': {
             'self': {'href': 'http://localhost/container/resource/'},
             'sub': {'href': 'http://localhost/container/resource/sub/'},
+            'static_sub': {'href': 'http://localhost/container/resource/static_sub/'},
         }
     }
 
@@ -168,7 +176,8 @@ def test_links_to_sub_resource(web_app, root, app_config):
                 {
                     '_links': {
                         'self': {'href': 'http://localhost/container/resource/'},
-                        # Link to sub-resource is absent
+                        # Only static link to sub-resource has added
+                        'static_sub': {'href': 'http://localhost/container/resource/static_sub/'},
                     },
                 }
             ]
@@ -182,6 +191,7 @@ def test_links_to_sub_resource(web_app, root, app_config):
             'self': {'href': 'http://localhost/0/resource/'},
             'sub': {'href': 'http://localhost/0/resource/sub/'},
             'sub2': {'href': 'http://localhost/0/resource/sub2/'},
+            'static_sub': {'href': 'http://localhost/0/resource/static_sub/'},
         }
     }
     res = web_app.get('1/resource')
@@ -191,6 +201,7 @@ def test_links_to_sub_resource(web_app, root, app_config):
             'sub': {'href': 'http://localhost/1/resource/sub/'},
             'sub1': {'href': 'http://localhost/1/resource/sub1/'},
             'sub2': {'href': 'http://localhost/1/resource/sub2/'},
+            'static_sub': {'href': 'http://localhost/1/resource/static_sub/'},
         }
     }
     res = web_app.get('2/resource')
@@ -201,6 +212,7 @@ def test_links_to_sub_resource(web_app, root, app_config):
             'sub1': {'href': 'http://localhost/2/resource/sub1/'},
             'sub2': {'href': 'http://localhost/2/resource/sub2/'},
             'sub23': {'href': 'http://localhost/2/resource/sub23/'},
+            'static_sub': {'href': 'http://localhost/2/resource/static_sub/'},
         }
     }
     res = web_app.get('3/resource')
@@ -210,5 +222,6 @@ def test_links_to_sub_resource(web_app, root, app_config):
             'sub': {'href': 'http://localhost/3/resource/sub/'},
             'sub1': {'href': 'http://localhost/3/resource/sub1/'},
             'sub23': {'href': 'http://localhost/3/resource/sub23/'},
+            'static_sub': {'href': 'http://localhost/3/resource/static_sub/'},
         }
     }

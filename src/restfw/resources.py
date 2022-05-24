@@ -80,7 +80,7 @@ class Resource:
         raise HTTPMethodNotAllowed(detail={'method': 'DELETE'})
 
 
-class sub_resource_config(object):
+class sub_resource_config:
     """ A function, class or method :term:`decorator` which allows a
     developer to create sub-resource fabric registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.
@@ -140,16 +140,29 @@ class sub_resource_config(object):
     """
     venusian = venusian  # for testing injection
 
-    def __init__(self, name: str, parent: Optional[Type[Resource]] = None, **predicates):
+    def __init__(
+            self,
+            name: str,
+            parent: Optional[Type[Resource]] = None,
+            add_link_into_embedded=False,
+            **predicates
+    ):
         self.name = name
         self.parent = parent
+        self.add_link_into_embedded = add_link_into_embedded
         self.predicates = predicates
         self.depth = predicates.pop('_depth', 0)
         self.category = predicates.pop('_category', 'pyramid')
 
     def register(self, scanner, name, wrapped):
         config = scanner.config
-        config.add_sub_resource_fabric(wrapped, self.name, self.parent, **self.predicates)
+        config.add_sub_resource_fabric(
+            wrapped,
+            self.name,
+            self.parent,
+            self.add_link_into_embedded,
+            **self.predicates
+        )
 
     def __call__(self, wrapped):
         if self.parent is None:

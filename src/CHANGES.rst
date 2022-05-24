@@ -15,6 +15,17 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added argument ``add_link_into_embedded`` into configurator's
+  command ``add_sub_resource_fabric`` and into decorator ``sub_resource_config``.
+  If this argument is ``True`` then link to sub-resource will be added into
+  embedded view of it parent.
+
 8.0.4 (2022-01-31)
 ==================
 

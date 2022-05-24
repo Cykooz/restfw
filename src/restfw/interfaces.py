@@ -138,6 +138,11 @@ class ISubResourceFabric(Interface):
         """
 
 
+class IAddSubresourceLinkIntoEmbedded(Interface):
+    """Interface for mock-adapter that return True if link to sub-resource must
+    be added into embedded view of parent resource."""
+
+
 # HAL (https://tools.ietf.org/html/draft-kelly-json-hal-08)
 
 class IHalResource(IResource):
@@ -145,7 +150,7 @@ class IHalResource(IResource):
 
 
 class IHalResourceView(IResourceView):
-    """Interface for view that MAY contains embedded resources."""
+    """Interface for view that MAY contain embedded resources."""
 
     def get_links() -> dict:
         """Returns dict with links (content of '_links' field from HAL) for resource."""

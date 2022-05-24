@@ -268,8 +268,20 @@ class HalResourceView(ResourceView):
 
     def as_embedded(self) -> dict:
         result = self.as_dict()
-        # The embedded version of resource has not external links and links to sub-resources
-        result['_links'] = self.get_links()
+        # The embedded version of resource has not external links and links to dynamic sub-resources
+        links = self.get_links()
+
+        # Add links only to some special sub-resources
+        self_url = links['self']['href']
+        adapters = self.request.registry.getAdapters(
+            (self.resource,),
+            interfaces.IAddSubresourceLinkIntoEmbedded
+        )
+        for name, has_sub_resource in adapters:
+            if has_sub_resource and name not in links:
+                links[name] = {'href': f'{self_url}{quote_path_segment(name)}/'}
+
+        result['_links'] = links
         return result
 
     def get_links(self) -> dict:
