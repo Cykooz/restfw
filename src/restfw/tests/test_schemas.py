@@ -9,7 +9,8 @@ import colander
 import pendulum
 import pytest
 
-from ..schemas import DateNode, DateTimeNode, EmptyStringNode, IntegerNode, StringNode
+from ..hal import SimpleContainer
+from ..schemas import DateNode, DateTimeNode, EmptyStringNode, IntegerNode, ResourceNode, StringNode
 
 
 def test_serialize_empty_integer():
@@ -180,3 +181,35 @@ def test_deserialize_null_string():
     with pytest.raises(colander.Invalid) as ex:
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
+
+
+def test_resource_node_serialize(pyramid_request):
+    resource_node: ResourceNode = ResourceNode().bind(request=pyramid_request)
+    root = pyramid_request.root
+
+    container = root['container'] = SimpleContainer()
+    assert resource_node.serialize(container) == 'http://localhost/container/'
+
+    not_location_resource = container['not_location'] = 'hello'
+    with pytest.raises(colander.Invalid):
+        resource_node.serialize(not_location_resource)
+
+
+def test_resource_node_deserialize(pyramid_request):
+    resource_node: ResourceNode = ResourceNode().bind(request=pyramid_request)
+    root = pyramid_request.root
+
+    container = root['container'] = SimpleContainer()
+    assert resource_node.deserialize('http://localhost/container/') is container
+
+    with pytest.raises(colander.Invalid) as e:
+        resource_node.deserialize({'href': 'http://localhost/container/'})
+    assert 'is not a string with URL' in e.value.msg
+
+    with pytest.raises(colander.Invalid) as e:
+        resource_node.deserialize('//bad_[url')
+    assert 'is not a valid URL' in e.value.msg
+
+    with pytest.raises(colander.Invalid) as e:
+        resource_node.deserialize('http://localhost/container/not_found')
+    assert e.value.msg == 'Resource has not found'

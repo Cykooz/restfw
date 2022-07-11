@@ -107,7 +107,24 @@ class ResourceType(colander.SchemaType):
         if not request:
             raise RuntimeError('"request" has not found inside of schema node bindings')
 
-        resource_path = urlsplit(cstruct).path
+        if not isinstance(cstruct, str):
+            raise colander.Invalid(
+                node,
+                colander._(
+                    '${val} is not a string with URL',
+                    mapping={'val': cstruct},
+                ),
+            )
+        try:
+            resource_path = urlsplit(cstruct).path
+        except ValueError as e:
+            raise colander.Invalid(
+                node,
+                colander._(
+                    '${val} is not a valid URL: ${err}',
+                    mapping={'val': cstruct, 'err': e},
+                ),
+            )
         try:
             resource = find_resource(request.root, resource_path)
         except KeyError:

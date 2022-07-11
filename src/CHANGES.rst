@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed deserialization method of ``ResourceType``.
+
 8.1 (2022-05-24)
 ================
 
