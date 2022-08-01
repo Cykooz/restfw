@@ -15,6 +15,15 @@
 CHANGELOG
 *********
 
+Next release
+------------
+
+Features
+--------
+
+- Added calling of ``request._process_finished_callbacks()`` when exiting
+  a context created by ``open_pyramid_request()``.
+
 8.1.2 (2022-07-11)
 ==================
 

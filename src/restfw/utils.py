@@ -203,7 +203,7 @@ def get_pyramid_root(request=None):
 @contextmanager
 def open_pyramid_request(registry: Registry, path='http://localhost') -> ContextManager[PyramidRequest]:
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
-    request = request_factory.blank(path)
+    request: PyramidRequest = request_factory.blank(path)
     request.registry = registry
     apply_request_extensions(request)
     get_pyramid_root(request)
@@ -212,6 +212,7 @@ def open_pyramid_request(registry: Registry, path='http://localhost') -> Context
     try:
         yield request
     finally:
+        request._process_finished_callbacks()
         context.end()
 
 
