@@ -242,10 +242,11 @@ class DeleteRequestsTester(RequestsTester):
 
 
 def assert_resource(usage_examples: UsageExamples, web_app: WebApp):
-    _assert_get_and_head(usage_examples, web_app)
-    _assert_put_and_patch(usage_examples, web_app)
-    _assert_post(usage_examples, web_app)
-    _assert_delete(usage_examples, web_app)
+    with usage_examples:
+        _assert_get_and_head(usage_examples, web_app)
+        _assert_put_and_patch(usage_examples, web_app)
+        _assert_post(usage_examples, web_app)
+        _assert_delete(usage_examples, web_app)
 
 
 def _assert_get_and_head(usage_examples: UsageExamples, web_app: WebApp):

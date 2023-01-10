@@ -29,7 +29,7 @@ class PackagePrefix:
     slug: str
 
 
-class RstDocGenerator(object):
+class RstDocGenerator:
     """Utility for generate rst-files (reStructuredText) with a documentation
     based of information collected from usage examples.
     """

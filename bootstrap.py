@@ -1,5 +1,5 @@
 """
-:Version: 1.2
+:Version: 1.3
 
 Look for the latest version of the script in the GIST:
 https://gist.github.com/Cykooz/118fba100c9ceb76ee822f7541d480c4
@@ -17,7 +17,7 @@ from tempfile import TemporaryDirectory
 from urllib.request import urlopen
 
 
-BUILDOUT_VERSION = '>=3.0rc3'
+BUILDOUT_VERSION = '3.0.1'
 PIP_VERSION = ''
 SETUPTOOLS_VERSION = ''
 WHEEL_VERSION = ''
@@ -132,12 +132,12 @@ def main():
     if dependencies:
         logger.info('Installing ' + ', '.join(dependencies))
         _run_cmd([
-            str(venv_python_path),
-            '-m', 'pip',
-            'install',
-        ] + dependencies)
+                     str(venv_python_path),
+                     '-m', 'pip',
+                     'install',
+                 ] + dependencies)
 
-    logger.info(f'Bootstrap zc.buildout')
+    logger.info('Bootstrap zc.buildout')
     is_win = platform.system() == 'Windows'
     if is_win:
         buildout_path = venv_dir / 'Scripts' / 'buildout.exe'

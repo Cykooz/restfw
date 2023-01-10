@@ -494,21 +494,28 @@ class GetNextPageSchema(GetResourceSchema):
 
 
 class EmbeddedItemsSchema(MappingNode):
-    items = colander.SchemaNode(colander.List(), title='List of items',
-                                missing=colander.drop)
+    items = colander.SchemaNode(
+        colander.List(),
+        title='List of items',
+        missing=colander.drop,
+    )
 
 
 class HalResourceWithEmbeddedSchema(HalResourceSchema):
     _links = PagesHalLinksSchema()
-    _embedded = EmbeddedItemsSchema(title='Embedded list of items',
-                                    default=colander.drop)
+    _embedded = EmbeddedItemsSchema(
+        title='Embedded list of items',
+        missing=colander.drop,
+    )
 
 
 _undefined = object()
 
 
-def clone_schema_class(name, base_schema, only=None, excludes=None,
-                       nodes_missing=_undefined, replace_validators=None, **kwargs):
+def clone_schema_class(
+        name, base_schema, only=None, excludes=None,
+        nodes_missing=_undefined, replace_validators=None, **kwargs
+):
     """
     :type name: string
     :type base_schema: colander.SchemaNode or colander._SchemaNode

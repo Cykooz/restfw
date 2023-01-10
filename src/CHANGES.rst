@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added method ``UsageExamples.cleanup()``.
+
 8.2 (2022-08-01)
 ================
 

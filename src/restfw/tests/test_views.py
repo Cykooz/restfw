@@ -81,7 +81,10 @@ class DummyContainer(SimpleContainer):
 @views.resource_view_config()
 class DummyContainerView(views.HalResourceWithEmbeddedView):
     resource: DummyContainer
-    options_for_post = interfaces.MethodOptions(PostDummyHalResourceSchema, DummyHalResourceSchema)
+    options_for_post = interfaces.MethodOptions(
+        PostDummyHalResourceSchema,
+        DummyHalResourceSchema,
+    )
 
     def get_embedded(self, params: dict):
         return views.list_to_embedded_resources(
@@ -149,7 +152,6 @@ class DummyHalResourceExamples(UsageExamples):
 
 class DummyContainerExamples(UsageExamples):
     count_of_embedded = 3
-    embedded_name = 'items'
 
     def prepare_resource(self):
         resource = DummyContainer()

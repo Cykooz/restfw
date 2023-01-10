@@ -29,6 +29,10 @@ class UsageExamples(abc.ABC):
     headers_for_listing = None  # Deprecated
     default_auth = ''
     test_listing = True
+    resource: IResource
+    resource_url: str
+    view = None
+    allowed_methods: Optional[set[str]] = None
 
     def __init__(self, request: PyramidRequest):
         self.registry = request.registry
@@ -49,7 +53,12 @@ class UsageExamples(abc.ABC):
             name = name[:-len(suffix)]
         return name
 
-    def authorize_request(self, params: Optional[Params], headers: Optional[dict], auth: Optional[str] = None):
+    def authorize_request(
+            self,
+            params: Optional[Params],
+            headers: Optional[dict],
+            auth: Optional[str] = None,
+    ):
         """Add authorization information into request with given params and headers.
         :param auth: Some string used for authorization. For example '<login>:<password>'.
         :return: Tuple with a new version of params and headers.
@@ -65,6 +74,15 @@ class UsageExamples(abc.ABC):
     @abc.abstractmethod
     def prepare_resource(self) -> IResource:
         ...
+
+    def cleanup(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cleanup()
 
     @contextmanager
     def send_function(self, send: ISendTestingRequest):

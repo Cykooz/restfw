@@ -77,35 +77,35 @@ class UsageExamplesCollector(object):
                     continue
 
                 self._logger.info('Collecting information from "%s".', ep_id)
+                with usage_examples:
+                    resource = usage_examples.resource
+                    resource_class_name = get_object_fullname(resource.__class__)
 
-                resource = usage_examples.resource
-                resource_class_name = get_object_fullname(resource.__class__)
+                    if resource_class_name not in resources_info:
+                        resources_info[resource_class_name] = structs.ResourceInfo(
+                            class_name=resource_class_name,
+                            description=self._get_code_object_doc(resource.__class__)
+                        )
+                    resources_info[resource_class_name].count_of_entry_points += 1
 
-                if resource_class_name not in resources_info:
-                    resources_info[resource_class_name] = structs.ResourceInfo(
-                        class_name=resource_class_name,
-                        description=self._get_code_object_doc(resource.__class__)
+                    path_elements = self._get_resource_path_elements(resource)
+                    methods = self._get_methods_info(usage_examples)
+
+                    entry_points_info[ep_id] = structs.EntryPointInfo(
+                        usage_examples.entry_point_name,
+                        examples_class_name=get_object_fullname(usage_examples.__class__),
+                        resource_class_name=resource_class_name,
+                        url_elements=path_elements,
+                        methods=methods,
+                        description=self._get_code_object_doc(usage_examples.__class__)
                     )
-                resources_info[resource_class_name].count_of_entry_points += 1
-
-                path_elements = self._get_resource_path_elements(resource)
-                methods = self._get_methods_info(usage_examples)
-
-                entry_points_info[ep_id] = structs.EntryPointInfo(
-                    usage_examples.entry_point_name,
-                    examples_class_name=get_object_fullname(usage_examples.__class__),
-                    resource_class_name=resource_class_name,
-                    url_elements=path_elements,
-                    methods=methods,
-                    description=self._get_code_object_doc(usage_examples.__class__)
-                )
-                url = '/'.join(e.value for e in path_elements)
-                if url in url_to_ep_id and url_to_ep_id[url] != ep_id:
-                    self._logger.warning(
-                        'URL "%s" of entry point "%s" already used by entry point "%s"',
-                        url, ep_id, url_to_ep_id[url]
-                    )
-                url_to_ep_id[url] = ep_id
+                    url = '/'.join(e.value for e in path_elements)
+                    if url in url_to_ep_id and url_to_ep_id[url] != ep_id:
+                        self._logger.warning(
+                            'URL "%s" of entry point "%s" already used by entry point "%s"',
+                            url, ep_id, url_to_ep_id[url]
+                        )
+                    url_to_ep_id[url] = ep_id
 
         # Fill property 'ep_id' in url elements
         for entry_point_info in entry_points_info.values():
