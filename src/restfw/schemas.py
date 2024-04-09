@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
+
 from urllib.parse import urlsplit
 
 import colander
@@ -15,12 +16,11 @@ from zope.interface.interfaces import IInterface
 from .external_links import get_external_links
 
 
-LISTING_CONF = {
-    'max_limit': 500
-}
+LISTING_CONF = {'max_limit': 500}
 
 
 # Schema types
+
 
 class Nullable(colander.SchemaType):
     """A type which accepts serialize None to None and deserialize ''/None to None.
@@ -54,7 +54,6 @@ class Nullable(colander.SchemaType):
 
 
 class NullableValidator(object):
-
     def __init__(self, validator):
         self.validator = validator
 
@@ -64,7 +63,6 @@ class NullableValidator(object):
 
 
 class EmptyString(colander.String):
-
     def __init__(self, encoding=None):
         super(EmptyString, self).__init__(encoding=encoding, allow_empty=True)
 
@@ -79,7 +77,11 @@ class UrlEncodeMapping(colander.Mapping):
                 name = sub_node.name
                 if name not in value:
                     continue
-                new_value[name] = value.getall(name) if isinstance(sub_node.typ, colander.Sequence) else value[name]
+                new_value[name] = (
+                    value.getall(name)
+                    if isinstance(sub_node.typ, colander.Sequence)
+                    else value[name]
+                )
             return new_value
         return super(UrlEncodeMapping, self)._validate(node, value)
 
@@ -91,8 +93,13 @@ class ResourceType(colander.SchemaType):
         if not appstruct:
             return colander.null
         if not ILocation.providedBy(appstruct):
-            raise colander.Invalid(node, colander._('"${val}" object has not provide ILocation',
-                                                    mapping={'val': appstruct}))
+            raise colander.Invalid(
+                node,
+                colander._(
+                    '"${val}" object has not provide ILocation',
+                    mapping={'val': appstruct},
+                ),
+            )
         bindings = node.bindings or {}
         request = bindings.get('request', None)
         if not request:
@@ -134,8 +141,8 @@ class ResourceType(colander.SchemaType):
 
 # Basic nodes
 
-class BaseNode(colander.SchemaNode):
 
+class BaseNode(colander.SchemaNode):
     def __init__(self, *args, nullable=False, **kwargs):
         if nullable:
             schema_type = self.schema_type
@@ -234,7 +241,6 @@ class BooleanNode(BaseNode):
 
 
 class DateTimeNode(BaseNode):
-
     def __init__(self, *args, default_tzinfo=None, dt_format=None, **kwargs):
         if kwargs.pop('allow_empty', False):
             kwargs['nullable'] = True
@@ -275,7 +281,6 @@ class EmbeddedNode(BaseNode):
 
 
 class SequenceNode(BaseNode, colander.SequenceSchema):
-
     def __init__(self, *args, accept_scalar=False, **kwargs):
         self.accept_scalar = accept_scalar
         super().__init__(*args, **kwargs)
@@ -289,6 +294,7 @@ class ResourceNode(BaseNode):
 
 
 # Validators
+
 
 class LazyAll:
     """Composite validator which fail if one of its
@@ -329,19 +335,20 @@ class LaconicOneOf(colander.OneOf):
 
     def __call__(self, node, value):
         if value not in self.choices:
-            err = colander._('"${val}" is not one of allowed values',
-                             mapping={'val': value})
+            err = colander._(
+                '"${val}" is not one of allowed values', mapping={'val': value}
+            )
             raise colander.Invalid(node, err)
 
 
-class LaconicNoneOf(colander.OneOf):
+class LaconicNoneOf(colander.NoneOf):
     """Laconic version of standard NoneOf validator."""
 
     def __call__(self, node, value):
-        if value in self.choices:
-            err = colander._('"${val}" is not allowed value',
-                             mapping={'val': value})
-            raise colander.Invalid(node, err)
+        if value not in self.forbidden:
+            return
+        err = colander._('"${val}" is not allowed value', mapping={'val': value})
+        raise colander.Invalid(node, err)
 
 
 class ResourceInterface:
@@ -365,12 +372,15 @@ class ResourceInterface:
     def __call__(self, node, value):
         if not any(v(value) for v in self._validators):
             choices = ', '.join(x.__name__ for x in self.interfaces)
-            err = colander._('Type of "${val}" is not one of ${choices}',
-                             mapping={'val': value, 'choices': choices})
+            err = colander._(
+                'Type of "${val}" is not one of ${choices}',
+                mapping={'val': value, 'choices': choices},
+            )
             raise colander.Invalid(node, err)
 
 
 # Schemas
+
 
 class GetResourceSchema(MappingNode):
     pass
@@ -381,6 +391,7 @@ class ResourceSchema(MappingNode):
 
 
 # HAL Schemas
+
 
 class HalLinkNode(MappingNode):
     href = StringNode(title='URL to a resource', validator=colander.url)
@@ -420,7 +431,9 @@ class HalLinksSchema(MappingNode):
 
         for name, _ in context.get_sub_resources(request.registry):
             if name and not node.get(name):
-                child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(**kw)
+                child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(
+                    **kw
+                )
                 node.add(child)
 
 
@@ -463,16 +476,19 @@ def prepare_limit(value):
 
 class GetEmbeddedSchema(GetResourceSchema):
     """This schema can be used to get pagination parameters based on offset of page start."""
+
     embedded = BooleanNode(title='Include an embedded resources', missing=True)
     offset = IntegerNode(
         title='Offset',
         description='Offset from the start of children resources.',
-        default=0, missing=0,
+        default=0,
+        missing=0,
         validator=colander.Range(min=0),
     )
     limit = IntegerNode(
         title='Limit',
-        preparer=prepare_limit, missing=missing_limit,
+        preparer=prepare_limit,
+        missing=missing_limit,
         validator=colander.Range(min=0),
     )
     total_count = BooleanNode(title='Calculate total count', missing=False)
@@ -480,14 +496,17 @@ class GetEmbeddedSchema(GetResourceSchema):
 
 class GetNextPageSchema(GetResourceSchema):
     """This schema can be used to get pagination parameters based on 'cursor' position."""
+
     embedded = BooleanNode(title='Include an embedded resources', missing=True)
     cursor_next = StringNode(
-        title='Next item position', missing='',
-        description='Position of next item used for listing in forward direction.'
+        title='Next item position',
+        missing='',
+        description='Position of next item used for listing in forward direction.',
     )
     limit = IntegerNode(
         title='Limit',
-        preparer=prepare_limit, missing=missing_limit,
+        preparer=prepare_limit,
+        missing=missing_limit,
         validator=colander.Range(min=0),
     )
     total_count = BooleanNode(title='Calculate total count', missing=False)
@@ -513,8 +532,13 @@ _undefined = object()
 
 
 def clone_schema_class(
-        name, base_schema, only=None, excludes=None,
-        nodes_missing=_undefined, replace_validators=None, **kwargs
+    name,
+    base_schema,
+    only=None,
+    excludes=None,
+    nodes_missing=_undefined,
+    replace_validators=None,
+    **kwargs,
 ):
     """
     :type name: string

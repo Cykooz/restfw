@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed validator ``LaconicNoneOf``.
+
 8.3 (2023-01-10)
 ================
 
