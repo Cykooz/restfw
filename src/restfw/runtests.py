@@ -10,6 +10,7 @@ def runtests():
     import pytest
     from os import environ
     from pathlib import Path
+
     root_dir_path = Path(__file__).parent / '..' / '..'
     cfg_path = root_dir_path / 'src' / 'setup.cfg'
 
@@ -17,8 +18,10 @@ def runtests():
     if not args or args[0].startswith('-'):
         args += ['--pyargs', 'restfw']
     args = [
-        '-c', str(cfg_path),
-        '--rootdir', str(root_dir_path),
+        '-c',
+        str(cfg_path),
+        '--rootdir',
+        str(root_dir_path),
     ] + args
     environ['IS_TESTING'] = 'true'
 

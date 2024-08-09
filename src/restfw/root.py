@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+
 from pyramid.authorization import Allow, DENY_ALL, Everyone
 from pyramid.registry import Registry
 from zope.interface import implementer
@@ -16,10 +17,7 @@ from .utils import notify
 
 @implementer(IRoot)
 class Root(SimpleContainer):
-    __acl__ = [
-        (Allow, Everyone, ALL_GET_REQUESTS),
-        DENY_ALL
-    ]
+    __acl__ = [(Allow, Everyone, ALL_GET_REQUESTS), DENY_ALL]
 
     def __init__(self, registry: Registry):
         super(Root, self).__init__()

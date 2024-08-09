@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 15.11.2016
 """
+
 import inspect
 from os.path import basename
 from urllib.parse import quote, urlsplit, urlunsplit
@@ -17,8 +18,7 @@ from webtest.utils import NoDefault
 from ..utils import force_dict_utf8
 
 
-class WebApp(object):
-
+class WebApp:
     def __init__(self, app_env_fabric, url_prefix='', json_encoder=None):
         self.app_env_fabric = app_env_fabric
         self.env = None
@@ -68,15 +68,11 @@ class WebApp(object):
     def _check_status(self, response, method_name, url, status, **kwargs):
         if status is None:
             assert 200 <= response.status_code < 400, self._format_error(
-                'Response status is bad.',
-                response, method_name, url,
-                **kwargs
+                'Response status is bad.', response, method_name, url, **kwargs
             )
         else:
             assert response.status_code == status, self._format_error(
-                'Response status is bad.',
-                response, method_name, url,
-                **kwargs
+                'Response status is bad.', response, method_name, url, **kwargs
             )
 
     def _check_error_code(self, response, method_name, url, exception, **kwargs):
@@ -98,26 +94,39 @@ class WebApp(object):
             assert 'code' in json_body
             assert json_body['code'] == code, self._format_error(
                 'Code of error is not equal to required.',
-                response, method_name, url,
-                **kwargs
+                response,
+                method_name,
+                url,
+                **kwargs,
             )
             assert json_body['description'] == description, self._format_error(
                 'Description of error is not equal to required.',
-                response, method_name, url,
-                **kwargs
+                response,
+                method_name,
+                url,
+                **kwargs,
             )
             if detail is not None:
                 assert json_body['detail'] == detail, self._format_error(
                     'Detail of error is not equal to required.',
-                    response, method_name, url,
-                    **kwargs
+                    response,
+                    method_name,
+                    url,
+                    **kwargs,
                 )
 
     def _app_method(
-            self, method_name, url, params=None,
-            exception=None, headers=None,
-            content_type=None, upload_files=None, status=None,
-            check_response=True, **kwargs
+        self,
+        method_name,
+        url,
+        params=None,
+        exception=None,
+        headers=None,
+        content_type=None,
+        upload_files=None,
+        status=None,
+        check_response=True,
+        **kwargs,
     ) -> TestResponse:
         if not url.startswith(('/', 'http://', 'https://')):
             url = f"/{self.url_prefix}/{url.lstrip('/')}"
@@ -137,8 +146,7 @@ class WebApp(object):
             url = urlunsplit(split_result)
         if isinstance(params, dict) and not method_name.endswith('_json'):
             params = {
-                key: '' if value is None else value
-                for key, value in params.items()
+                key: '' if value is None else value for key, value in params.items()
             }
 
         http_method = getattr(self.test_app, method_name, None)
@@ -209,7 +217,9 @@ class WebApp(object):
 
     # Helper methods
 
-    def _send_file_to_external(self, file_path, url, params=None, headers=None, method='post'):
+    def _send_file_to_external(
+        self, file_path, url, params=None, headers=None, method='post'
+    ):
         params = params if params is not None else {}
         headers = headers if headers is not None else {}
         params = force_dict_utf8(params)
@@ -221,62 +231,96 @@ class WebApp(object):
             try:
                 if method == 'put':
                     params = files['file'][1].read()
-                    r = requests.put(url, data=params, headers=headers,
-                                     allow_redirects=False)
+                    r = requests.put(
+                        url, data=params, headers=headers, allow_redirects=False
+                    )
                 else:
-                    r = requests.post(url, data=params,
-                                      files=files, allow_redirects=False)
+                    r = requests.post(
+                        url, data=params, files=files, allow_redirects=False
+                    )
 
                 if r.status_code == 303:
                     redirect_url = r.headers['Location']
                     assert redirect_url.startswith('http://localhost/')
-                    redirect_url = redirect_url[len('http://localhost'):]
+                    redirect_url = redirect_url[len('http://localhost') :]
                     r = self.post(redirect_url)
                 return r
             except RequestException as error:
                 upload_attempts -= 1
                 if upload_attempts == 0:
                     print('=' * 40)
-                    print('RequestException during file upload to external storage\n %s' % error)
+                    print(
+                        'RequestException during file upload to external storage\n %s'
+                        % error
+                    )
                     print('=' * 40)
                     raise
 
-    def _send_file_to_local(self, file_path, url, params=None, headers=None, method='post'):
+    def _send_file_to_local(
+        self, file_path, url, params=None, headers=None, method='post'
+    ):
         params = params if params is not None else {}
         headers = headers if headers is not None else {}
 
         if url.startswith('http://localhost/'):
-            url = url[len('http://localhost'):]
+            url = url[len('http://localhost') :]
 
         if method == 'post':
             params = params.copy()
-            return self.post(url, params=params, upload_files=[('file', file_path)],
-                             headers=headers)
+            return self.post(
+                url, params=params, upload_files=[('file', file_path)], headers=headers
+            )
         elif method == 'put':
             with open(file_path, 'rb') as data_file:
                 data = data_file.read()
-                return self.put(url, params=data, headers=headers,
-                                content_type='application/octet-stream')
+                return self.put(
+                    url,
+                    params=data,
+                    headers=headers,
+                    content_type='application/octet-stream',
+                )
 
-    def send_file(self, file_path, url, params=None, headers=None,
-                  method='post', exception=httpexceptions.HTTPOk):
+    def send_file(
+        self,
+        file_path,
+        url,
+        params=None,
+        headers=None,
+        method='post',
+        exception=httpexceptions.HTTPOk,
+    ):
         file_upload_headers = headers.copy()
         if not url.startswith(('http:', 'https:')) or url.startswith(
-                ('http://localhost/', 'https://localhost/')):
-            response = self._send_file_to_local(file_path, url, params=params, headers=file_upload_headers,
-                                                method=method)
+            ('http://localhost/', 'https://localhost/')
+        ):
+            response = self._send_file_to_local(
+                file_path,
+                url,
+                params=params,
+                headers=file_upload_headers,
+                method=method,
+            )
         else:
-            response = self._send_file_to_external(file_path, url, params=params, headers=file_upload_headers,
-                                                   method=method)
+            response = self._send_file_to_external(
+                file_path,
+                url,
+                params=params,
+                headers=file_upload_headers,
+                method=method,
+            )
 
         if response.status_code >= 300:
-            self._check_status(response, method, url, exception.code, params=None, headers=None)
+            self._check_status(
+                response, method, url, exception.code, params=None, headers=None
+            )
 
         return response
 
-    def download_file(self, url, headers=None, exception=httpexceptions.HTTPOk, expected_headers=None):
+    def download_file(
+        self, url, headers=None, exception=httpexceptions.HTTPOk, expected_headers=None
+    ):
         if url.startswith('http://localhost/'):
-            url = url[len('http://localhost'):]
+            url = url[len('http://localhost') :]
             r = self.get(url, headers=headers, exception=exception)
             headers = dict(r.headers)
             content = r.body

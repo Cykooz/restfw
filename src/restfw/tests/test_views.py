@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 08.09.2016
 """
+
 import uuid
 
 import colander
@@ -19,7 +20,6 @@ from ..usage_examples import UsageExamples
 
 
 class DummyHalResource(HalResource):
-
     def __init__(self, title, description):
         self.title = title
         self.description = description
@@ -38,12 +38,16 @@ class DummyHalResource(HalResource):
 
 
 class DummyHalResourceSchema(schemas.HalResourceSchema):
-    title = schemas.StringNode(title='Resource title', validator=colander.Length(max=50))
+    title = schemas.StringNode(
+        title='Resource title', validator=colander.Length(max=50)
+    )
     description = schemas.EmptyStringNode(title='Resource description')
 
 
 class PutDummyHalResourceSchema(colander.MappingSchema):
-    title = schemas.StringNode(title='Resource title', validator=colander.Length(max=50))
+    title = schemas.StringNode(
+        title='Resource title', validator=colander.Length(max=50)
+    )
     description = schemas.EmptyStringNode(title='Resource description', missing='')
 
 
@@ -54,7 +58,9 @@ class PostDummyHalResourceSchema(PutDummyHalResourceSchema):
 @views.resource_view_config()
 class DummyHalResourceView(views.HalResourceView):
     resource: DummyHalResource
-    options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, DummyHalResourceSchema)
+    options_for_get = interfaces.MethodOptions(
+        schemas.GetResourceSchema, DummyHalResourceSchema
+    )
 
     def as_dict(self) -> Json:
         return {
@@ -62,14 +68,14 @@ class DummyHalResourceView(views.HalResourceView):
             'description': self.resource.description,
         }
 
-    options_for_put = interfaces.MethodOptions(PutDummyHalResourceSchema, DummyHalResourceSchema)
+    options_for_put = interfaces.MethodOptions(
+        PutDummyHalResourceSchema, DummyHalResourceSchema
+    )
     options_for_delete = interfaces.MethodOptions(None, None)
 
 
 class DummyContainer(SimpleContainer):
-    __acl__ = [
-        (Allow, Everyone, ALL_PERMISSIONS)
-    ]
+    __acl__ = [(Allow, Everyone, ALL_PERMISSIONS)]
 
     def http_post(self, request, params):
         resource = DummyHalResource(params['title'], params['description'])
@@ -88,10 +94,11 @@ class DummyContainerView(views.HalResourceWithEmbeddedView):
 
     def get_embedded(self, params: dict):
         return views.list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 
@@ -110,19 +117,13 @@ class DummyHalResourceExamples(UsageExamples):
             result={
                 '_links': {'self': {'href': self.resource_url}},
                 'title': 'Resource title',
-                'description': 'Resource description'
+                'description': 'Resource description',
             }
         )
 
     def put_requests(self):
-        params = {
-            'title': 'New title',
-            'description': 'New description'
-        }
-        result = {
-            '_links': {'self': {'href': self.resource_url}},
-            **params
-        }
+        params = {'title': 'New title', 'description': 'New description'}
+        result = {'_links': {'self': {'href': self.resource_url}}, **params}
         self.send(params=params, result=result)
 
         self.send(exception=self.ValidationError({'title': 'Required'}))
@@ -157,26 +158,24 @@ class DummyContainerExamples(UsageExamples):
         resource = DummyContainer()
         self.root['test_container'] = resource
         for i in range(self.count_of_embedded):
-            child = DummyHalResource('Resource title %d' % i,
-                                     'Resource description %d' % i)
+            child = DummyHalResource(
+                'Resource title %d' % i, 'Resource description %d' % i
+            )
             resource['res-%d' % i] = child
         return resource
 
     def get_requests(self):
         self.send(
-            result=D({
-                '_links': {'self': {'href': 'http://localhost/test_container/'}},
-                '_embedded': {
-                    'items': [D()] * self.count_of_embedded
+            result=D(
+                {
+                    '_links': {'self': {'href': 'http://localhost/test_container/'}},
+                    '_embedded': {'items': [D()] * self.count_of_embedded},
                 }
-            })
+            )
         )
 
     def post_requests(self):
-        params = {
-            'title': 'New title',
-            'description': 'New description'
-        }
+        params = {'title': 'New title', 'description': 'New description'}
         result = D(params)
         self.send(params=params, result=result, status=201)
 
@@ -216,10 +215,13 @@ def test_resource_views(web_app, pyramid_request):
         'description': 'Resource description',
     }
 
-    res = web_app.put_json(url, params={
-        'title': 'New title',
-        'description': 'New description',
-    })
+    res = web_app.put_json(
+        url,
+        params={
+            'title': 'New title',
+            'description': 'New description',
+        },
+    )
     assert res.json == {
         '_links': {'self': {'href': url}},
         'title': 'New title',

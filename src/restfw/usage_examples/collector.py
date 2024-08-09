@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+
 import logging
 from collections import OrderedDict
 from copy import deepcopy
@@ -30,16 +31,18 @@ class UsageExamplesCollector(object):
     """Collector uses to collect full information about all registered
     resource usage examples.
     """
+
     ALL_POSSIBLE_METHODS = ('GET', 'PUT', 'PATCH', 'POST', 'DELETE')
 
     def __init__(
-            self, web_app: WebApp,
-            prepare_env=None,
-            schema_serializer=None,
-            principal_formatter=None,
-            docstring_extractor=default_docstring_extractor,
-            docstring_filter=sphinx_doc_filter,
-            logger=None,
+        self,
+        web_app: WebApp,
+        prepare_env=None,
+        schema_serializer=None,
+        principal_formatter=None,
+        docstring_extractor=default_docstring_extractor,
+        docstring_filter=sphinx_doc_filter,
+        logger=None,
     ):
         """
         :type prepare_env: interfaces.IPrepareEnv or None
@@ -67,7 +70,9 @@ class UsageExamplesCollector(object):
         entry_points_info = {}
         url_to_ep_id = {}
 
-        for ep_id, fabric in self.registry.getUtilitiesFor(interfaces.IUsageExamplesFabric):
+        for ep_id, fabric in self.registry.getUtilitiesFor(
+            interfaces.IUsageExamplesFabric
+        ):
             with open_pyramid_request(self.registry) as request:
                 if self._prepare_env:
                     self._prepare_env(request)
@@ -84,7 +89,7 @@ class UsageExamplesCollector(object):
                     if resource_class_name not in resources_info:
                         resources_info[resource_class_name] = structs.ResourceInfo(
                             class_name=resource_class_name,
-                            description=self._get_code_object_doc(resource.__class__)
+                            description=self._get_code_object_doc(resource.__class__),
                         )
                     resources_info[resource_class_name].count_of_entry_points += 1
 
@@ -93,17 +98,21 @@ class UsageExamplesCollector(object):
 
                     entry_points_info[ep_id] = structs.EntryPointInfo(
                         usage_examples.entry_point_name,
-                        examples_class_name=get_object_fullname(usage_examples.__class__),
+                        examples_class_name=get_object_fullname(
+                            usage_examples.__class__
+                        ),
                         resource_class_name=resource_class_name,
                         url_elements=path_elements,
                         methods=methods,
-                        description=self._get_code_object_doc(usage_examples.__class__)
+                        description=self._get_code_object_doc(usage_examples.__class__),
                     )
                     url = '/'.join(e.value for e in path_elements)
                     if url in url_to_ep_id and url_to_ep_id[url] != ep_id:
                         self._logger.warning(
                             'URL "%s" of entry point "%s" already used by entry point "%s"',
-                            url, ep_id, url_to_ep_id[url]
+                            url,
+                            ep_id,
+                            url_to_ep_id[url],
                         )
                     url_to_ep_id[url] = ep_id
 
@@ -130,7 +139,9 @@ class UsageExamplesCollector(object):
         return lines
 
     @staticmethod
-    def _get_resource_path_elements(resource, skip_root=True) -> List[structs.UrlElement]:
+    def _get_resource_path_elements(
+        resource, skip_root=True
+    ) -> List[structs.UrlElement]:
         elements = []
         for resource in lineage(resource):
             value = getattr(resource, 'url_placeholder', None)
@@ -144,11 +155,15 @@ class UsageExamplesCollector(object):
             elements = elements[1:]
         return elements
 
-    def _get_methods_info(self, usage_examples: UsageExamples) -> Dict[str, structs.MethodInfo]:
+    def _get_methods_info(
+        self, usage_examples: UsageExamples
+    ) -> Dict[str, structs.MethodInfo]:
         request = usage_examples.request
         resource = usage_examples.resource
         allowed_methods = usage_examples.allowed_methods
-        available_methods = [m.lower() for m in self.ALL_POSSIBLE_METHODS if m in allowed_methods]
+        available_methods = [
+            m.lower() for m in self.ALL_POSSIBLE_METHODS if m in allowed_methods
+        ]
 
         result = OrderedDict()
         view = usage_examples.view
@@ -189,14 +204,20 @@ class UsageExamplesCollector(object):
 
             result[method.upper()] = structs.MethodInfo(
                 examples_info=self._get_examples_info(usage_examples, method),
-                input_schema=self._get_schema_info(method_options.input_schema, request, resource),
-                output_schema=self._get_schema_info(method_options.output_schema, request, resource),
+                input_schema=self._get_schema_info(
+                    method_options.input_schema, request, resource
+                ),
+                output_schema=self._get_schema_info(
+                    method_options.output_schema, request, resource
+                ),
                 allowed_principals=allowed_principals,
                 description=description,
             )
         return result
 
-    def _get_examples_info(self, usage_examples: UsageExamples, method: str) -> List[structs.ExampleInfo]:
+    def _get_examples_info(
+        self, usage_examples: UsageExamples, method: str
+    ) -> List[structs.ExampleInfo]:
         """Execute all examples of method and return list of ExampleInfo."""
         send_requests = getattr(usage_examples, '%s_requests' % method, None)
         if send_requests is None:
@@ -210,14 +231,20 @@ class UsageExamplesCollector(object):
             etag = usage_examples.resource.get_etag()
             if etag:
                 etag = etag.serialize()
-                if all(not res.request_info.headers or 'If-Match' not in res.request_info.headers
-                       for res in send.results):
+                if all(
+                    not res.request_info.headers
+                    or 'If-Match' not in res.request_info.headers
+                    for res in send.results
+                ):
                     send(
                         headers={'If-Match': '"__bad_etag__"'},
                         exception=HTTPPreconditionFailed({'etag': etag}),
                     )
-                if all(not res.request_info.headers or 'If-None-Match' not in res.request_info.headers
-                       for res in send.results):
+                if all(
+                    not res.request_info.headers
+                    or 'If-None-Match' not in res.request_info.headers
+                    for res in send.results
+                ):
                     send(
                         headers={'If-None-Match': etag},
                         exception=HTTPNotModified,
@@ -226,14 +253,20 @@ class UsageExamplesCollector(object):
             etag = usage_examples.resource.get_etag()
             if etag:
                 etag = etag.serialize()
-                if all(not res.request_info.headers or 'If-Match' not in res.request_info.headers
-                       for res in send.results):
+                if all(
+                    not res.request_info.headers
+                    or 'If-Match' not in res.request_info.headers
+                    for res in send.results
+                ):
                     send(
                         headers={'If-Match': '"__bad_etag__"'},
                         exception=HTTPPreconditionFailed({'etag': ANY}),
                     )
-                if all(not res.request_info.headers or 'If-None-Match' not in res.request_info.headers
-                       for res in send.results):
+                if all(
+                    not res.request_info.headers
+                    or 'If-None-Match' not in res.request_info.headers
+                    for res in send.results
+                ):
                     # if 'HEAD' in usage_examples.allowed_methods:
                     #     params, headers = usage_examples.authorize_request(None, None, None)
                     #     head_res = self.web_app.head(usage_examples.resource_url, params=params, headers=headers)
@@ -254,7 +287,7 @@ class UsageExamplesCollector(object):
         return send.results
 
     def _get_schema_info(
-            self, schema_class, request: PyramidRequest, context: Resource
+        self, schema_class, request: PyramidRequest, context: Resource
     ) -> Optional[structs.SchemaInfo]:
         """Build SchemaInfo instance for given schema class."""
         serialized_schema = self._schema_serializer(schema_class, request, context)
@@ -268,24 +301,36 @@ class UsageExamplesCollector(object):
 
 
 class _ExampleInfoCollector(resource_testing.RequestsTester):
-
     def __init__(self, web_app: WebApp, usage_examples: UsageExamples, method: str):
         super().__init__(web_app, usage_examples)
         self.method = method
         self.results: List[structs.ExampleInfo] = []
 
     def __call__(
-            self, params=DEFAULT, headers=None, auth=None, result=None,
-            result_headers=None, exception=None, status=None, description=None, exclude_from_doc=False
+        self,
+        params=DEFAULT,
+        headers=None,
+        auth=None,
+        result=None,
+        result_headers=None,
+        exception=None,
+        status=None,
+        description=None,
+        exclude_from_doc=False,
     ) -> Response:
         params = params if params is not DEFAULT else {}
-        web_method_name = self.method if self.method in ('get', 'head') else '%s_json' % self.method
+        web_method_name = (
+            self.method if self.method in ('get', 'head') else '%s_json' % self.method
+        )
         web_method = getattr(self.web_app, web_method_name, None)
 
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
         response = web_method(
-            self.resource_url, params=params, headers=headers,
-            exception=exception, status=status
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
         )
 
         request_info = structs.RequestInfo(
@@ -296,7 +341,9 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
 
         status_code = response.status_code
         status_name = http_client.responses.get(status_code, '')
-        json_body = response.json_body if response.status_code not in (204, 304) else None
+        json_body = (
+            response.json_body if response.status_code not in (204, 304) else None
+        )
         if status_code >= 400 and json_body:
             status_name = json_body.get('code', status_name)
 
@@ -306,10 +353,15 @@ class _ExampleInfoCollector(resource_testing.RequestsTester):
                 result_headers['ETag'] = response.headers['ETag']
 
         response_info = structs.ResponseInfo(
-            status_code, status_name,
+            status_code,
+            status_name,
             headers=deepcopy(dict(response.headers)),
             expected_headers=deepcopy(dict(result_headers)) if result_headers else None,
-            json_body=json_body
+            json_body=json_body,
         )
-        self.results.append(structs.ExampleInfo(request_info, response_info, description, exclude_from_doc))
+        self.results.append(
+            structs.ExampleInfo(
+                request_info, response_info, description, exclude_from_doc
+            )
+        )
         return response

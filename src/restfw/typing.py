@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 25.12.2020
 """
+
 from typing import Dict, List, Tuple, Union
 
 from pyramid.registry import Registry

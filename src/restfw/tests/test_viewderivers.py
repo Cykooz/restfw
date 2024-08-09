@@ -3,9 +3,14 @@
 :Authors: cykooz
 :Date: 27.12.2019
 """
+
 import pytest
 from pyramid.authorization import ALL_PERMISSIONS, Allow, Everyone
-from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotModified, HTTPPreconditionFailed
+from pyramid.httpexceptions import (
+    HTTPMethodNotAllowed,
+    HTTPNotModified,
+    HTTPPreconditionFailed,
+)
 from pyramid.view import view_config
 
 from .. import schemas
@@ -28,9 +33,7 @@ class DummyEditSchema(schemas.MappingNode):
 
 
 class DummyResource(Resource):
-    __acl__ = [
-        (Allow, Everyone, ALL_PERMISSIONS)
-    ]
+    __acl__ = [(Allow, Everyone, ALL_PERMISSIONS)]
 
     def __init__(self, model):
         self.model = model
@@ -56,8 +59,12 @@ class DummyResourceView(ResourceView):
         return self.resource.model
 
 
-@view_config(name='custom_view', request_method={'GET', 'PATCH'},
-             context=DummyResource, permission='patch')
+@view_config(
+    name='custom_view',
+    request_method={'GET', 'PATCH'},
+    context=DummyResource,
+    permission='patch',
+)
 def custom_view(context, request):
     context.model = {'custom': 'view', 'result': 789}
     return context.model
@@ -101,7 +108,10 @@ def test_check_result_schema(web_app, pyramid_request):
     assert res.json_body == {'foo': 'Hello', 'bar': 123}
 
     resource.model = {'bad': 'result'}
-    web_app.get(resource_url, exception=ResultValidationError({'foo': 'Required', 'bar': 'Required'}))
+    web_app.get(
+        resource_url,
+        exception=ResultValidationError({'foo': 'Required', 'bar': 'Required'}),
+    )
 
     # View deriver do not work for custom views
     custom_view_url = resource_url + 'custom_view'
@@ -117,44 +127,40 @@ def test_check_result_schema(web_app, pyramid_request):
         (None, '"etag"', None, 412),
         (None, None, '"etag"', 200),
         (None, None, '*', 200),
-
         (ETag('etag'), None, None, 200),
         (ETag('etag'), '*', None, 200),
         (ETag('etag'), '"etag"', None, 200),
         (ETag('etag'), '"other", "etag"', None, 200),
         (ETag('etag'), '"other"', None, 412),
         (ETag('etag'), 'W/"etag"', None, 412),
-
         (ETag('etag', False), None, None, 200),
         (ETag('etag', False), '*', None, 200),
         (ETag('etag', False), '"etag"', None, 412),
         (ETag('etag', False), '"other", "etag"', None, 412),
         (ETag('etag', False), '"other"', None, 412),
         (ETag('etag', False), 'W/"etag"', None, 412),
-
         (ETag('etag'), None, '"etag"', 304),
         (ETag('etag'), None, '"other", "etag"', 304),
         (ETag('etag'), None, 'W/"etag"', 304),
         (ETag('etag'), None, '"other", W/"etag"', 304),
         (ETag('etag'), None, '*', 304),
         (ETag('etag'), None, '"other"', 200),
-
         (ETag('etag', False), None, '"etag"', 304),
         (ETag('etag', False), None, '"other", "etag"', 304),
         (ETag('etag', False), None, 'W/"etag"', 304),
         (ETag('etag', False), None, '"other", W/"etag"', 304),
         (ETag('etag', False), None, '*', 304),
         (ETag('etag', False), None, '"other"', 200),
-
         (ETag('etag'), '"etag"', '"etag"', 304),
         (ETag('etag'), '"etag"', 'W/"etag"', 304),
         (ETag('etag'), '"etag"', '"other"', 200),
         (ETag('etag'), 'W/"etag"', '"etag"', 412),
         (ETag('etag'), 'W/"etag"', '"other"', 412),
-    ]
+    ],
 )
-def test_process_conditional_get_head_requests(web_app, pyramid_request,
-                                               etag, if_match, if_none_match, status_code):
+def test_process_conditional_get_head_requests(
+    web_app, pyramid_request, etag, if_match, if_none_match, status_code
+):
     root = pyramid_request.root
     root['resource'] = resource = DummyResource({'foo': 'Hello', 'bar': 123})
     resource.etag = etag
@@ -170,7 +176,9 @@ def test_process_conditional_get_head_requests(web_app, pyramid_request,
     if status_code == 304:
         kwargs['exception'] = HTTPNotModified()
     elif status_code == 412:
-        kwargs['exception'] = HTTPPreconditionFailed({'etag': None if etag is None else etag.serialize()})
+        kwargs['exception'] = HTTPPreconditionFailed(
+            {'etag': None if etag is None else etag.serialize()}
+        )
     else:
         kwargs['status'] = status_code
 
@@ -185,44 +193,40 @@ def test_process_conditional_get_head_requests(web_app, pyramid_request,
         (None, '"etag"', None, 412),
         (None, None, '"etag"', 200),
         (None, None, '*', 200),
-
         (ETag('etag'), None, None, 200),
         (ETag('etag'), '*', None, 200),
         (ETag('etag'), '"etag"', None, 200),
         (ETag('etag'), '"other", "etag"', None, 200),
         (ETag('etag'), '"other"', None, 412),
         (ETag('etag'), 'W/"etag"', None, 412),
-
         (ETag('etag', False), None, None, 200),
         (ETag('etag', False), '*', None, 200),
         (ETag('etag', False), '"etag"', None, 412),
         (ETag('etag', False), '"other", "etag"', None, 412),
         (ETag('etag', False), '"other"', None, 412),
         (ETag('etag', False), 'W/"etag"', None, 412),
-
         (ETag('etag'), None, '"etag"', 412),
         (ETag('etag'), None, '"other", "etag"', 412),
         (ETag('etag'), None, 'W/"etag"', 412),
         (ETag('etag'), None, '"other", W/"etag"', 412),
         (ETag('etag'), None, '*', 412),
         (ETag('etag'), None, '"other"', 200),
-
         (ETag('etag', False), None, '"etag"', 412),
         (ETag('etag', False), None, '"other", "etag"', 412),
         (ETag('etag', False), None, 'W/"etag"', 412),
         (ETag('etag', False), None, '"other", W/"etag"', 412),
         (ETag('etag', False), None, '*', 412),
         (ETag('etag', False), None, '"other"', 200),
-
         (ETag('etag'), '"etag"', '"etag"', 412),
         (ETag('etag'), '"etag"', 'W/"etag"', 412),
         (ETag('etag'), '"etag"', '"other"', 200),
         (ETag('etag'), 'W/"etag"', '"etag"', 412),
         (ETag('etag'), 'W/"etag"', '"other"', 412),
-    ]
+    ],
 )
-def test_process_conditional_put_requests(web_app, pyramid_request,
-                                          etag, if_match, if_none_match, status_code):
+def test_process_conditional_put_requests(
+    web_app, pyramid_request, etag, if_match, if_none_match, status_code
+):
     root = pyramid_request.root
     root['resource'] = resource = DummyResource({'foo': 'Hello', 'bar': 123})
     resource.etag = etag
@@ -238,7 +242,9 @@ def test_process_conditional_put_requests(web_app, pyramid_request,
     if status_code == 304:
         kwargs['exception'] = HTTPNotModified()
     elif status_code == 412:
-        kwargs['exception'] = HTTPPreconditionFailed({'etag': None if etag is None else etag.serialize()})
+        kwargs['exception'] = HTTPPreconditionFailed(
+            {'etag': None if etag is None else etag.serialize()}
+        )
     else:
         kwargs['status'] = status_code
 

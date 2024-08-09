@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 04.02.2019
 """
+
 import logging
 
 import pytest
@@ -22,8 +23,10 @@ from ..utils import ETag, get_object_fullname
 
 # Schemas
 
+
 class DummySchema(schemas.HalResourceSchema):
     """Some schema description."""
+
     value = schemas.IntegerNode(title='Some value')
 
 
@@ -33,6 +36,7 @@ class PutDummySchema(schemas.MappingNode):
 
 # Resources
 
+
 class DummyResource(HalResource):
     """
     The narrative documentation
@@ -41,6 +45,7 @@ class DummyResource(HalResource):
     Some info about
     DummyResource number.
     """
+
     __acl__ = [
         (Allow, Everyone, 'get'),
         (Allow, 'auth_user', 'get'),
@@ -72,7 +77,9 @@ class DummyResource(HalResource):
 class DummyResourceView(views.HalResourceView):
     resource: DummyResource
     options_for_get = MethodOptions(None, DummySchema)
-    options_for_put = MethodOptions(PutDummySchema, DummySchema, permission='dummy.edit')
+    options_for_put = MethodOptions(
+        PutDummySchema, DummySchema, permission='dummy.edit'
+    )
 
     def as_dict(self) -> Json:
         return {'value': self.resource.value}
@@ -88,11 +95,13 @@ class DummyContainer(SimpleContainer):
 
 # Usage examples
 
+
 class Dummy1Examples(UsageExamples):
     """
     This is a first entry point for
     DummyResource.
     """
+
     default_auth = 'auth_user:123'
 
     def prepare_resource(self):
@@ -106,19 +115,14 @@ class Dummy1Examples(UsageExamples):
             description='Get info about Dummy resource.',
             auth='',
             result={
-                '_links': {
-                    'self': {'href': 'http://localhost/container/dummy1/'}
-                },
-                'value': 0
+                '_links': {'self': {'href': 'http://localhost/container/dummy1/'}},
+                'value': 0,
             },
         )
 
     def put_requests(self):
         self.send(auth='', exception=httpexceptions.HTTPUnauthorized)
-        self.send(
-            auth='other_user:123',
-            exception=httpexceptions.HTTPForbidden
-        )
+        self.send(auth='other_user:123', exception=httpexceptions.HTTPForbidden)
 
         params = {'value': 10}
         self.send(
@@ -128,14 +132,11 @@ class Dummy1Examples(UsageExamples):
 
         self.send(
             params={'value': 'foo'},
-            exception=self.ValidationError({
-                'value': '"foo" is not a number'
-            })
+            exception=self.ValidationError({'value': '"foo" is not a number'}),
         )
 
 
 class Dummy2Examples(Dummy1Examples):
-
     def prepare_resource(self):
         container = DummyContainer()
         container['dummy2'] = DummyResource()
@@ -149,7 +150,7 @@ class Dummy2Examples(Dummy1Examples):
                 '_links': {
                     'self': {'href': 'http://localhost/dummy_container/dummy2/'}
                 },
-                'value': 0
+                'value': 0,
             },
         )
 
@@ -174,7 +175,7 @@ class DummyContainerExamples(UsageExamples):
                         'self': {'href': 'http://localhost/dummy_container/'},
                         'dummy': {'href': 'http://localhost/dummy_container/dummy/'},
                     },
-                    'value': 0
+                    'value': 0,
                 },
             )
 
@@ -200,7 +201,7 @@ def test_usage_examples_collector(web_app, app_config):
         web_app,
         prepare_env=prepare_env,
         docstring_filter=sphinx_doc_filter,
-        logger=logger
+        logger=logger,
     )
     collector.collect()
     assert collector.resources_info == {}
@@ -273,13 +274,12 @@ def test_usage_examples_collector(web_app, app_config):
     assert ep_info.name == 'Dummy1'
     assert ep_info.examples_class_name == dummy_usage1_id
     assert ep_info.resource_class_name == dummy_class_name
-    assert ep_info.description == [
-        'This is a first entry point for',
-        'DummyResource.'
-    ]
+    assert ep_info.description == ['This is a first entry point for', 'DummyResource.']
     assert len(ep_info.url_elements) == 2
     assert ep_info.url_elements[0].value == 'container'
-    assert ep_info.url_elements[0].resource_class_name == get_object_fullname(SimpleContainer)
+    assert ep_info.url_elements[0].resource_class_name == get_object_fullname(
+        SimpleContainer
+    )
     assert ep_info.url_elements[0].ep_id is None
     assert ep_info.url_elements[1].value == 'dummy1'
     assert ep_info.url_elements[1].resource_class_name == dummy_class_name
@@ -290,15 +290,17 @@ def test_usage_examples_collector(web_app, app_config):
     assert list(methods.keys()) == ['GET', 'PUT']
     # ... GET
     method = methods['GET']
-    assert method.description == [
-        'Returns a resource representation.'
-    ]
+    assert method.description == ['Returns a resource representation.']
     assert method.allowed_principals == [Everyone]
     assert method.input_schema is None
     assert method.output_schema is not None
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
     assert len(method.examples_info) == 3
-    assert [ei.response_info.status_code for ei in method.examples_info] == [200, 412, 304]
+    assert [ei.response_info.status_code for ei in method.examples_info] == [
+        200,
+        412,
+        304,
+    ]
     assert method.examples_info[0].description == 'Get info about Dummy resource.'
     assert method.examples_info[0].response_info.headers['ETag'] == '"0"'
     assert method.examples_info[0].response_info.expected_headers['ETag'] == '"0"'
@@ -317,7 +319,14 @@ def test_usage_examples_collector(web_app, app_config):
     assert method.output_schema.class_name == get_object_fullname(DummySchema)
     assert method.output_schema.description == ['Some schema description.']
     assert len(method.examples_info) == 6
-    assert [ei.response_info.status_code for ei in method.examples_info] == [401, 403, 200, 422, 412, 412]
+    assert [ei.response_info.status_code for ei in method.examples_info] == [
+        401,
+        403,
+        200,
+        422,
+        412,
+        412,
+    ]
 
     # Dummy Entry Point 2 info
     ep_info = collector.entry_points_info[dummy_usage2_id]

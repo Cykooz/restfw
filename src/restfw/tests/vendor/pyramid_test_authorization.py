@@ -61,25 +61,19 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
 
         policy = self._makeOne()
 
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'view'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'wilma'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'wilma', VIEW))
         self.assertEqual(result.acl, blog.__acl__)
 
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'delete'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'wilma'], 'delete')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'fred'], 'view'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'fred'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
@@ -91,29 +85,21 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'view'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'barney'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'barney', MEMBER_PERMS))
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'administer'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'barney'], 'administer')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = policy.permits(
-            root, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = policy.permits(root, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, root)
         self.assertEqual(result.ace, (Allow, Authenticated, VIEW))
-        result = policy.permits(
-            blog, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = policy.permits(blog, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
@@ -129,9 +115,7 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         result = policy.permits(context, [Everyone], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.ace, '<default deny>')
-        self.assertEqual(
-            result.acl, '<No ACL found on any object in resource lineage>'
-        )
+        self.assertEqual(result.acl, '<No ACL found on any object in resource lineage>')
 
     def test_permits_string_permissions_in_acl(self):
         from pyramid.authorization import Allow
@@ -157,9 +141,7 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         ]
         context.__acl__ = acl
         policy = self._makeOne()
-        result = sorted(
-            policy.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_callable_acl(self):
@@ -173,9 +155,7 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         ]
         context.__acl__ = acl
         policy = self._makeOne()
-        result = sorted(
-            policy.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_string_permission(self):
@@ -219,22 +199,16 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
 
         result = sorted(policy.principals_allowed_by_permission(blog, 'read'))
         self.assertEqual(result, ['fred'])
-        result = sorted(
-            policy.principals_allowed_by_permission(community, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(community, 'read'))
         self.assertEqual(result, ['chrism', 'mork', 'other'])
-        result = sorted(
-            policy.principals_allowed_by_permission(community, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(community, 'read'))
         result = sorted(policy.principals_allowed_by_permission(root, 'read'))
         self.assertEqual(result, ['chrism', 'jim', 'other'])
 
     def test_principals_allowed_by_permission_no_acls(self):
         context = DummyContext()
         policy = self._makeOne()
-        result = sorted(
-            policy.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_not_permission_in_acl(self):
@@ -244,9 +218,7 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         acl = [(Deny, Everyone, 'write')]
         context.__acl__ = acl
         policy = self._makeOne()
-        result = sorted(
-            policy.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_permission_in_acl(self):
@@ -256,9 +228,7 @@ class TestACLAuthorizationPolicy(unittest.TestCase):
         acl = [(Deny, Everyone, 'read')]
         context.__acl__ = acl
         policy = self._makeOne()
-        result = sorted(
-            policy.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(policy.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_callable_acl(self):
@@ -281,9 +251,7 @@ class TestACLHelper(unittest.TestCase):
         result = helper.permits(context, ['foo'], 'permission')
         self.assertEqual(result, False)
         self.assertEqual(result.ace, '<default deny>')
-        self.assertEqual(
-            result.acl, '<No ACL found on any object in resource lineage>'
-        )
+        self.assertEqual(result.acl, '<No ACL found on any object in resource lineage>')
         self.assertEqual(result.permission, 'permission')
         self.assertEqual(result.principals, ['foo'])
         self.assertEqual(result.context, context)
@@ -314,25 +282,19 @@ class TestACLHelper(unittest.TestCase):
             (Allow, 'wilma', VIEW),
         ]
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'wilma'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'wilma', VIEW))
         self.assertEqual(result.acl, blog.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'delete'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'wilma'], 'delete')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'fred'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'fred'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
@@ -344,29 +306,21 @@ class TestACLHelper(unittest.TestCase):
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'barney'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'barney', MEMBER_PERMS))
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'administer'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'barney'], 'administer')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            root, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = helper.permits(root, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, root)
         self.assertEqual(result.ace, (Allow, Authenticated, VIEW))
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
@@ -382,9 +336,7 @@ class TestACLHelper(unittest.TestCase):
         result = helper.permits(context, [Everyone], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.ace, '<default deny>')
-        self.assertEqual(
-            result.acl, '<No ACL found on any object in resource lineage>'
-        )
+        self.assertEqual(result.acl, '<No ACL found on any object in resource lineage>')
 
     def test_string_permissions_in_acl(self):
         from pyramid.authorization import ACLHelper, Allow
@@ -419,9 +371,7 @@ class TestACLHelper(unittest.TestCase):
             (Allow, 'other', 'read'),
         ]
         context.__acl__ = acl
-        result = sorted(
-            helper.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_callable_acl(self):
@@ -435,9 +385,7 @@ class TestACLHelper(unittest.TestCase):
             (Allow, 'other', 'read'),
         ]
         context.__acl__ = acl
-        result = sorted(
-            helper.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_string_permission(self):
@@ -481,13 +429,9 @@ class TestACLHelper(unittest.TestCase):
 
         result = sorted(helper.principals_allowed_by_permission(blog, 'read'))
         self.assertEqual(result, ['fred'])
-        result = sorted(
-            helper.principals_allowed_by_permission(community, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(community, 'read'))
         self.assertEqual(result, ['chrism', 'mork', 'other'])
-        result = sorted(
-            helper.principals_allowed_by_permission(community, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(community, 'read'))
         result = sorted(helper.principals_allowed_by_permission(root, 'read'))
         self.assertEqual(result, ['chrism', 'jim', 'other'])
 
@@ -496,9 +440,7 @@ class TestACLHelper(unittest.TestCase):
 
         helper = ACLHelper()
         context = DummyContext()
-        result = sorted(
-            helper.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_not_permission_in_acl(self):
@@ -508,9 +450,7 @@ class TestACLHelper(unittest.TestCase):
         context = DummyContext()
         acl = [(Deny, Everyone, 'write')]
         context.__acl__ = acl
-        result = sorted(
-            helper.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_permission_in_acl(self):
@@ -520,9 +460,7 @@ class TestACLHelper(unittest.TestCase):
         context = DummyContext()
         acl = [(Deny, Everyone, 'read')]
         context.__acl__ = acl
-        result = sorted(
-            helper.principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(helper.principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
 

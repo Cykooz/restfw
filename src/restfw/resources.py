@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 19.08.2016
 """
+
 from inspect import isclass
 from typing import Generator, Optional, Tuple, Type, get_type_hints
 
@@ -44,7 +45,9 @@ class Resource:
         resource.__parent__ = self
         return resource
 
-    def get_sub_resources(self, registry: Registry) -> Generator[Tuple[str, interfaces.IResource], None, None]:
+    def get_sub_resources(
+        self, registry: Registry
+    ) -> Generator[Tuple[str, interfaces.IResource], None, None]:
         for name, sub_resource in registry.getAdapters((self,), interfaces.IResource):
             yield name, sub_resource
 
@@ -62,17 +65,17 @@ class Resource:
 
     def http_post(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
-           resource was created or not."""
+        resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'POST'})
 
     def http_put(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
-           resource was created or not."""
+        resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PUT'})
 
     def http_patch(self, request, params):
         """Returns a new or modified resource, and a flag indicating that the
-           resource was created or not."""
+        resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PATCH'})
 
     def http_delete(self, request, params):
@@ -81,7 +84,7 @@ class Resource:
 
 
 class sub_resource_config:
-    """ A function, class or method :term:`decorator` which allows a
+    """A function, class or method :term:`decorator` which allows a
     developer to create sub-resource fabric registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.
 
@@ -138,14 +141,15 @@ class sub_resource_config:
         because of the limitation of ``venusian.Scanner.scan``.
 
     """
+
     venusian = venusian  # for testing injection
 
     def __init__(
-            self,
-            name: str,
-            parent: Optional[Type[Resource]] = None,
-            add_link_into_embedded=False,
-            **predicates
+        self,
+        name: str,
+        parent: Optional[Type[Resource]] = None,
+        add_link_into_embedded=False,
+        **predicates,
     ):
         self.name = name
         self.parent = parent
@@ -161,7 +165,7 @@ class sub_resource_config:
             self.name,
             self.parent,
             self.add_link_into_embedded,
-            **self.predicates
+            **self.predicates,
         )
 
     def __call__(self, wrapped):
@@ -178,7 +182,9 @@ class sub_resource_config:
 
             if parent is None:
                 if is_class:
-                    suffix = f'of "__parent__" field of class "{wrapped.__class__.__name__}"'
+                    suffix = (
+                        f'of "__parent__" field of class "{wrapped.__class__.__name__}"'
+                    )
                 else:
                     suffix = f'of "parent" argument of function "{wrapped.__name__}"'
                 raise RuntimeError(
@@ -186,6 +192,7 @@ class sub_resource_config:
                     f'or add type-hint {suffix}.'
                 )
             self.parent = parent
-        self.venusian.attach(wrapped, self.register, category=self.category,
-                             depth=self.depth + 1)
+        self.venusian.attach(
+            wrapped, self.register, category=self.category, depth=self.depth + 1
+        )
         return wrapped

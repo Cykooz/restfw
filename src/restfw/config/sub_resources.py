@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 12.01.2021
 """
+
 from pyramid.config import Configurator
 from zope.interface.verify import verifyObject
 
@@ -10,12 +11,12 @@ from .. import interfaces
 
 
 def add_sub_resource_fabric(
-        config: Configurator,
-        fabric,
-        name: str,
-        parent=interfaces.IResource,
-        add_link_into_embedded=False,
-        **predicates,
+    config: Configurator,
+    fabric,
+    name: str,
+    parent=interfaces.IResource,
+    add_link_into_embedded=False,
+    **predicates,
 ):
     """A configurator command for register sub-resource fabric.
     :param fabric: Object that provides interfaces.ISubResourceFabric
@@ -54,12 +55,14 @@ def add_sub_resource_fabric(
         order, preds, phash = pred_list.make(config, **predicates)
         derived_fabric = derive_fabric(fabric, preds)
 
-        intr.update({
-            'phash': phash,
-            'order': order,
-            'predicates': preds,
-            'derived_fabric': derived_fabric,
-        })
+        intr.update(
+            {
+                'phash': phash,
+                'order': order,
+                'predicates': preds,
+                'derived_fabric': derived_fabric,
+            }
+        )
 
         config.registry.registerAdapter(
             derived_fabric,
@@ -85,8 +88,11 @@ def _add_into_embedded_fabric(resource):
 
 
 def add_sub_resource_fabric_predicate(
-        config, name, factory, weighs_more_than=None,
-        weighs_less_than=None,
+    config,
+    name,
+    factory,
+    weighs_more_than=None,
+    weighs_less_than=None,
 ):
     """
     :type config: pyramid.config.Configurator
@@ -112,5 +118,5 @@ def add_sub_resource_fabric_predicate(
         name,
         factory,
         weighs_more_than=weighs_more_than,
-        weighs_less_than=weighs_less_than
+        weighs_less_than=weighs_less_than,
     )

@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 05.02.2018
 """
+
 import datetime
 
 import colander
@@ -10,7 +11,14 @@ import pendulum
 import pytest
 
 from ..hal import SimpleContainer
-from ..schemas import DateNode, DateTimeNode, EmptyStringNode, IntegerNode, ResourceNode, StringNode
+from ..schemas import (
+    DateNode,
+    DateTimeNode,
+    EmptyStringNode,
+    IntegerNode,
+    ResourceNode,
+    StringNode,
+)
 
 
 def test_serialize_empty_integer():
@@ -101,7 +109,7 @@ def test_deserialize_datetime():
 
 def test_serialize_empty_date():
     node = DateNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pendulum.UTC)
+    now = pendulum.now()
     assert node.serialize(now.date()) == now.date().isoformat()
     assert node.serialize(colander.null) is colander.null
     assert node.serialize(None) is colander.null
@@ -116,7 +124,7 @@ def test_serialize_empty_date():
 
 def test_deserialize_empty_date():
     node = DateNode()
-    now = datetime.datetime.utcnow().replace(tzinfo=pendulum.UTC)
+    now = pendulum.now()
     assert node.deserialize(now.date().isoformat()) == now.date()
     with pytest.raises(colander.Invalid):
         node.deserialize(None)

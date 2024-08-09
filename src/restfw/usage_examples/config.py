@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+
 from functools import update_wrapper
 
 import venusian
@@ -18,6 +19,7 @@ def _derive_usage_examples_fabric(fabric, predicates):
     :type predicates: list
     :rtype: interfaces.IUsageExamplesFabric
     """
+
     def fabric_wrapper(request):
         if all((predicate(request) for predicate in predicates)):
             return fabric(request)
@@ -53,7 +55,7 @@ def add_usage_examples_fabric(config, fabric, name='', **predicates):
         'usage_examples_fabrics',
         id(fabric),
         config.object_description(fabric),
-        'usage_examples_fabric'
+        'usage_examples_fabric',
     )
     intr['fabric'] = fabric
 
@@ -62,21 +64,26 @@ def add_usage_examples_fabric(config, fabric, name='', **predicates):
         order, preds, phash = pred_list.make(config, **predicates)
         derived_fabric = _derive_usage_examples_fabric(fabric, preds)
 
-        intr.update({
-            'phash': phash,
-            'order': order,
-            'predicates': preds,
-            'derived_fabric': derived_fabric,
-        })
+        intr.update(
+            {
+                'phash': phash,
+                'order': order,
+                'predicates': preds,
+                'derived_fabric': derived_fabric,
+            }
+        )
 
-        config.registry.registerUtility(derived_fabric, provided=interfaces.IUsageExamplesFabric, name=name)
+        config.registry.registerUtility(
+            derived_fabric, provided=interfaces.IUsageExamplesFabric, name=name
+        )
 
     config.action(None, register, introspectables=(intr,))
     return fabric
 
 
-def add_usage_examples_fabric_predicate(config, name, factory, weighs_more_than=None,
-                                        weighs_less_than=None):
+def add_usage_examples_fabric_predicate(
+    config, name, factory, weighs_more_than=None, weighs_less_than=None
+):
     """
     :type config: pyramid.config.Configurator
     :type name: str
@@ -101,7 +108,7 @@ def add_usage_examples_fabric_predicate(config, name, factory, weighs_more_than=
         name,
         factory,
         weighs_more_than=weighs_more_than,
-        weighs_less_than=weighs_less_than
+        weighs_less_than=weighs_less_than,
     )
 
 
@@ -151,6 +158,7 @@ class examples_config(object):
         ``examples_config`` will work ONLY on module top level members
         because of the limitation of ``venusian.Scanner.scan``.
     """
+
     venusian = venusian  # for testing injection
 
     def __init__(self, name='', **predicates):
@@ -164,6 +172,7 @@ class examples_config(object):
         config.add_usage_examples_fabric(wrapped, self.name, **self.predicates)
 
     def __call__(self, wrapped):
-        self.venusian.attach(wrapped, self.register, category=self.category,
-                             depth=self.depth + 1)
+        self.venusian.attach(
+            wrapped, self.register, category=self.category, depth=self.depth + 1
+        )
         return wrapped

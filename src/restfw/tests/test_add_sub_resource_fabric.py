@@ -3,12 +3,17 @@
 :Authors: cykooz
 :Date: 23.11.2018
 """
+
 import pytest
 from cykooz.testing import D
 from pyramid.traversal import find_interface
 
 from ..hal import HalResource, SimpleContainer
-from ..views import HalResourceWithEmbeddedView, list_to_embedded_resources, resource_view_config
+from ..views import (
+    HalResourceWithEmbeddedView,
+    list_to_embedded_resources,
+    resource_view_config,
+)
 
 
 class DummyApiVersion(SimpleContainer):
@@ -58,25 +63,21 @@ class DummyResource(HalResource):
 
 
 class SubDummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
 
 class Sub1DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
 
 class Sub2DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
 
 class Sub23DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
@@ -87,13 +88,13 @@ class Container(SimpleContainer):
 
 @resource_view_config(Container)
 class ContainerView(HalResourceWithEmbeddedView):
-
     def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 
@@ -111,8 +112,7 @@ def root_fixture(app_config, pyramid_request):
 
     app_config.add_sub_resource_fabric(SubDummyResource, 'sub', DummyResource)
     app_config.add_sub_resource_fabric(
-        SubDummyResource, 'static_sub', DummyResource,
-        add_link_into_embedded=True
+        SubDummyResource, 'static_sub', DummyResource, add_link_into_embedded=True
     )
     app_config.add_sub_resource_fabric(
         Sub1DummyResource, 'sub1', DummyResource, min_api_version=1
@@ -121,10 +121,12 @@ def root_fixture(app_config, pyramid_request):
         Sub2DummyResource, 'sub2', DummyResource, max_api_version=2
     )
     app_config.add_sub_resource_fabric(
-        Sub23DummyResource, 'sub23', DummyResource,
+        Sub23DummyResource,
+        'sub23',
+        DummyResource,
         add_link_into_embedded=True,
-        min_api_version=2, max_api_version=3,
-
+        min_api_version=2,
+        max_api_version=3,
     )
     app_config.scan('restfw.tests.test_add_sub_resource_fabric')
     app_config.commit()
@@ -170,19 +172,23 @@ def test_links_to_sub_resource(web_app, root, app_config):
 
     # Get resource as embedded
     res = web_app.get('container')
-    assert res.json_body == D({
-        '_embedded': {
-            'items': [
-                {
-                    '_links': {
-                        'self': {'href': 'http://localhost/container/resource/'},
-                        # Only static link to sub-resource has added
-                        'static_sub': {'href': 'http://localhost/container/resource/static_sub/'},
-                    },
-                }
-            ]
+    assert res.json_body == D(
+        {
+            '_embedded': {
+                'items': [
+                    {
+                        '_links': {
+                            'self': {'href': 'http://localhost/container/resource/'},
+                            # Only static link to sub-resource has added
+                            'static_sub': {
+                                'href': 'http://localhost/container/resource/static_sub/'
+                            },
+                        },
+                    }
+                ]
+            }
         }
-    })
+    )
 
     # Get different api versions
     res = web_app.get('0/resource')

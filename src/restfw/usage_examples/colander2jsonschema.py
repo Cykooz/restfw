@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 28.04.2015
 """
+
 from collections import OrderedDict
 from functools import partial
 
@@ -14,8 +15,7 @@ from .. import schemas
 
 
 _JSON_SERIALIZER = partial(
-    build_json_renderer(indent=2, ensure_ascii=False)(None),
-    system={}
+    build_json_renderer(indent=2, ensure_ascii=False)(None), system={}
 )
 
 
@@ -48,6 +48,7 @@ def convert_length_validator_factory(max_key, min_key):
     :type max_key: str
     :type min_key: str
     """
+
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -62,6 +63,7 @@ def convert_length_validator_factory(max_key, min_key):
             if validator.min is not None:
                 converted[min_key] = validator.min
         return converted
+
     return validator_converter
 
 
@@ -69,6 +71,7 @@ def convert_oneof_validator_factory(null_values=(None,)):
     """
     :type null_values: iter
     """
+
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -87,7 +90,6 @@ def convert_oneof_validator_factory(null_values=(None,)):
 
 
 def convert_oneof_string_validator_factory():
-
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -104,7 +106,6 @@ def convert_oneof_string_validator_factory():
 
 
 def convert_noneof_string_validator_factory():
-
     def validator_converter(schema_node, validator):
         """
         :type schema_node: colander.SchemaNode
@@ -155,7 +156,6 @@ def convert_regex_validator(schema_node, validator):
 
 
 class ValidatorConversionDispatcher(object):
-
     def __init__(self, *converters):
         self.converters = converters
 
@@ -192,7 +192,6 @@ class ValidatorConversionDispatcher(object):
 
 
 class TypeConverter(object):
-
     type = ''
     convert_validator = lambda self, schema_node: OrderedDict()
 
@@ -216,16 +215,20 @@ class TypeConverter(object):
         if schema_node.description:
             converted['description'] = schema_node.description
 
-        if (schema_node.missing is not colander.null and
-                schema_node.missing is not colander.drop and
-                schema_node.missing is not colander.required):
+        if (
+            schema_node.missing is not colander.null
+            and schema_node.missing is not colander.drop
+            and schema_node.missing is not colander.required
+        ):
             if callable(schema_node.missing):
                 converted['default'] = schema_node.missing()
             else:
                 converted['default'] = schema_node.missing
 
-        if (schema_node.default is not colander.null and
-                schema_node.default is not colander.drop):
+        if (
+            schema_node.default is not colander.null
+            and schema_node.default is not colander.drop
+        ):
             if callable(schema_node.default):
                 converted['default'] = schema_node.default()
             else:
@@ -255,8 +258,9 @@ class BaseStringTypeConverter(TypeConverter):
         :type converted: dict
         :rtype: dict
         """
-        converted = super(BaseStringTypeConverter,
-                          self).convert_type(schema_node, converted)
+        converted = super(BaseStringTypeConverter, self).convert_type(
+            schema_node, converted
+        )
         if schema_node.required:
             converted['minLength'] = 1
         if self.format is not None:
@@ -309,7 +313,6 @@ class TimeTypeConverter(BaseStringTypeConverter):
 
 
 class ObjectTypeConverter(TypeConverter):
-
     type = 'object'
 
     def convert_type(self, schema_node, converted):
@@ -318,8 +321,9 @@ class ObjectTypeConverter(TypeConverter):
         :type converted: dict
         :rtype: dict
         """
-        converted = super(ObjectTypeConverter,
-                          self).convert_type(schema_node, converted)
+        converted = super(ObjectTypeConverter, self).convert_type(
+            schema_node, converted
+        )
         properties = OrderedDict()
         required = []
         for sub_node in schema_node.children:
@@ -333,7 +337,6 @@ class ObjectTypeConverter(TypeConverter):
 
 
 class ArrayTypeConverter(TypeConverter):
-
     type = 'array'
     convert_validator = ValidatorConversionDispatcher(
         convert_length_validator_factory('maxItems', 'minItems'),
@@ -345,14 +348,12 @@ class ArrayTypeConverter(TypeConverter):
         :type converted: dict
         :rtype: dict
         """
-        converted = super(ArrayTypeConverter,
-                          self).convert_type(schema_node, converted)
+        converted = super(ArrayTypeConverter, self).convert_type(schema_node, converted)
         converted['items'] = self.dispatcher(schema_node.children[0])
         return converted
 
 
 class NullableTypeConverter(TypeConverter):
-
     def __call__(self, schema_node, converted=None):
         """
         :type schema_node: colander.SchemaNode
@@ -374,7 +375,6 @@ class NullableTypeConverter(TypeConverter):
 
 
 class TypeConversionDispatcher(object):
-
     converters = {
         schemas.Nullable: NullableTypeConverter,
         colander.Boolean: BooleanTypeConverter,

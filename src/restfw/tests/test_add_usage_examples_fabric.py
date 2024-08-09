@@ -3,20 +3,19 @@
 :Authors: cykooz
 :Date: 21.01.2019
 """
+
 from cykooz.testing import ANY
 
-from restfw.usage_examples.interfaces import IUsageExamplesFabric
 from restfw.usage_examples import UsageExamples
+from restfw.usage_examples.interfaces import IUsageExamplesFabric
 
 
 class Dummy1Examples(UsageExamples):
-
     def prepare_resource(self):
         return self.root
 
 
 class Dummy2Examples(UsageExamples):
-
     def prepare_resource(self):
         return self.root
 

@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+
 import dataclasses
 import json
 import logging
@@ -34,8 +35,15 @@ class RstDocGenerator:
     based of information collected from usage examples.
     """
 
-    def __init__(self, web_app: WebApp, prepare_env=None, principal_formatter=None,
-                 package_prefixes: Optional[List[PackagePrefix]] = None, templates_loader=None, logger=None):
+    def __init__(
+        self,
+        web_app: WebApp,
+        prepare_env=None,
+        principal_formatter=None,
+        package_prefixes: Optional[List[PackagePrefix]] = None,
+        templates_loader=None,
+        logger=None,
+    ):
         """
         :type web_app: restfw.testing.webapp.WebApp
         :type prepare_env: interfaces.IPrepareEnv or None
@@ -49,17 +57,19 @@ class RstDocGenerator:
             prepare_env=prepare_env,
             principal_formatter=principal_formatter,
             docstring_extractor=docstring_extractor,
-            logger=logger
+            logger=logger,
         )
         self._package_prefixes = package_prefixes or []
         self._logger = logger or logging
 
         loader = PackageLoader('restfw.docs_gen', 'templates')
         if templates_loader:
-            loader = ChoiceLoader([
-                templates_loader,
-                loader,
-            ])
+            loader = ChoiceLoader(
+                [
+                    templates_loader,
+                    loader,
+                ]
+            )
         self._jinja_env = Environment(loader=loader, trim_blocks=True)
         self._jinja_env.filters['rst_header'] = _rst_header
         self._ep_id_2_doc_path: Dict[str, Path] = {}
@@ -120,12 +130,12 @@ class RstDocGenerator:
             if entry_point_path.name == 'index.rst':
                 resource_description = '\n'.join(resource_info.description)
 
-            available_methods = ', '.join('`%s`_' % m for m in entry_point_info.methods.keys())
+            available_methods = ', '.join(
+                '`%s`_' % m for m in entry_point_info.methods.keys()
+            )
             methods = []
             for method, method_info in entry_point_info.methods.items():
-                methods.append(
-                    self._render_method_to_rst(method, method_info)
-                )
+                methods.append(self._render_method_to_rst(method, method_info))
 
             template = self._get_template('entry_point.rst')
             with entry_point_path.open('w', encoding='utf-8-sig') as f:
@@ -151,7 +161,7 @@ class RstDocGenerator:
             if prefix and class_name.startswith(prefix):
                 package_name = package_prefix.name
                 package_slug = package_prefix.slug
-                class_name = class_name[len(prefix):]
+                class_name = class_name[len(prefix) :]
                 break
         class_package = class_name.partition('.')[0]
         app_slug = class_package.replace(' ', '_').lower()
@@ -167,7 +177,9 @@ class RstDocGenerator:
         :type parent_dir: Path
         :rtype: Path
         """
-        package_name, package_dir_name, app_dir_name, app_name = self._get_app_info(class_name)
+        package_name, package_dir_name, app_dir_name, app_name = self._get_app_info(
+            class_name
+        )
         if package_dir_name:
             package_dir_path = parent_dir / package_dir_name
             if not package_dir_path.exists():
@@ -189,7 +201,9 @@ class RstDocGenerator:
             template = self._get_template('app_index.rst')
             index_path = app_dir_path / 'index.rst'
             with index_path.open('w', encoding='utf-8-sig') as f:
-                text = template.render(package_name=package_name, app_name=app_name + ' App')
+                text = template.render(
+                    package_name=package_name, app_name=app_name + ' App'
+                )
                 f.write(text)
 
         return app_dir_path
@@ -221,7 +235,7 @@ class RstDocGenerator:
         with index_path.open('w', encoding='utf-8-sig') as f:
             text = template.render(
                 resource_name=resource_name,
-                resource_doc='\n'.join(resource_info.description)
+                resource_doc='\n'.join(resource_info.description),
             )
             f.write(text)
         return resource_dir_path
@@ -240,7 +254,9 @@ class RstDocGenerator:
             child_ep_doc_path = self._ep_id_2_doc_path.get(element.ep_id)
             value = element.value
             if child_ep and child_ep_doc_path:
-                rel_path = get_relative_path(to_path=child_ep_doc_path, from_path=doc_path)
+                rel_path = get_relative_path(
+                    to_path=child_ep_doc_path, from_path=doc_path
+                )
                 if rel_path.endswith('.rst'):
                     rel_path = rel_path[:-4]
                 value = ':doc:`{} <{}>`'.format(element.value, rel_path)
@@ -277,11 +293,13 @@ class RstDocGenerator:
             if value:
                 response_headers[header] = value
 
-        response_body = json.dumps(example_info.response_info.json_body, indent=2, ensure_ascii=False)
+        response_body = json.dumps(
+            example_info.response_info.json_body, indent=2, ensure_ascii=False
+        )
 
         title = '{} {}'.format(
             example_info.response_info.status_code,
-            example_info.response_info.status_name
+            example_info.response_info.status_name,
         )
 
         template = self._get_template('example.rst')
@@ -321,9 +339,7 @@ class RstDocGenerator:
                     continue
                 if example_info.description is not None:
                     descriptions.add(example_info.description)
-                examples.append(
-                    self._render_example_to_rst(method, example_info)
-                )
+                examples.append(self._render_example_to_rst(method, example_info))
 
         template = self._get_template('method.rst')
         text = template.render(

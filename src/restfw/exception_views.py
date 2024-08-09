@@ -3,7 +3,12 @@
 :Authors: cykooz
 :Date: 03.08.2017
 """
-from pyramid.httpexceptions import HTTPInternalServerError, HTTPForbidden, HTTPUnauthorized
+
+from pyramid.httpexceptions import (
+    HTTPInternalServerError,
+    HTTPForbidden,
+    HTTPUnauthorized,
+)
 from pyramid.interfaces import IExceptionResponse
 from pyramid.security import forget
 from pyramid.view import exception_view_config, forbidden_view_config
@@ -40,7 +45,6 @@ def invalid_parameters_view(exc_response, request):
 @exception_view_config(context=Exception, renderer='json', debug_or_testing=False)
 def default_exception_view(exc, request):
     http_exc = HTTPInternalServerError(
-        explanation=exc.__class__.__name__,
-        detail=str(exc)
+        explanation=exc.__class__.__name__, detail=str(exc)
     )
     return http_exception_view(http_exc, request)

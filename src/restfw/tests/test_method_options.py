@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 28.02.2019
 """
+
 import colander
 
 from ..interfaces import MethodOptions
@@ -34,7 +35,9 @@ def test_replace():
     assert new_options.output_schema is Schema2
     assert new_options.permission == 'resource.get'
 
-    new_options = options.replace(input_schema=Schema3, permission='resource.edit', unknown_field=1)
+    new_options = options.replace(
+        input_schema=Schema3, permission='resource.edit', unknown_field=1
+    )
     assert new_options.input_schema is Schema3
     assert new_options.output_schema is Schema2
     assert new_options.permission == 'resource.edit'

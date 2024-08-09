@@ -3,9 +3,17 @@
 :Authors: cykooz
 :Date: 30.03.2017
 """
+
 from typing import Union
 
-from pyramid.authorization import ACLAllowed, ACLDenied, ALL_PERMISSIONS, Allow, Deny, Everyone
+from pyramid.authorization import (
+    ACLAllowed,
+    ACLDenied,
+    ALL_PERMISSIONS,
+    Allow,
+    Deny,
+    Everyone,
+)
 from pyramid.location import lineage
 from pyramid.util import is_nonstr_iter
 
@@ -74,30 +82,30 @@ class RestAclHelper:
                 if ace_principal in principals:
                     if not is_nonstr_iter(ace_permissions):
                         ace_permissions = [ace_permissions]
-                    if (
-                            _match_permission(permission, ace_permissions) or
-                            (base_permission and _match_base_permission(base_permission, ace_permissions))
+                    if _match_permission(permission, ace_permissions) or (
+                        base_permission
+                        and _match_base_permission(base_permission, ace_permissions)
                     ):
                         if ace_action == Allow:
                             return ACLAllowed(
-                                ace, acl, permission,
-                                principals, location,
+                                ace,
+                                acl,
+                                permission,
+                                principals,
+                                location,
                             )
                         else:
                             return ACLDenied(
-                                ace, acl, permission,
-                                principals, location,
+                                ace,
+                                acl,
+                                permission,
+                                principals,
+                                location,
                             )
 
         # default deny (if no ACL in lineage at all, or if none of the
         # principals were mentioned in any ACE we found)
-        return ACLDenied(
-            '<default deny>',
-            acl,
-            permission,
-            principals,
-            context
-        )
+        return ACLDenied('<default deny>', acl, permission, principals, context)
 
 
 def principals_allowed_by_permission(context, permission: str) -> set:
@@ -128,9 +136,9 @@ def principals_allowed_by_permission(context, permission: str) -> set:
         for ace_action, ace_principal, ace_permissions in acl:
             if not is_nonstr_iter(ace_permissions):
                 ace_permissions = [ace_permissions]
-            is_match = (
-                    _match_permission(permission, ace_permissions)
-                    or (base_permission and _match_base_permission(base_permission, ace_permissions))
+            is_match = _match_permission(permission, ace_permissions) or (
+                base_permission
+                and _match_base_permission(base_permission, ace_permissions)
             )
             if (ace_action == Allow) and is_match:
                 if ace_principal not in denied_here:

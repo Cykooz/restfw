@@ -3,12 +3,17 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+
 import json
 from inspect import isclass
 from typing import Callable
 
 import colander
-from pyramid.httpexceptions import HTTPMethodNotAllowed, HTTPNotModified, HTTPPreconditionFailed
+from pyramid.httpexceptions import (
+    HTTPMethodNotAllowed,
+    HTTPNotModified,
+    HTTPPreconditionFailed,
+)
 from pyramid.interfaces import IViewDeriverInfo
 from pyramid.response import Response
 from pyramid.viewderivers import INGRESS
@@ -32,13 +37,17 @@ def check_request_method_view(view: _View, info: IViewDeriverInfo):
 
     def mapped_view(context, request: PyramidRequest):
         method = request.method
-        if (context is not request.root and
-                IResource.providedBy(context) and
-                method != 'OPTIONS'):
+        if (
+            context is not request.root
+            and IResource.providedBy(context)
+            and method != 'OPTIONS'
+        ):
             if method == 'HEAD':
                 method = 'GET'
             if method not in context.get_allowed_methods():
-                raise HTTPMethodNotAllowed(f'The method {request.method} is not allowed for this resource.')
+                raise HTTPMethodNotAllowed(
+                    f'The method {request.method} is not allowed for this resource.'
+                )
         return view(context, request)
 
     return mapped_view
@@ -91,9 +100,11 @@ def check_result_schema(view: _View, info: IViewDeriverInfo):
 
     def mapped_view(context, request: PyramidRequest):
         response = view(context, request)
-        if (context is not request.root
-                and IResource.providedBy(context)
-                and request.method not in {'HEAD', 'OPTIONS'}):
+        if (
+            context is not request.root
+            and IResource.providedBy(context)
+            and request.method not in {'HEAD', 'OPTIONS'}
+        ):
             method = request.method.lower()
             method_options = getattr(view_class, 'options_for_%s' % method, None)
             output_schema = method_options.output_schema if method_options else None

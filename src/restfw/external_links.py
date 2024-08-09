@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 12.01.2021
 """
+
 import venusian
 from pyramid.registry import Registry
 
@@ -9,12 +10,14 @@ from . import interfaces
 
 
 def get_external_links(resource, registry: Registry):
-    for name, fabric in registry.getAdapters((resource,), interfaces.IExternalLinkAdapter):
+    for name, fabric in registry.getAdapters(
+        (resource,), interfaces.IExternalLinkAdapter
+    ):
         yield name, fabric
 
 
 class external_link_config(object):
-    """ A function, class or method :term:`decorator` which allows a
+    """A function, class or method :term:`decorator` which allows a
     developer to create fabric of external link registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.
 
@@ -56,11 +59,19 @@ class external_link_config(object):
         because of the limitation of ``venusian.Scanner.scan``.
 
     """
+
     venusian = venusian  # for testing injection
 
-    def __init__(self, name, resource_type=interfaces.IHalResource,
-                 title='', description='',
-                 optional=False, templated=False, **predicates):
+    def __init__(
+        self,
+        name,
+        resource_type=interfaces.IHalResource,
+        title='',
+        description='',
+        optional=False,
+        templated=False,
+        **predicates,
+    ):
         self.name = name
         self.resource_type = resource_type
         self.title = title
@@ -74,15 +85,18 @@ class external_link_config(object):
     def register(self, scanner, name, wrapped):
         config = scanner.config
         config.add_external_link_fabric(
-            wrapped, self.name, self.resource_type,
+            wrapped,
+            self.name,
+            self.resource_type,
             title=self.title,
             description=self.description,
             optional=self.optional,
             templated=self.templated,
-            **self.predicates
+            **self.predicates,
         )
 
     def __call__(self, wrapped):
-        self.venusian.attach(wrapped, self.register, category=self.category,
-                             depth=self.depth + 1)
+        self.venusian.attach(
+            wrapped, self.register, category=self.category, depth=self.depth + 1
+        )
         return wrapped

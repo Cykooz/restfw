@@ -3,13 +3,19 @@
 :Authors: cykooz
 :Date: 17.04.2020
 """
+
 import colander
 import pytest
 from cykooz.testing import D
 from pyramid.traversal import find_interface
 
 from ..hal import HalResource, SimpleContainer
-from ..views import HalResourceWithEmbeddedView, get_resource_view, list_to_embedded_resources, resource_view_config
+from ..views import (
+    HalResourceWithEmbeddedView,
+    get_resource_view,
+    list_to_embedded_resources,
+    resource_view_config,
+)
 
 
 class DummyApiVersion(SimpleContainer):
@@ -80,13 +86,13 @@ class Container(SimpleContainer):
 
 @resource_view_config(Container)
 class ContainerView(HalResourceWithEmbeddedView):
-
     def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 
@@ -104,20 +110,29 @@ def root_fixture(app_config, pyramid_request):
     app_config.add_external_link_fabric_predicate('max_api_version', DummyMaxApiVersion)
 
     app_config.add_external_link_fabric(
-        dummy_external_link, 'ext', DummyResource,
+        dummy_external_link,
+        'ext',
+        DummyResource,
         title='Link to extended resource',
         description='Some description',
         templated=True,
     )
     app_config.add_external_link_fabric(
-        dummy1_external_link, 'ext1', DummyResource, min_api_version=1,
+        dummy1_external_link,
+        'ext1',
+        DummyResource,
+        min_api_version=1,
         optional=True,
     )
     app_config.add_external_link_fabric(
         dummy2_external_link, 'ext2', DummyResource, max_api_version=2
     )
     app_config.add_external_link_fabric(
-        dummy23_external_link, 'ext23', DummyResource, min_api_version=2, max_api_version=3
+        dummy23_external_link,
+        'ext23',
+        DummyResource,
+        min_api_version=2,
+        max_api_version=3,
     )
     app_config.commit()
     return root
@@ -146,18 +161,20 @@ def test_external_links(web_app, root, app_config, pyramid_request):
 
     # Get resource as embedded
     res = web_app.get('container')
-    assert res.json_body == D({
-        '_embedded': {
-            'items': [
-                {
-                    '_links': {
-                        'self': {'href': 'http://localhost/container/resource/'},
-                        # An external link is absent
-                    },
-                }
-            ]
+    assert res.json_body == D(
+        {
+            '_embedded': {
+                'items': [
+                    {
+                        '_links': {
+                            'self': {'href': 'http://localhost/container/resource/'},
+                            # An external link is absent
+                        },
+                    }
+                ]
+            }
         }
-    })
+    )
 
     # Get different api versions
     res = web_app.get('0/resource')

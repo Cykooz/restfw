@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+
 import base64
 import re
 import sys
@@ -103,7 +104,9 @@ def default_docstring_extractor(code_object):
     return lines
 
 
-RST_METHOD_DIRECTIVES = re.compile(r'^\s*:(param|type|rtype|return)[^:]*:.*$', re.UNICODE).match
+RST_METHOD_DIRECTIVES = re.compile(
+    r'^\s*:(param|type|rtype|return)[^:]*:.*$', re.UNICODE
+).match
 
 
 @provider(interfaces.IDocStringLineFilter)
@@ -112,5 +115,5 @@ def sphinx_doc_filter(line):
 
 
 def basic_auth_value(user_name, password):
-    auth_str = force_utf8(u'%s:%s' % (user_name, password))
+    auth_str = force_utf8('%s:%s' % (user_name, password))
     return 'Basic {}'.format(base64.b64encode(auth_str).decode())

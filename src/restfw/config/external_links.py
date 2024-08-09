@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 12.01.2021
 """
+
 from zope.interface.verify import verifyObject
 
 from .common import derive_fabric
@@ -9,9 +10,15 @@ from .. import interfaces
 
 
 def add_external_link_fabric(
-        config, fabric, name, resource_type=interfaces.IHalResource,
-        title='', description='', optional=False, templated=False,
-        **predicates
+    config,
+    fabric,
+    name,
+    resource_type=interfaces.IHalResource,
+    title='',
+    description='',
+    optional=False,
+    templated=False,
+    **predicates,
 ):
     """A configurator command for register a fabric of external link.
     :type config: pyramid.config.Configurator
@@ -73,12 +80,14 @@ def add_external_link_fabric(
 
         derived_fabric = derive_fabric(ExternalLinkFabric, preds)
 
-        intr.update({
-            'phash': phash,
-            'order': order,
-            'predicates': preds,
-            'derived_fabric': derived_fabric,
-        })
+        intr.update(
+            {
+                'phash': phash,
+                'order': order,
+                'predicates': preds,
+                'derived_fabric': derived_fabric,
+            }
+        )
 
         config.registry.registerAdapter(
             derived_fabric,
@@ -92,8 +101,11 @@ def add_external_link_fabric(
 
 
 def add_external_link_fabric_predicate(
-        config, name, factory, weighs_more_than=None,
-        weighs_less_than=None,
+    config,
+    name,
+    factory,
+    weighs_more_than=None,
+    weighs_less_than=None,
 ):
     """
     :type config: pyramid.config.Configurator
@@ -119,5 +131,5 @@ def add_external_link_fabric_predicate(
         name,
         factory,
         weighs_more_than=weighs_more_than,
-        weighs_less_than=weighs_less_than
+        weighs_less_than=weighs_less_than,
     )

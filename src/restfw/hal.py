@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 13.12.2017
 """
+
 from pyramid.interfaces import ILocation
 from zope.interface import implementer
 
@@ -16,7 +17,6 @@ class HalResource(Resource):
 
 
 class SimpleContainer(HalResource):
-
     def __init__(self):
         self._data = {}
 

@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 21.02.2016
 """
+
 import datetime
 from decimal import Decimal
 
@@ -55,11 +56,13 @@ def build_json_renderer(**kwargs):
     ]
     try:
         from enum import Enum
+
         adapters.append((Enum, enum_adapter))
     except ImportError:
         pass
     try:
         from bson import ObjectId
+
         adapters.append((ObjectId, object_id_adapter))
     except ImportError:
         pass

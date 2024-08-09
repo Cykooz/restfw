@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 30.03.2017
 """
+
 import unittest
 
 from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL, Deny, Everyone
@@ -25,7 +26,6 @@ class RestDummyContext(Resource):
 
 
 class TestRestAclHelper(unittest.TestCase):
-
     # Tests copied from pyramid TestAclHelper
 
     def test_no_acl(self):
@@ -34,9 +34,7 @@ class TestRestAclHelper(unittest.TestCase):
         result = helper.permits(context, ['foo'], 'permission')
         self.assertEqual(result, False)
         self.assertEqual(result.ace, '<default deny>')
-        self.assertEqual(
-            result.acl, '<No ACL found on any object in resource lineage>'
-        )
+        self.assertEqual(result.acl, '<No ACL found on any object in resource lineage>')
         self.assertEqual(result.permission, 'permission')
         self.assertEqual(result.principals, ['foo'])
         self.assertEqual(result.context, context)
@@ -66,25 +64,19 @@ class TestRestAclHelper(unittest.TestCase):
             (Allow, 'wilma', vendor_test.VIEW),
         ]
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'wilma'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'wilma', vendor_test.VIEW))
         self.assertEqual(result.acl, blog.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'wilma'], 'delete'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'wilma'], 'delete')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'fred'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'fred'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
@@ -96,29 +88,21 @@ class TestRestAclHelper(unittest.TestCase):
         self.assertEqual(result.ace, (Allow, 'fred', ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'barney'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, blog)
         self.assertEqual(result.ace, (Allow, 'barney', vendor_test.MEMBER_PERMS))
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'barney'], 'administer'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'barney'], 'administer')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
         self.assertEqual(result.acl, community.__acl__)
 
-        result = helper.permits(
-            root, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = helper.permits(root, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, True)
         self.assertEqual(result.context, root)
         self.assertEqual(result.ace, (Allow, Authenticated, vendor_test.VIEW))
-        result = helper.permits(
-            blog, [Everyone, Authenticated, 'someguy'], 'view'
-        )
+        result = helper.permits(blog, [Everyone, Authenticated, 'someguy'], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.context, community)
         self.assertEqual(result.ace, (Deny, Everyone, ALL_PERMISSIONS))
@@ -134,9 +118,7 @@ class TestRestAclHelper(unittest.TestCase):
         result = helper.permits(context, [Everyone], 'view')
         self.assertEqual(result, False)
         self.assertEqual(result.ace, '<default deny>')
-        self.assertEqual(
-            result.acl, '<No ACL found on any object in resource lineage>'
-        )
+        self.assertEqual(result.acl, '<No ACL found on any object in resource lineage>')
 
     def test_string_permissions_in_acl(self):
         helper = RestAclHelper()
@@ -164,9 +146,7 @@ class TestRestAclHelper(unittest.TestCase):
             (Allow, 'other', 'read'),
         ]
         context.__acl__ = acl
-        result = sorted(
-            principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_callable_acl(self):
@@ -177,9 +157,7 @@ class TestRestAclHelper(unittest.TestCase):
             (Allow, 'other', 'read'),
         ]
         context.__acl__ = acl
-        result = sorted(
-            principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, ['chrism'])
 
     def test_principals_allowed_by_permission_string_permission(self):
@@ -218,27 +196,21 @@ class TestRestAclHelper(unittest.TestCase):
 
     def test_principals_allowed_by_permission_no_acls(self):
         context = vendor_test.DummyContext()
-        result = sorted(
-            principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_not_permission_in_acl(self):
         context = vendor_test.DummyContext()
         acl = [(Deny, Everyone, 'write')]
         context.__acl__ = acl
-        result = sorted(
-            principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     def test_principals_allowed_by_permission_deny_permission_in_acl(self):
         context = vendor_test.DummyContext()
         acl = [(Deny, Everyone, 'read')]
         context.__acl__ = acl
-        result = sorted(
-            principals_allowed_by_permission(context, 'read')
-        )
+        result = sorted(principals_allowed_by_permission(context, 'read'))
         self.assertEqual(result, [])
 
     # Additional tests
@@ -292,7 +264,5 @@ class TestRestAclHelper(unittest.TestCase):
         helper = RestAclHelper()
         assert helper.permits(child, [1], 'get.child.get')
 
-        child.__acl__ = [
-            (Deny, 1, 'child.get')
-        ]
+        child.__acl__ = [(Deny, 1, 'child.get')]
         assert not helper.permits(child, [1], 'get.child.get')

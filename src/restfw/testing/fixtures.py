@@ -3,10 +3,15 @@
 :Authors: cykooz
 :Date: 25.04.2020
 """
+
 from functools import partial
 
 import pytest
-from pyramid.authentication import Authenticated, Everyone, extract_http_basic_credentials
+from pyramid.authentication import (
+    Authenticated,
+    Everyone,
+    extract_http_basic_credentials,
+)
 from pyramid.config import Configurator
 from pyramid.interfaces import ISecurityPolicy
 from pyramid.scripting import prepare
@@ -21,7 +26,6 @@ from ..utils import open_pyramid_request
 
 @implementer(ISecurityPolicy)
 class TestingSecurityPolicy:
-
     def __init__(self, realm='Realm'):
         self.realm = realm
         self.helper = RestAclHelper()
@@ -87,7 +91,9 @@ def pyramid_settings_fixture():
 
 @pytest.fixture(name='web_app')
 def web_app_fixture(pyramid_apps, pyramid_settings) -> WebApp:
-    app_env_fabric = partial(create_app_env, apps=pyramid_apps, pyramid_settings=pyramid_settings)
+    app_env_fabric = partial(
+        create_app_env, apps=pyramid_apps, pyramid_settings=pyramid_settings
+    )
     with WebApp(app_env_fabric) as web_app:
         yield web_app
 

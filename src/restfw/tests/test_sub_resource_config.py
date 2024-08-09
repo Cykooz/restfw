@@ -3,12 +3,17 @@
 :Authors: cykooz
 :Date: 14.06.2018
 """
+
 import pytest
 from pyramid.traversal import find_interface
 
 from ..hal import HalResource, SimpleContainer
 from ..resources import sub_resource_config
-from ..views import HalResourceWithEmbeddedView, list_to_embedded_resources, resource_view_config
+from ..views import (
+    HalResourceWithEmbeddedView,
+    list_to_embedded_resources,
+    resource_view_config,
+)
 
 
 class DummyApiVersion(SimpleContainer):
@@ -59,7 +64,6 @@ class DummyResource(HalResource):
 
 @sub_resource_config('sub', DummyResource)
 class SubDummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
@@ -73,7 +77,6 @@ class Sub1DummyResource(HalResource):
 
 
 class Sub2DummyResource(HalResource):
-
     def __init__(self, parent):
         pass
 
@@ -99,10 +102,11 @@ class ContainerView(HalResourceWithEmbeddedView):
 
     def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 

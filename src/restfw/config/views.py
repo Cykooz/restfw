@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 12.01.2021
 """
+
 import operator
 from typing import Optional, Type
 
@@ -34,15 +35,17 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
     not_allowed_methods = []
     for http_method in ('get', 'post', 'put', 'patch', 'delete'):
         method_options: Optional[interfaces.MethodOptions] = getattr(
-            view_class,
-            f'options_for_{http_method}',
-            None
+            view_class, f'options_for_{http_method}', None
         )
         if method_options is None:
             not_allowed_methods.append(http_method.upper())
             continue
 
-        permission = f'{http_method}.{method_options.permission}' if method_options.permission else http_method
+        permission = (
+            f'{http_method}.{method_options.permission}'
+            if method_options.permission
+            else http_method
+        )
         methods = ['head', 'get'] if http_method == 'get' else [http_method]
         for request_method in methods:
             method = request_method.upper()
@@ -52,7 +55,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
                 context=resource_class,
                 permission=permission,
                 attr=f'http_{request_method}',
-                **predicates
+                **predicates,
             )
 
     if not_allowed_methods:
@@ -60,7 +63,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
             view=_method_not_allowed_view,
             request_method=not_allowed_methods,
             context=resource_class,
-            **predicates
+            **predicates,
         )
 
     config.add_view(
@@ -68,7 +71,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
         request_method='OPTIONS',
         context=resource_class,
         attr='http_options',
-        **predicates
+        **predicates,
     )
 
     _register_resource_view(
@@ -80,13 +83,13 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
 
 
 def _register_resource_view(
-        config: Configurator,
-        view_class: Type[IResourceView],
-        resource_class: Type[IResource],
-        request_type=None,
-        containment=None,
-        name='',
-        **view_options
+    config: Configurator,
+    view_class: Type[IResourceView],
+    resource_class: Type[IResource],
+    request_type=None,
+    containment=None,
+    name='',
+    **view_options,
 ):
     view_class = config.maybe_dotted(view_class)
     resource_class = config.maybe_dotted(resource_class)
@@ -126,15 +129,13 @@ def _register_resource_view(
         valid_predicates = predlist.names()
         pvals = {}
 
-        for (k, v) in ovals.items():
+        for k, v in ovals.items():
             if k in valid_predicates:
                 pvals[k] = v
 
         order, preds, phash = predlist.make(config, **pvals)
 
-        view_intr.update(
-            {'phash': phash, 'order': order, 'predicates': preds}
-        )
+        view_intr.update({'phash': phash, 'order': order, 'predicates': preds})
         return 'serializer', resource_class, phash
 
     discriminator = Deferred(discrim_func)
@@ -225,14 +226,18 @@ class MultiResourceView:
         self.views.append((order, view, phash, predicates))
         self.views.sort(key=operator.itemgetter(0))
 
-    def get_view_class(self, request: PyramidRequest, resource: IResource) -> Optional[Type[IResourceView]]:
+    def get_view_class(
+        self, request: PyramidRequest, resource: IResource
+    ) -> Optional[Type[IResourceView]]:
         for order, view, phash, predicates in self.views:
             if not predicates:
                 return view
             if all(predicate(resource, request) for predicate in predicates):
                 return view
 
-    def __call__(self, request: PyramidRequest, resource: IResource) -> Optional[IResourceView]:
+    def __call__(
+        self, request: PyramidRequest, resource: IResource
+    ) -> Optional[IResourceView]:
         view_class = self.get_view_class(request, resource)
         if view_class:
             return view_class(resource, request)

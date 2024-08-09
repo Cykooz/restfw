@@ -3,19 +3,30 @@
 :Authors: cykooz
 :Date: 25.01.2019
 """
+
 from webob import Response
 from zope.interface import Attribute, Interface
 
 
 class ISendTestingRequest(Interface):
-
-    def __call__(params=None, headers=None, auth=None, result=None, result_headers=None,
-                 exception=None, status=None, description=None, exclude_from_doc=False) -> Response:
+    def __call__(
+        params=None,
+        headers=None,
+        auth=None,
+        result=None,
+        result_headers=None,
+        exception=None,
+        status=None,
+        description=None,
+        exclude_from_doc=False,
+    ) -> Response:
         """Send a testing request to resource"""
 
 
 class IUsageExamples(Interface):
-    entry_point_name = Attribute('Unique name of entry point described by this examples')
+    entry_point_name = Attribute(
+        'Unique name of entry point described by this examples'
+    )
     resource = Attribute('Resource instance')
     resource_url = Attribute('The resource url')
     view = Attribute('Instance of ResourceView class.')
@@ -33,8 +44,15 @@ class IUsageExamples(Interface):
         """
 
     def send(
-            params=None, headers=None, auth=None, result=None, result_headers=None,
-            exception=None, status=None, description=None, exclude_from_doc=False
+        params=None,
+        headers=None,
+        auth=None,
+        result=None,
+        result_headers=None,
+        exception=None,
+        status=None,
+        description=None,
+        exclude_from_doc=False,
     ) -> Response:
         """Send a testing request to resource"""
 
@@ -55,7 +73,6 @@ class IUsageExamples(Interface):
 
 
 class IUsageExamplesFabric(Interface):
-
     def __call__(request):
         """Create instance of IUsageExamples.
         :type request: pyramid.request.Request
@@ -76,7 +93,6 @@ class IPrepareEnv(Interface):
 
 
 class ISchemaSerializer(Interface):
-
     def __call__(schema, request, context):
         """Returns serialized version of given schema.
         :type schema: Any
@@ -87,7 +103,6 @@ class ISchemaSerializer(Interface):
 
 
 class IPrincipalFormatter(Interface):
-
     def __call__(principal, request, context):
         """Convert principal name into human readable test.
         :type principal: Any
@@ -98,7 +113,6 @@ class IPrincipalFormatter(Interface):
 
 
 class IDocStringExtractor(Interface):
-
     def __call__(code_object):
         """Extract and prepare docstring to using in documentation.
         :param code_object: object of code (function, method or class)
@@ -108,7 +122,6 @@ class IDocStringExtractor(Interface):
 
 
 class IDocStringLineFilter(Interface):
-
     def __call__(line):
         """Returns True if given line must be excluded from docstring.
         :type line: str

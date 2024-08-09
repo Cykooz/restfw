@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 11.01.2021
 """
+
 import json
 
 from pyramid.renderers import render
@@ -14,7 +15,6 @@ from ..utils import open_pyramid_request
 
 
 class DummyResource(Resource):
-
     def __init__(self, title, description):
         self.title = title
         self.description = description
@@ -31,7 +31,6 @@ class DummyResourceView(views.ResourceView):
 
 
 class DummyHalResource(HalResource):
-
     def __init__(self, title, description):
         self.title = title
         self.description = description
@@ -69,14 +68,16 @@ class ContainerView(views.HalResourceWithEmbeddedView):
 
     def get_embedded(self, params: dict):
         return views.list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 
 # Tests
+
 
 def test_resource_serializer(pyramid_request, app_config):
     container = SimpleContainer()
@@ -105,18 +106,14 @@ def test_hal_resource_serializer(pyramid_request, app_config):
 
     res = render(None, resource, request=pyramid_request)
     assert json.loads(res) == {
-        '_links': {
-            'self': {'href': resource_url}
-        },
+        '_links': {'self': {'href': resource_url}},
     }
 
     app_config.scan('restfw.tests.test_serializers')
     app_config.commit()
     res = render(None, resource, request=pyramid_request)
     assert json.loads(res) == {
-        '_links': {
-            'self': {'href': resource_url}
-        },
+        '_links': {'self': {'href': resource_url}},
         'title': 'Resource title',
         'description': 'Resource description',
     }
@@ -161,17 +158,23 @@ def test_hal_resource_with_embedded_resources(pyramid_request, app_config):
             '_embedded': {
                 'items': [
                     {
-                        '_links': {'self': {'href': 'http://localhost/container/res0/'}},
+                        '_links': {
+                            'self': {'href': 'http://localhost/container/res0/'}
+                        },
                         'title': 'Resource 0 title',
                     },
                     {
-                        '_links': {'self': {'href': 'http://localhost/container/res1/'}},
+                        '_links': {
+                            'self': {'href': 'http://localhost/container/res1/'}
+                        },
                         'title': 'Resource 1 title',
                     },
                     {
-                        '_links': {'self': {'href': 'http://localhost/container/res2/'}},
+                        '_links': {
+                            'self': {'href': 'http://localhost/container/res2/'}
+                        },
                         'title': 'Resource 2 title',
-                    }
+                    },
                 ]
-            }
+            },
         }

@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 21.01.2019
 """
+
 import abc
 from contextlib import contextmanager
 from typing import Dict, Optional, Union
@@ -50,14 +51,14 @@ class UsageExamples(abc.ABC):
         name = self.__class__.__name__
         suffix = 'Examples'
         if name.endswith(suffix):
-            name = name[:-len(suffix)]
+            name = name[: -len(suffix)]
         return name
 
     def authorize_request(
-            self,
-            params: Optional[Params],
-            headers: Optional[dict],
-            auth: Optional[str] = None,
+        self,
+        params: Optional[Params],
+        headers: Optional[dict],
+        auth: Optional[str] = None,
     ):
         """Add authorization information into request with given params and headers.
         :param auth: Some string used for authorization. For example '<login>:<password>'.
@@ -72,8 +73,7 @@ class UsageExamples(abc.ABC):
         return params, headers
 
     @abc.abstractmethod
-    def prepare_resource(self) -> IResource:
-        ...
+    def prepare_resource(self) -> IResource: ...
 
     def cleanup(self):
         pass
@@ -94,22 +94,26 @@ class UsageExamples(abc.ABC):
             self._send = old_send
 
     def send(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result=None,
-            result_headers: Optional[dict] = None,
-            exception=None,
-            status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result=None,
+        result_headers: Optional[dict] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> Response:
         assert self._send is not None
         return self._send(
-            params=params, headers=headers, auth=auth,
-            result=result, result_headers=result_headers,
-            exception=exception, status=status,
+            params=params,
+            headers=headers,
+            auth=auth,
+            result=result,
+            result_headers=result_headers,
+            exception=exception,
+            status=status,
             description=description,
             exclude_from_doc=exclude_from_doc,
         )

@@ -3,12 +3,17 @@
 :Authors: cykooz
 :Date: 18.04.2020
 """
+
 import pytest
 from pyramid.traversal import find_interface
 
 from ..external_links import external_link_config
 from ..hal import HalResource, SimpleContainer
-from ..views import HalResourceWithEmbeddedView, list_to_embedded_resources, resource_view_config
+from ..views import (
+    HalResourceWithEmbeddedView,
+    list_to_embedded_resources,
+    resource_view_config,
+)
 
 
 class DummyApiVersion(SimpleContainer):
@@ -83,13 +88,13 @@ class Container(SimpleContainer):
 
 @resource_view_config(Container)
 class ContainerView(HalResourceWithEmbeddedView):
-
     def get_embedded(self, params: dict):
         return list_to_embedded_resources(
-            self.request, params,
+            self.request,
+            params,
             resources=list(self.resource.values()),
             parent=self.resource,
-            embedded_name='items'
+            embedded_name='items',
         )
 
 

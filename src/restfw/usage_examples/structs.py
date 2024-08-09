@@ -5,6 +5,7 @@
 Data structures to store information about resources, entry points
 and usage examples collected by `UsageExamplesCollector`.
 """
+
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -62,7 +63,9 @@ class Examples:
     all_statuses: List[int] = field(init=False)
 
     def __post_init__(self):
-        self.all_statuses = sorted(set(e.response_info.status_code for e in self.examples_info))
+        self.all_statuses = sorted(
+            set(e.response_info.status_code for e in self.examples_info)
+        )
 
 
 @dataclass()

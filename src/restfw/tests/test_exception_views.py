@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 15.01.2019
 """
+
 import pytest
 from pyramid import httpexceptions
 
@@ -11,7 +12,6 @@ from ..hal import HalResource, SimpleContainer
 
 
 class DummyResource(HalResource):
-
     def __init__(self, exception):
         self.exception = exception
 
@@ -40,7 +40,7 @@ def test_http_exception_view(web_app, pyramid_request):
     assert res.json_body == {
         'code': 'NotFound',
         'description': 'The resource could not be found.',
-        'detail': {'msg': 'Message', 'resource': '/404'}
+        'detail': {'msg': 'Message', 'resource': '/404'},
     }
 
     root['304'] = DummyResource(httpexceptions.HTTPNotModified())
@@ -64,5 +64,5 @@ def test_http_not_found_exception(web_app, pyramid_request):
     assert res.json_body == {
         'code': 'NotFound',
         'description': 'The resource could not be found.',
-        'detail': {'resource': '/dir/not_found'}
+        'detail': {'resource': '/dir/not_found'},
     }

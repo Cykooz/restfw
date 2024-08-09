@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+
 import itertools
 from typing import Optional, Set, Type, Union, get_type_hints
 
@@ -23,7 +24,9 @@ from .utils import create_multi_validation_error, get_input_data, get_paging_lin
 
 
 def get_resource_view(resource, request: PyramidRequest) -> Optional['ResourceView']:
-    return request.registry.queryMultiAdapter((request, resource), interfaces.IResourceView)
+    return request.registry.queryMultiAdapter(
+        (request, resource), interfaces.IResourceView
+    )
 
 
 class resource_view_config:
@@ -72,6 +75,7 @@ class resource_view_config:
         because of the limitation of ``venusian.Scanner.scan``.
 
     """
+
     venusian = venusian  # for testing injection
 
     def __init__(self, resource_class: Optional[Type[Resource]] = None, **predicates):
@@ -83,9 +87,7 @@ class resource_view_config:
     def register(self, scanner, name, wrapped):
         config: Configurator = scanner.config
         config.add_resource_view(
-            view_class=wrapped,
-            resource_class=self.resource_class,
-            **self.predicates
+            view_class=wrapped, resource_class=self.resource_class, **self.predicates
         )
 
     def __call__(self, wrapped):
@@ -98,8 +100,9 @@ class resource_view_config:
                     f'or add type-hint of resource field of class {wrapped.__class__.__name__}.'
                 )
             self.resource_class = resource_class
-        self.venusian.attach(wrapped, self.register, category=self.category,
-                             depth=self.depth + 1)
+        self.venusian.attach(
+            wrapped, self.register, category=self.category, depth=self.depth + 1
+        )
         return wrapped
 
 
@@ -128,10 +131,14 @@ class ResourceView:
         allowed_methods = ', '.join(self.get_allowed_methods())
         self.request.response.headers['Allow'] = allowed_methods
         if 'Access-Control-Request-Method' in self.request.headers:
-            self.request.response.headers['Access-Control-Allow-Methods'] = allowed_methods
+            self.request.response.headers['Access-Control-Allow-Methods'] = (
+                allowed_methods
+            )
         return self.request.response
 
-    options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.ResourceSchema)
+    options_for_get = interfaces.MethodOptions(
+        schemas.GetResourceSchema, schemas.ResourceSchema
+    )
 
     def http_head(self):
         return self.http_get()
@@ -169,7 +176,9 @@ class ResourceView:
             )
             error.headers = e.headers
             raise error from e
-        self._process_result(result=self.resource, created=created, context=self.resource)
+        self._process_result(
+            result=self.resource, created=created, context=self.resource
+        )
         return self.__json__()
 
     options_for_patch: Optional[interfaces.MethodOptions] = None
@@ -185,7 +194,9 @@ class ResourceView:
             )
             error.headers = e.headers
             raise error from e
-        self._process_result(result=self.resource, created=created, context=self.resource)
+        self._process_result(
+            result=self.resource, created=created, context=self.resource
+        )
         return self.__json__()
 
     options_for_delete: Optional[interfaces.MethodOptions] = None
@@ -217,9 +228,15 @@ class ResourceView:
     def _get_params(self) -> Union[dict, list]:
         request_method = self.request.method.lower()
         request_method = 'get' if request_method == 'head' else request_method
-        method_options: Optional[interfaces.MethodOptions] = getattr(self, f'options_for_{request_method}', None)
+        method_options: Optional[interfaces.MethodOptions] = getattr(
+            self, f'options_for_{request_method}', None
+        )
         input_schema = method_options.input_schema if method_options else None
-        return get_input_data(self.resource, self.request, input_schema) if input_schema else {}
+        return (
+            get_input_data(self.resource, self.request, input_schema)
+            if input_schema
+            else {}
+        )
 
     def _process_result(self, result, created=False, context=None):
         if result is None:
@@ -227,7 +244,9 @@ class ResourceView:
         if created:
             self.request.response.status = 201
             if ILocation.providedBy(result):
-                self.request.response.headers['Location'] = self.request.resource_url(result)
+                self.request.response.headers['Location'] = self.request.resource_url(
+                    result
+                )
         _try_add_etag(self.request, result, context=context)
         return result
 
@@ -236,7 +255,9 @@ class ResourceView:
 @implementer(interfaces.IHalResourceView)
 class HalResourceView(ResourceView):
     resource: HalResource
-    options_for_get = interfaces.MethodOptions(schemas.GetResourceSchema, schemas.HalResourceSchema)
+    options_for_get = interfaces.MethodOptions(
+        schemas.GetResourceSchema, schemas.HalResourceSchema
+    )
 
     def __json__(self) -> Json:
         result = self.as_dict()
@@ -274,8 +295,7 @@ class HalResourceView(ResourceView):
         # Add links only to some special sub-resources
         self_url = links['self']['href']
         adapters = self.request.registry.getAdapters(
-            (self.resource,),
-            interfaces.IAddSubresourceLinkIntoEmbedded
+            (self.resource,), interfaces.IAddSubresourceLinkIntoEmbedded
         )
         for name, has_sub_resource in adapters:
             if has_sub_resource and name not in links:
@@ -301,7 +321,9 @@ class EmbeddedResources:
         for key, resources in self.embedded.items():
             if resources is None:
                 continue
-            if not isinstance(resources, (dict, str)) and hasattr(resources, '__iter__'):
+            if not isinstance(resources, (dict, str)) and hasattr(
+                resources, '__iter__'
+            ):
                 rendered = []
                 for resource in resources:
                     view = get_resource_view(resource, request)
@@ -350,7 +372,9 @@ class HalResourceWithEmbeddedView(HalResourceView):
         return EmbeddedResources(total_count=0, items=[])
 
 
-def list_to_embedded_resources(request: PyramidRequest, params, resources, parent, embedded_name: str):
+def list_to_embedded_resources(
+    request: PyramidRequest, params, resources, parent, embedded_name: str
+):
     offset = params['offset']
     limit = params['limit']
     end = offset + limit
@@ -366,7 +390,6 @@ def list_to_embedded_resources(request: PyramidRequest, params, resources, paren
 
 
 class _IterLength:
-
     def __init__(self, iterable):
         self._iterable = iterable
         self._len = 0

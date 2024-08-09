@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 03.08.2017
 """
+
 from pyramid.config import Configurator
 
 
@@ -25,20 +26,28 @@ def includeme(config: Configurator):
 
     from .usage_examples.config import add_usage_examples_fabric_predicate
     from .usage_examples.config import add_usage_examples_fabric
+
     config.add_directive('add_usage_examples_fabric', add_usage_examples_fabric)
-    config.add_directive('add_usage_examples_fabric_predicate', add_usage_examples_fabric_predicate)
+    config.add_directive(
+        'add_usage_examples_fabric_predicate', add_usage_examples_fabric_predicate
+    )
 
     register_view_derivers(config)
 
     # Fix memory leaks on pyramid segment cache
     import pyramid.traversal
+
     if pyramid.traversal._segment_cache.__class__ is dict:
         from lru import LRU
+
         pyramid.traversal._segment_cache = LRU(1000)
 
     from .utils import scan_ignore
+
     ignore = scan_ignore(config.registry)
-    ignore.extend([
-        '.docs_gen',
-    ])
+    ignore.extend(
+        [
+            '.docs_gen',
+        ]
+    )
     config.scan(ignore=ignore)

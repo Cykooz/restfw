@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 06.12.2016
 """
+
 from copy import deepcopy
 from typing import Dict, Optional
 
@@ -20,7 +21,6 @@ from ..usage_examples.interfaces import ISendTestingRequest
 
 
 class RequestsTester:
-
     def __init__(self, web_app: WebApp, usage_examples: UsageExamples):
         self.web_app = web_app
         self.usage_examples = usage_examples
@@ -28,15 +28,16 @@ class RequestsTester:
         self.calls_count = 0
 
     def __call__(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result: Optional[dict] = None,
-            result_headers: Optional[Dict[str, str]] = None,
-            exception=None, status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False,
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result: Optional[dict] = None,
+        result_headers: Optional[Dict[str, str]] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> TestResponse:
         raise NotImplementedError
 
@@ -47,26 +48,37 @@ class GetRequestsTester(RequestsTester):
     was_if_none_match = False
 
     def __call__(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result: Optional[dict] = None,
-            result_headers: Optional[Dict[str, str]] = None,
-            exception=None, status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False,
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result: Optional[dict] = None,
+        result_headers: Optional[Dict[str, str]] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
 
-        head_res = self.web_app.head(self.resource_url, params=params, headers=headers,
-                                     exception=exception, status=status)
+        head_res = self.web_app.head(
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
+        )
         assert head_res.body == b''
 
-        get_res = self.web_app.get(self.resource_url, params=params, headers=headers,
-                                   exception=exception, status=status)
+        get_res = self.web_app.get(
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
+        )
         if result is not None:
             if get_res.content_type == 'application/json':
                 assert get_res.json_body == result
@@ -91,9 +103,9 @@ class GetRequestsTester(RequestsTester):
         if get_res.status_code in (200, 201, 204):
             etag = self.usage_examples.resource.get_etag()
             if etag and (not result_headers or 'ETag' not in result_headers):
-                assert 'ETag' in get_res.headers, (
-                    "Resource has ETag, but headers of the response don't contain ETag."
-                )
+                assert (
+                    'ETag' in get_res.headers
+                ), "Resource has ETag, but headers of the response don't contain ETag."
                 assert get_res.headers['ETag'] == etag.serialize()
 
         if headers:
@@ -110,32 +122,40 @@ class PutPatchRequestsTester(RequestsTester):
     was_if_match = False
     was_if_none_match = False
 
-    def __init__(self, web_app: WebApp, usage_examples: UsageExamples, method_name: str):
+    def __init__(
+        self, web_app: WebApp, usage_examples: UsageExamples, method_name: str
+    ):
         super(PutPatchRequestsTester, self).__init__(web_app, usage_examples)
         self._json_method = getattr(self.web_app, '%s_json' % method_name)
         self._method = getattr(self.web_app, method_name)
 
     def __call__(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result: Optional[dict] = None,
-            result_headers: Optional[Dict[str, str]] = None,
-            exception=None, status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False,
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result: Optional[dict] = None,
+        result_headers: Optional[Dict[str, str]] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
 
         method_func = self._json_method
-        if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
+        if isinstance(params, dict) and any(
+            isinstance(v, Upload) for v in params.values()
+        ):
             method_func = self._method
         res = method_func(
-            self.resource_url, params=params, headers=headers,
-            exception=exception, status=status,
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
         )
         if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
@@ -150,9 +170,9 @@ class PutPatchRequestsTester(RequestsTester):
         if res.status_code in (200, 201):
             etag = self.usage_examples.resource.get_etag()
             if etag and (not result_headers or 'ETag' not in result_headers):
-                assert 'ETag' in res.headers, (
-                    "Resource has ETag, but headers of the response don't contain ETag."
-                )
+                assert (
+                    'ETag' in res.headers
+                ), "Resource has ETag, but headers of the response don't contain ETag."
                 resource = self.usage_examples.resource
                 parent = resource.__parent__
                 if parent and 'GET' in self.usage_examples.allowed_methods:
@@ -174,27 +194,34 @@ class PutPatchRequestsTester(RequestsTester):
 
 @implementer(ISendTestingRequest)
 class PostRequestsTester(RequestsTester):
-
     def __call__(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result: Optional[dict] = None,
-            result_headers: Optional[Dict[str, str]] = None,
-            exception=None, status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False,
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result: Optional[dict] = None,
+        result_headers: Optional[Dict[str, str]] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
 
         post_method = self.web_app.post_json
-        if isinstance(params, dict) and any(isinstance(v, Upload) for v in params.values()):
+        if isinstance(params, dict) and any(
+            isinstance(v, Upload) for v in params.values()
+        ):
             post_method = self.web_app.post
-        res = post_method(self.resource_url, params=params, headers=headers,
-                          exception=exception, status=status)
+        res = post_method(
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
+        )
         if status == 201 and 'Location' in res.headers:
             assert res.headers['Location']
         if result is not None:
@@ -210,24 +237,29 @@ class PostRequestsTester(RequestsTester):
 
 @implementer(ISendTestingRequest)
 class DeleteRequestsTester(RequestsTester):
-
     def __call__(
-            self,
-            params: Optional[Params] = DEFAULT,
-            headers: Optional[Dict[str, str]] = None,
-            auth: Optional[str] = None,
-            result: Optional[dict] = None,
-            result_headers: Optional[Dict[str, str]] = None,
-            exception=None, status: Optional[int] = None,
-            description: Optional[str] = None,
-            exclude_from_doc=False,
+        self,
+        params: Optional[Params] = DEFAULT,
+        headers: Optional[Dict[str, str]] = None,
+        auth: Optional[str] = None,
+        result: Optional[dict] = None,
+        result_headers: Optional[Dict[str, str]] = None,
+        exception=None,
+        status: Optional[int] = None,
+        description: Optional[str] = None,
+        exclude_from_doc=False,
     ) -> TestResponse:
         self.calls_count += 1
         params = params if params is not DEFAULT else {}
         params, headers = self.usage_examples.authorize_request(params, headers, auth)
 
-        res = self.web_app.delete_json(self.resource_url, params=params, headers=headers,
-                                       exception=exception, status=status)
+        res = self.web_app.delete_json(
+            self.resource_url,
+            params=params,
+            headers=headers,
+            exception=exception,
+            status=status,
+        )
         if status == 204:
             assert res.body == b''
         if result is not None:
@@ -257,7 +289,9 @@ def _assert_get_and_head(usage_examples: UsageExamples, web_app: WebApp):
         with usage_examples.send_function(send):
             usage_examples.get_requests()
     if 'GET' not in usage_examples.allowed_methods:
-        assert send.calls_count == 0, '{} sends GET requests to resource'.format(info_name)
+        assert send.calls_count == 0, '{} sends GET requests to resource'.format(
+            info_name
+        )
         return
 
     assert send.calls_count > 0, '{} has not any GET requests'.format(info_name)
@@ -277,8 +311,10 @@ def _assert_get_and_head(usage_examples: UsageExamples, web_app: WebApp):
             )
 
     # Test listing of embedded resources
-    if (IHalResourceWithEmbeddedView.providedBy(usage_examples.view) and
-            usage_examples.test_listing):
+    if (
+        IHalResourceWithEmbeddedView.providedBy(usage_examples.view)
+        and usage_examples.test_listing
+    ):
         orig_listing_conf = deepcopy(LISTING_CONF)
         try:
             assert_container_listing(usage_examples, web_app)
@@ -300,10 +336,14 @@ def _assert_put_and_patch(usage_examples: UsageExamples, web_app: WebApp):
             with usage_examples.send_function(send):
                 examples_method()
         if http_method not in usage_examples.allowed_methods:
-            assert send.calls_count == 0, '{} sends {} requests to resource'.format(info_name, http_method)
+            assert send.calls_count == 0, '{} sends {} requests to resource'.format(
+                info_name, http_method
+            )
             continue
 
-        assert send.calls_count > 0, '{} has not any {} requests'.format(info_name, http_method)
+        assert send.calls_count > 0, '{} has not any {} requests'.format(
+            info_name, http_method
+        )
 
         etag = usage_examples.resource.get_etag()
         if etag:
@@ -342,7 +382,9 @@ def _assert_post(usage_examples: UsageExamples, web_app: WebApp):
     if 'POST' in usage_examples.allowed_methods:
         assert send.calls_count > 0, '{} has not any POST requests'.format(info_name)
     else:
-        assert send.calls_count == 0, '{} sends POST requests to resource'.format(info_name)
+        assert send.calls_count == 0, '{} sends POST requests to resource'.format(
+            info_name
+        )
 
 
 def _assert_delete(usage_examples: UsageExamples, web_app: WebApp):
@@ -355,7 +397,9 @@ def _assert_delete(usage_examples: UsageExamples, web_app: WebApp):
     if 'DELETE' in usage_examples.allowed_methods:
         assert send.calls_count > 0, '{} has not any DELETE requests'.format(info_name)
     else:
-        assert send.calls_count == 0, '{} sends DELETE requests to resource'.format(info_name)
+        assert send.calls_count == 0, '{} sends DELETE requests to resource'.format(
+            info_name
+        )
 
 
 def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
@@ -463,33 +507,42 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
         params = {'offset': 'off', 'limit': 'lim'}
         params, headers = usage_examples.authorize_request(params, base_headers)
         web_app.get(
-            resource_url, params=params, headers=headers,
-            exception=ValidationError({
-                'limit': '"lim" is not a number',
-                'offset': '"off" is not a number'
-            })
+            resource_url,
+            params=params,
+            headers=headers,
+            exception=ValidationError(
+                {'limit': '"lim" is not a number', 'offset': '"off" is not a number'}
+            ),
         )
 
         params = {'offset': -1, 'limit': -1}
         params, headers = usage_examples.authorize_request(params, base_headers)
         web_app.get(
-            resource_url, params=params, headers=headers,
-            exception=ValidationError({
-                'limit': '-1 is less than minimum value 0',
-                'offset': '-1 is less than minimum value 0'
-            })
+            resource_url,
+            params=params,
+            headers=headers,
+            exception=ValidationError(
+                {
+                    'limit': '-1 is less than minimum value 0',
+                    'offset': '-1 is less than minimum value 0',
+                }
+            ),
         )
     else:
         params = {'limit': 'lim'}
         params, headers = usage_examples.authorize_request(params, base_headers)
         web_app.get(
-            resource_url, params=params, headers=headers,
-            exception=ValidationError({'limit': '"lim" is not a number'})
+            resource_url,
+            params=params,
+            headers=headers,
+            exception=ValidationError({'limit': '"lim" is not a number'}),
         )
 
         params = {'limit': -1}
         params, headers = usage_examples.authorize_request(params, base_headers)
         web_app.get(
-            resource_url, params=params, headers=headers,
-            exception=ValidationError({'limit': '-1 is less than minimum value 0'})
+            resource_url,
+            params=params,
+            headers=headers,
+            exception=ValidationError({'limit': '-1 is less than minimum value 0'}),
         )

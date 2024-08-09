@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 10.07.2019
 """
+
 import colander
 import pytest
 
@@ -37,8 +38,8 @@ def test_create_validation_error():
                 {'cost': 'abcd'},
                 {},
                 'abcd',
-            ]
-        }
+            ],
+        },
     }
     schema = SomeSchema()
 
@@ -64,8 +65,16 @@ def test_create_validation_error():
         '': err_msg,
     }
 
-    for node_name in ['name', 'sub', 'sub.value', 'sub.int_list', 'sub.int_list.2',
-                      'sub.obj_list', 'sub.obj_list.2', 'sub.obj_list.2.cost']:
+    for node_name in [
+        'name',
+        'sub',
+        'sub.value',
+        'sub.int_list',
+        'sub.int_list.2',
+        'sub.obj_list',
+        'sub.obj_list.2',
+        'sub.obj_list.2.cost',
+    ]:
         err = create_validation_error(SomeSchema, err_msg, node_name)
         assert err.detail == {
             node_name: err_msg,

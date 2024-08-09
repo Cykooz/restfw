@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 20.08.2016
 """
+
 from typing import Any, Set, Tuple
 
 from pyramid.interfaces import ILocation
@@ -21,11 +22,7 @@ class MethodOptions:
 
     def replace(self, **kwargs) -> 'MethodOptions':
         """Create copy of current instance and replace some fields in it."""
-        kwargs = {
-            key: value
-            for key, value in kwargs.items()
-            if key in self.__slots__
-        }
+        kwargs = {key: value for key, value in kwargs.items() if key in self.__slots__}
         for key in self.__slots__:
             if key not in kwargs:
                 kwargs[key] = getattr(self, key, None)
@@ -58,17 +55,17 @@ class IResource(ILocation):
 
     def http_post(request: PyramidRequest, params: dict) -> Tuple['IResource', bool]:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
+        resource was created or not.
         """
 
     def http_put(request: PyramidRequest, params: dict) -> bool:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
+        resource was created or not.
         """
 
     def http_patch(request: PyramidRequest, params: dict) -> bool:
         """Returns a new or modified resource and a flag indicating that the
-           resource was created or not.
+        resource was created or not.
         """
 
     def http_delete(request: PyramidRequest, params: dict):
@@ -126,11 +123,11 @@ class IResourceView(Interface):
 
 class IRoot(IResource):
     """Interface for root resource."""
+
     registry = Attribute('Registry of Pyramid application')
 
 
 class ISubResourceFabric(Interface):
-
     def __call__(parent):
         """Returns instance of sub-resource of parent resource.
         :type parent: IResource
@@ -144,6 +141,7 @@ class IAddSubresourceLinkIntoEmbedded(Interface):
 
 
 # HAL (https://tools.ietf.org/html/draft-kelly-json-hal-08)
+
 
 class IHalResource(IResource):
     """Interface of HAL-resources."""
@@ -192,7 +190,6 @@ class IExternalLinkAdapter(Interface):
 
 
 class IExternalLinkFabric(Interface):
-
     def __call__(request, resource):
         """
         :type request: pyramid.request.Request
@@ -203,10 +200,12 @@ class IExternalLinkFabric(Interface):
 
 # Events
 
+
 class IEvent(Interface):
     request = Attribute('Current request')
 
 
 class IRootCreated(IEvent):
     """An event type that is emitted after root object was created."""
+
     root = Attribute('The root object')

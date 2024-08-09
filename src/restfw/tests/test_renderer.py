@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 28.08.2020
 """
+
 import pytest
 from pyramid import testing
 from pyramid.renderers import RendererHelper
@@ -18,13 +19,12 @@ def test_unicode():
         renderer = RendererHelper(registry=config.registry)
 
         with open_pyramid_request(config.registry) as request:
-            data = {'key': u'Значение'}
+            data = {'key': 'Значение'}
             res = renderer.render(data, system_values=None, request=request)
-            assert res == u'{"key": "Значение"}'
+            assert res == '{"key": "Значение"}'
 
 
 class SomeClass(object):
-
     def __init__(self, v):
         self.v = v
 

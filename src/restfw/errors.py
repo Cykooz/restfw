@@ -3,6 +3,7 @@
 :Authors: cykooz
 :Date: 26.08.2016
 """
+
 from typing import Dict
 
 from pyramid import httpexceptions
@@ -36,12 +37,15 @@ def http_exception_to_dict(exc, request, include_status=False):
     result = {
         'code': exc_class_name,
         'description': exc.explanation or exc.title,
-        'detail': detail
+        'detail': detail,
     }
     if include_status:
         result['status'] = status_code
-    if (status_code == 404 and exc.__class__.__name__ == 'HTTPNotFound'
-            and 'resource' not in detail):
+    if (
+        status_code == 404
+        and exc.__class__.__name__ == 'HTTPNotFound'
+        and 'resource' not in detail
+    ):
         resource = getattr(request, 'context', None)
         if resource:
             elements = [request.view_name] if request.view_name else []
