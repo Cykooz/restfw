@@ -15,6 +15,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added filed ``UsageExamples.dont_compare_get_and_head_headers`` to
+  exclude specified header from comparison of GET and HEAD responses.
+
 8.3.2 (2024-04-09)
 ==================
 

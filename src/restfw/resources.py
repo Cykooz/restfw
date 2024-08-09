@@ -5,7 +5,7 @@
 """
 
 from inspect import isclass
-from typing import Generator, Optional, Tuple, Type, get_type_hints
+from typing import Generator, Optional, Type, get_type_hints
 
 import venusian
 from pyramid.httpexceptions import HTTPMethodNotAllowed
@@ -28,7 +28,7 @@ class Resource:
     def __repr__(self):
         return str(self)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key) -> Optional['Resource']:
         if not key:
             raise KeyError(key)
         resource = None
@@ -47,7 +47,7 @@ class Resource:
 
     def get_sub_resources(
         self, registry: Registry
-    ) -> Generator[Tuple[str, interfaces.IResource], None, None]:
+    ) -> Generator[tuple[str, 'Resource'], None, None]:
         for name, sub_resource in registry.getAdapters((self,), interfaces.IResource):
             yield name, sub_resource
 
@@ -63,22 +63,22 @@ class Resource:
         """Returns value of ETag header for the resource or None."""
         return None
 
-    def http_post(self, request, params):
+    def http_post(self, request, params) -> tuple['Resource', bool]:
         """Returns a new or modified resource, and a flag indicating that the
         resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'POST'})
 
-    def http_put(self, request, params):
+    def http_put(self, request, params) -> bool:
         """Returns a new or modified resource, and a flag indicating that the
         resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PUT'})
 
-    def http_patch(self, request, params):
+    def http_patch(self, request, params) -> bool:
         """Returns a new or modified resource, and a flag indicating that the
         resource was created or not."""
         raise HTTPMethodNotAllowed(detail={'method': 'PATCH'})
 
-    def http_delete(self, request, params):
+    def http_delete(self, request, params) -> None:
         """Delete the resource."""
         raise HTTPMethodNotAllowed(detail={'method': 'DELETE'})
 
@@ -188,8 +188,8 @@ class sub_resource_config:
                 else:
                     suffix = f'of "parent" argument of function "{wrapped.__name__}"'
                 raise RuntimeError(
-                    'You must specify "parent" argument of the decorator "sub_resource_config" '
-                    f'or add type-hint {suffix}.'
+                    'You must specify "parent" argument of the decorator'
+                    f' "sub_resource_config" or add type-hint {suffix}.'
                 )
             self.parent = parent
         self.venusian.attach(

@@ -46,6 +46,12 @@ class RequestsTester:
 class GetRequestsTester(RequestsTester):
     was_if_match = False
     was_if_none_match = False
+    dont_compare_headers: Optional[set[str]] = None
+
+    def __init__(self, web_app: WebApp, usage_examples: UsageExamples):
+        super().__init__(web_app, usage_examples)
+        dont_compare_headers = usage_examples.dont_compare_get_and_head_headers or set()
+        self.dont_compare_headers = {x.lower() for x in dont_compare_headers}
 
     def __call__(
         self,
@@ -92,11 +98,13 @@ class GetRequestsTester(RequestsTester):
                 k: v
                 for k, v in head_res.headers.items()
                 if not k.lower().startswith('x-')
+                and k.lower() not in self.dont_compare_headers
             }
             cleaned_get_headers = {
                 k: v
                 for k, v in get_res.headers.items()
                 if not k.lower().startswith('x-')
+                and k.lower() not in self.dont_compare_headers
             }
             assert cleaned_head_res == cleaned_get_headers
 
@@ -347,10 +355,6 @@ def _assert_put_and_patch(usage_examples: UsageExamples, web_app: WebApp):
 
         etag = usage_examples.resource.get_etag()
         if etag:
-            # if 'HEAD' in resource_examples.allowed_methods:
-            #     params, headers = resource_examples.authorize_request(None, None, None)
-            #     head_res = web_app.head(resource_examples.resource_url, params=params, headers=headers)
-            #     etag = head_res.headers['ETag']
             resource = usage_examples.resource
             parent = resource.__parent__
             if parent and 'GET' in usage_examples.allowed_methods:
@@ -405,16 +409,15 @@ def _assert_delete(usage_examples: UsageExamples, web_app: WebApp):
 def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
     LISTING_CONF['max_limit'] = 2
     resource_url = usage_examples.resource_url
-    base_headers = usage_examples.headers_for_listing  # Deprecated
 
     params = {'limit': 1, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.head(resource_url, params=params, headers=headers)
     assert 'X-Total-Count' in res.headers
     total_count = int(res.headers['X-Total-Count'])
     assert total_count >= 3
 
-    params, headers = usage_examples.authorize_request(None, base_headers)
+    params, headers = usage_examples.authorize_request(None, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert 'X-Total-Count' not in res.headers
     res = res.json_body
@@ -422,12 +425,12 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
     assert len(embedded) == 2
 
     params = {'total_count': False}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert 'X-Total-Count' not in res.headers
 
     params = {'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert res.headers['X-Total-Count'] == str(total_count)
     res = res.json_body
@@ -436,7 +439,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
 
     next_link = res['_links']['next']['href']
     assert 'total_count=' not in next_link
-    params, headers = usage_examples.authorize_request(None, base_headers)
+    params, headers = usage_examples.authorize_request(None, None)
     res = web_app.get(next_link, params=params, headers=headers)
     assert 'X-Total-Count' not in res.headers
     res = res.json_body
@@ -460,7 +463,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
 
     # `limit` is less than `max_value_of_limit`
     params = {'limit': 1, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
@@ -468,7 +471,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
 
     # `limit` is greater than `max_value_of_limit`
     params = {'limit': 10, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert res.headers['X-Total-Count'] == str(total_count)
     embedded = list(res.json_body['_embedded'].values())[0]
@@ -476,27 +479,27 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
 
     if is_offset_paging:
         params = {'offset': 2, 'total_count': True}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         res = web_app.get(resource_url, params=params, headers=headers)
         assert res.headers['X-Total-Count'] == str(total_count)
         embedded = list(res.json_body['_embedded'].values())[0]
         assert len(embedded) == min(total_count - 2, 2)
 
         params = {'limit': 1, 'offset': 1, 'total_count': True}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         res = web_app.get(resource_url, params=params, headers=headers)
         assert res.headers['X-Total-Count'] == str(total_count)
         embedded = list(res.json_body['_embedded'].values())[0]
         assert len(embedded) == 1
 
     params = {'embedded': False}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert 'X-Total-Count' not in res.headers
     assert '_embedded' not in res.json_body
 
     params = {'embedded': False, 'total_count': True}
-    params, headers = usage_examples.authorize_request(params, base_headers)
+    params, headers = usage_examples.authorize_request(params, None)
     res = web_app.get(resource_url, params=params, headers=headers)
     assert 'X-Total-Count' not in res.headers
     assert '_embedded' not in res.json_body
@@ -505,7 +508,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
 
     if is_offset_paging:
         params = {'offset': 'off', 'limit': 'lim'}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         web_app.get(
             resource_url,
             params=params,
@@ -516,7 +519,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
         )
 
         params = {'offset': -1, 'limit': -1}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         web_app.get(
             resource_url,
             params=params,
@@ -530,7 +533,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
         )
     else:
         params = {'limit': 'lim'}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         web_app.get(
             resource_url,
             params=params,
@@ -539,7 +542,7 @@ def assert_container_listing(usage_examples: UsageExamples, web_app: WebApp):
         )
 
         params = {'limit': -1}
-        params, headers = usage_examples.authorize_request(params, base_headers)
+        params, headers = usage_examples.authorize_request(params, None)
         web_app.get(
             resource_url,
             params=params,

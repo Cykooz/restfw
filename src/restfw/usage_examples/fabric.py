@@ -15,6 +15,7 @@ from .interfaces import ISendTestingRequest, IUsageExamples, IUsageExamplesFabri
 from .utils import basic_auth_value
 from ..errors import ValidationError
 from ..interfaces import IResource
+from ..resources import Resource
 from ..typing import PyramidRequest
 from ..views import get_resource_view
 
@@ -27,10 +28,10 @@ Params = Union[dict, list, str, bytes]
 @implementer(IUsageExamples)
 class UsageExamples(abc.ABC):
     ValidationError = ValidationError
-    headers_for_listing = None  # Deprecated
+    dont_compare_get_and_head_headers: Optional[set[str]] = None
     default_auth = ''
     test_listing = True
-    resource: IResource
+    resource: Resource
     resource_url: str
     view = None
     allowed_methods: Optional[set[str]] = None
