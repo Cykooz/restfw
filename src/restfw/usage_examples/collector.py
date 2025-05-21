@@ -19,7 +19,7 @@ from . import interfaces, structs
 from .colander2jsonschema import colander_2_json_schema
 from .fabric import DEFAULT, UsageExamples
 from .utils import default_docstring_extractor, sphinx_doc_filter
-from ..authorization import principals_allowed_by_permission
+from ..authorization import principals_allowed_by_permission, get_view_permission
 from ..resources import Resource
 from ..testing import resource_testing
 from ..testing.webapp import WebApp
@@ -174,13 +174,9 @@ class UsageExamplesCollector(object):
             if not method_func or not method_options:
                 continue
 
-            method_permission = method_options.permission
-            if method_permission:
-                method_permission = f'{method}.{method_permission}'
-            else:
-                method_permission = method
+            view_permission = get_view_permission(method, method_options.permission)
             allowed_principals = principals_allowed_by_permission(
-                resource, method_permission
+                resource, view_permission
             )
             if Everyone in allowed_principals:
                 allowed_principals = [Everyone]
@@ -197,7 +193,7 @@ class UsageExamplesCollector(object):
             description = self._get_code_object_doc(method_func)
             if not description:
                 # Method of view don't have doc-string.
-                # Try to get doc-string from method of resource.
+                # Try to get doc-string from the method of resource.
                 method_func = getattr(resource, 'http_%s' % method, None)
                 if method_func:
                     description = self._get_code_object_doc(method_func)

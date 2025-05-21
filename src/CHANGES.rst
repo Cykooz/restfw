@@ -15,6 +15,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added function ``get_view_permission()`` to get full view permission name
+  for given HTTP method and short permission name.
+
 8.4 (2024-08-09)
 ================
 

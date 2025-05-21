@@ -9,7 +9,11 @@ import unittest
 from pyramid.authorization import ALL_PERMISSIONS, Allow, DENY_ALL, Deny, Everyone
 
 from .vendor import pyramid_test_authorization as vendor_test
-from ..authorization import RestAclHelper, principals_allowed_by_permission
+from ..authorization import (
+    RestAclHelper,
+    principals_allowed_by_permission,
+    get_view_permission,
+)
 from ..resources import Resource
 
 
@@ -219,17 +223,25 @@ class TestRestAclHelper(unittest.TestCase):
         context = RestDummyContext()
         helper = RestAclHelper()
         assert helper.permits(context, [1], 'get')
-        assert helper.permits(context, [2], 'post.dummy.create')
-        assert helper.permits(context, [3], 'put.dummy.edit')
-        assert helper.permits(context, [4], 'patch.dummy.patch')
-        assert helper.permits(context, [5], 'delete.dummy.delete')
+        assert helper.permits(context, [2], get_view_permission('post', 'dummy.create'))
+        assert helper.permits(context, [3], get_view_permission('put', 'dummy.edit'))
+        assert helper.permits(context, [4], get_view_permission('patch', 'dummy.patch'))
+        assert helper.permits(
+            context,
+            [5],
+            get_view_permission('delete', 'dummy.delete'),
+        )
 
     def test_permits_with_permission_prefix(self):
         context = RestDummyContext()
         helper = RestAclHelper()
-        assert helper.permits(context, [6], 'post.dummy.create')
-        assert helper.permits(context, [6], 'put.dummy.edit')
-        assert helper.permits(context, [6], 'delete.dummy.delete')
+        assert helper.permits(context, [6], get_view_permission('post', 'dummy.create'))
+        assert helper.permits(context, [6], get_view_permission('put', 'dummy.edit'))
+        assert helper.permits(
+            context,
+            [6],
+            get_view_permission('delete', 'dummy.delete'),
+        )
 
         assert not helper.permits(context, [6], 'get')
         assert not helper.permits(context, [6], 'patch')
@@ -262,7 +274,9 @@ class TestRestAclHelper(unittest.TestCase):
         child.__acl__ = []
 
         helper = RestAclHelper()
-        assert helper.permits(child, [1], 'get.child.get')
+        permission = 'child.get'
+        view_permission = get_view_permission('get', permission)
+        assert helper.permits(child, [1], view_permission)
 
-        child.__acl__ = [(Deny, 1, 'child.get')]
-        assert not helper.permits(child, [1], 'get.child.get')
+        child.__acl__ = [(Deny, 1, permission)]
+        assert not helper.permits(child, [1], view_permission)

@@ -16,6 +16,7 @@ from zope.interface.interfaces import IInterface
 from zope.interface.verify import verifyClass
 
 from .. import interfaces
+from ..authorization import get_view_permission
 from ..interfaces import IResource, IResourceView
 from ..typing import PyramidRequest
 
@@ -41,11 +42,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
             not_allowed_methods.append(http_method.upper())
             continue
 
-        permission = (
-            f'{http_method}.{method_options.permission}'
-            if method_options.permission
-            else http_method
-        )
+        permission = get_view_permission(http_method, method_options.permission)
         methods = ['head', 'get'] if http_method == 'get' else [http_method]
         for request_method in methods:
             method = request_method.upper()

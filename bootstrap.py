@@ -20,7 +20,7 @@ from urllib.request import urlopen
 
 BUILDOUT_VERSION = '3.0.1'
 PIP_VERSION = '24.0.0'
-# With newer version, a build is failed due to
+# With a newer version, a build is failed due to
 # an incorrect version of dependencies in some packages.
 # Need to recheck in the future.
 SETUPTOOLS_VERSION = '66.1.1'

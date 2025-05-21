@@ -103,7 +103,7 @@ class RestAclHelper:
                                 location,
                             )
 
-        # default deny (if no ACL in lineage at all, or if none of the
+        # Deny by default (if no ACL in lineage at all, or if none of the
         # principals were mentioned in any ACE we found)
         return ACLDenied('<default deny>', acl, permission, principals, context)
 
@@ -177,3 +177,8 @@ def _match_base_permission(permission, ace_permissions):
     if ace_permissions is ALL_PERMISSIONS:
         return True
     return any(permission == ace_permission for ace_permission in ace_permissions)
+
+
+def get_view_permission(http_method: str, permission: str) -> str:
+    """Returns permission name for view method."""
+    return f'{http_method}.{permission}' if permission else http_method
