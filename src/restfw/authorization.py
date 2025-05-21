@@ -17,6 +17,8 @@ from pyramid.authorization import (
 from pyramid.location import lineage
 from pyramid.util import is_nonstr_iter
 
+from restfw.typing import PyramidRequest
+
 
 ALL_GET_REQUESTS = 'get'
 ALL_POST_REQUESTS = 'post'
@@ -182,3 +184,15 @@ def _match_base_permission(permission, ace_permissions):
 def get_view_permission(http_method: str, permission: str) -> str:
     """Returns permission name for view method."""
     return f'{http_method}.{permission}' if permission else http_method
+
+
+def has_view_permission(
+    request: PyramidRequest,
+    http_method: str,
+    permission: str,
+    context=None,
+) -> bool:
+    return request.has_permission(
+        get_view_permission(http_method, permission),
+        context=context,
+    )
