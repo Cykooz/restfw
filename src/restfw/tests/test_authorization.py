@@ -20,12 +20,14 @@ from ..resources import Resource
 class RestDummyContext(Resource):
     __acl__ = [
         (Allow, 1, 'get'),
-        (Allow, 2, 'dummy.create'),
-        (Allow, 3, 'dummy.edit'),
-        (Allow, 4, 'patch'),
-        (Allow, 5, 'dummy.delete'),
-        (Allow, 6, 'dummy.'),
-        (Allow, 7, ALL_PERMISSIONS),
+        (Allow, 2, 'get.dummy.get'),
+        (Allow, 3, 'post.dummy.create'),
+        (Allow, 4, 'dummy.edit'),
+        (Allow, 5, 'patch'),
+        (Allow, 6, 'delete.dummy.delete'),
+        (Allow, 7, 'dummy.'),
+        (Allow, 8, ALL_PERMISSIONS),
+        (Allow, 9, 'dummy.get'),
     ]
 
 
@@ -223,49 +225,67 @@ class TestRestAclHelper(unittest.TestCase):
         context = RestDummyContext()
         helper = RestAclHelper()
         assert helper.permits(context, [1], 'get')
-        assert helper.permits(context, [2], get_view_permission('post', 'dummy.create'))
-        assert helper.permits(context, [3], get_view_permission('put', 'dummy.edit'))
-        assert helper.permits(context, [4], get_view_permission('patch', 'dummy.patch'))
-        assert helper.permits(
-            context,
-            [5],
-            get_view_permission('delete', 'dummy.delete'),
-        )
-
-    def test_permits_with_permission_prefix(self):
-        context = RestDummyContext()
-        helper = RestAclHelper()
-        assert helper.permits(context, [6], get_view_permission('post', 'dummy.create'))
-        assert helper.permits(context, [6], get_view_permission('put', 'dummy.edit'))
+        assert helper.permits(context, [3], get_view_permission('post', 'dummy.create'))
+        assert helper.permits(context, [4], get_view_permission('put', 'dummy.edit'))
+        assert helper.permits(context, [4], get_view_permission('patch', 'dummy.edit'))
+        assert helper.permits(context, [5], get_view_permission('patch', 'dummy.patch'))
         assert helper.permits(
             context,
             [6],
             get_view_permission('delete', 'dummy.delete'),
         )
 
-        assert not helper.permits(context, [6], 'get')
-        assert not helper.permits(context, [6], 'patch')
+    def test_permits_with_permission_prefix(self):
+        context = RestDummyContext()
+        helper = RestAclHelper()
+        assert helper.permits(context, [7], get_view_permission('post', 'dummy.create'))
+        assert helper.permits(context, [7], get_view_permission('put', 'dummy.edit'))
+        assert helper.permits(
+            context,
+            [7],
+            get_view_permission('delete', 'dummy.delete'),
+        )
+
+        assert not helper.permits(context, [7], 'get')
+        assert not helper.permits(context, [7], 'patch')
 
     def test_principals(self):
         context = RestDummyContext()
 
+        # Who has the right to perform any GET request?
         principals = principals_allowed_by_permission(context, 'get')
-        assert principals == {1, 7}
+        assert principals == {1, 8}
 
+        # Who has the right to perform any PATCH request?
         principals = principals_allowed_by_permission(context, 'patch')
-        assert principals == {4, 7}
+        assert principals == {5, 8}
+
+        # Who has the right to perform a request that requires 'dummy.get' permission?
+        principals = principals_allowed_by_permission(context, 'dummy.get')
+        assert principals == {7, 8, 9}
+
+        # Who has the right to perform the GET request that requires 'dummy.get' permission?
+        principals = principals_allowed_by_permission(context, 'get.dummy.get')
+        assert principals == {1, 2, 7, 8, 9}
+
+        # Who has the right to perform the POST request that requires 'dummy.get' permission?
+        principals = principals_allowed_by_permission(context, 'post.dummy.get')
+        assert principals == {7, 8, 9}
 
         principals = principals_allowed_by_permission(context, 'dummy.create')
-        assert principals == {2, 6, 7}
+        assert principals == {7, 8}
 
         principals = principals_allowed_by_permission(context, 'dummy.edit')
-        assert principals == {3, 6, 7}
+        assert principals == {4, 7, 8}
 
         principals = principals_allowed_by_permission(context, 'dummy.edit')
-        assert principals == {3, 6, 7}
+        assert principals == {4, 7, 8}
 
         principals = principals_allowed_by_permission(context, 'dummy.delete')
-        assert principals == {5, 6, 7}
+        assert principals == {7, 8}
+
+        principals = principals_allowed_by_permission(context, 'delete.dummy.delete')
+        assert principals == {6, 7, 8}
 
     def test_orig_permission_check(self):
         root = RestDummyContext()

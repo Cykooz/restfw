@@ -472,7 +472,7 @@ class DummyContext:
 VIEW = 'view'
 EDIT = 'edit'
 CREATE = 'create'
-DELETE = 'delete'
+DELETE = 'remove'
 MODERATE = 'moderate'
 ADMINISTER = 'administer'
 COMMENT = 'comment'

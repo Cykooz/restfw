@@ -4,7 +4,7 @@
 :Date: 30.03.2017
 """
 
-from typing import Union
+from typing import Union, Iterable
 
 from pyramid.authorization import (
     ACLAllowed,
@@ -68,7 +68,6 @@ class RestAclHelper:
         if base_permission and base_permission not in _BASE_PERMISSIONS:
             context_permission = permission
             base_permission = ''
-        permission = context_permission
 
         for location in lineage(context):
             try:
@@ -84,9 +83,8 @@ class RestAclHelper:
                 if ace_principal in principals:
                     if not is_nonstr_iter(ace_permissions):
                         ace_permissions = [ace_permissions]
-                    if _match_permission(permission, ace_permissions) or (
-                        base_permission
-                        and _match_base_permission(base_permission, ace_permissions)
+                    if _match_permission(
+                        base_permission, context_permission, ace_permissions
                     ):
                         if ace_action == Allow:
                             return ACLAllowed(
@@ -120,7 +118,6 @@ def principals_allowed_by_permission(context, permission: str) -> set:
     if base_permission and base_permission not in _BASE_PERMISSIONS:
         context_permission = permission
         base_permission = ''
-    permission = context_permission
 
     for location in reversed(list(lineage(context))):
         # NB: we're walking *up* the object graph from the root
@@ -138,9 +135,8 @@ def principals_allowed_by_permission(context, permission: str) -> set:
         for ace_action, ace_principal, ace_permissions in acl:
             if not is_nonstr_iter(ace_permissions):
                 ace_permissions = [ace_permissions]
-            is_match = _match_permission(permission, ace_permissions) or (
-                base_permission
-                and _match_base_permission(base_permission, ace_permissions)
+            is_match = _match_permission(
+                base_permission, context_permission, ace_permissions
             )
             if (ace_action == Allow) and is_match:
                 if ace_principal not in denied_here:
@@ -160,18 +156,53 @@ def principals_allowed_by_permission(context, permission: str) -> set:
     return allowed
 
 
-def _match_permission(permission, ace_permissions):
-    """Match permission with list of permissions from ACE (Access Control Entries).
-    If ACE permission ends with dot then it interpreted as permission prefix.
+"""
+Matrix of options for matching the required permission with
+the permission specified in the resource's ACL.
+
+b - base permission (http method)
+c - context permission (permission of resource)
+
+    Req. | [] | b1     | c1        | b1.c1                |
+ACL      |    |        |           |                      |      
+---------|----|--------|-----------|----------------------|
+[]       | F  | F      | F         | F                    |
+b2       | F  | b1==b2 | F         | b1==b2               |
+c2       | F  | F      | c1.sw(c2) | c1.sw(c2)            |
+b2.c2    | F  | F      | F         | b1==b2 and c1.sw(c2) |
+"""
+
+
+def _match_permission(base_permission, context_permission, ace_permissions):
+    """Match permission with the list of permissions from ACE (Access Control Entries).
+    If ACE permission ends with a dot, then it is interpreted as a permission prefix.
     """
     if ace_permissions is ALL_PERMISSIONS:
         return True
+    if not base_permission and not context_permission:
+        return False
+
     for ace_permission in ace_permissions:
-        if ace_permission.endswith('.') and permission.startswith(ace_permission):
+        ace_base_permission, _, ace_context_permission = ace_permission.partition('.')
+        if not ace_base_permission and not ace_context_permission:
+            continue
+        if ace_base_permission and ace_base_permission not in _BASE_PERMISSIONS:
+            ace_context_permission = ace_permission
+            ace_base_permission = ''
+
+        if ace_base_permission and base_permission != ace_base_permission:
+            continue
+
+        if _match_context_permission(context_permission, ace_context_permission):
             return True
-        elif permission == ace_permission:
-            return True
+
     return False
+
+
+def _match_context_permission(permission: str, ace_permission: str) -> bool:
+    if not ace_permission or permission == ace_permission:
+        return True
+    return ace_permission.endswith('.') and permission.startswith(ace_permission)
 
 
 def _match_base_permission(permission, ace_permissions):

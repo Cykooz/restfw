@@ -15,8 +15,8 @@
 CHANGELOG
 *********
 
-8.5 (2025-05-21)
-================
+Next release
+============
 
 Features
 --------
@@ -24,6 +24,7 @@ Features
 - Added function ``get_view_permission()`` to get full view permission name
   for given HTTP method and short permission name.
 - Added function ``has_view_permission()``.
+- Refactored rules for matching requested permission with ACL in resources.
 
 8.4 (2024-08-09)
 ================
