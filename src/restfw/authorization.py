@@ -4,7 +4,7 @@
 :Date: 30.03.2017
 """
 
-from typing import Union, Iterable
+from typing import Union
 
 from pyramid.authorization import (
     ACLAllowed,
@@ -17,7 +17,9 @@ from pyramid.authorization import (
 from pyramid.location import lineage
 from pyramid.util import is_nonstr_iter
 
+from restfw.interfaces import IResource
 from restfw.typing import PyramidRequest
+from restfw.views import get_resource_view
 
 
 ALL_GET_REQUESTS = 'get'
@@ -217,13 +219,14 @@ def get_view_permission(http_method: str, permission: str) -> str:
     return f'{http_method}.{permission}' if permission else http_method
 
 
-def has_view_permission(
+def has_view_access(
     request: PyramidRequest,
+    context: IResource,
     http_method: str,
-    permission: str,
-    context=None,
 ) -> bool:
-    return request.has_permission(
-        get_view_permission(http_method, permission),
-        context=context,
-    )
+    if view := get_resource_view(request, context):
+        options_name = f'{http_method}_options'
+        if options := getattr(view, options_name, None):
+            if permission := options.permission:
+                return request.has_permission(permission, context=context)
+    return False
