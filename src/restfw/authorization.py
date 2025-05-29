@@ -221,10 +221,10 @@ def get_view_permission(http_method: str, permission: str) -> str:
 
 def has_view_access(
     request: PyramidRequest,
-    context: IResource,
+    context,
     http_method: str,
 ) -> bool:
-    if view := get_resource_view(request, context):
+    if view := get_resource_view(context, request):
         options_name = f'{http_method}_options'
         if options := getattr(view, options_name, None):
             if permission := options.permission:
