@@ -225,8 +225,9 @@ def has_view_access(
     http_method: str,
 ) -> bool:
     if view := get_resource_view(context, request):
-        options_name = f'{http_method}_options'
+        options_name = f'options_for_{http_method}'
         if options := getattr(view, options_name, None):
             if permission := options.permission:
+                permission = f'{http_method}.{permission}'
                 return request.has_permission(permission, context=context)
     return False
