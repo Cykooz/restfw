@@ -204,10 +204,19 @@ def get_pyramid_root(request=None):
 
 @contextmanager
 def open_pyramid_request(
-    registry: Registry, path='http://localhost'
+    registry: Registry,
+    path='http://localhost',
+    environ: Optional[dict[str, str]] = None,
+    headers=None,
+    **kwargs,
 ) -> ContextManager[PyramidRequest]:
     request_factory = registry.queryUtility(IRequestFactory, default=Request)
-    request: PyramidRequest = request_factory.blank(path)
+    request: PyramidRequest = request_factory.blank(
+        path,
+        environ=environ,
+        headers=headers,
+        **kwargs,
+    )
     request.registry = registry
     apply_request_extensions(request)
     get_pyramid_root(request)
@@ -218,6 +227,17 @@ def open_pyramid_request(
     finally:
         request._process_finished_callbacks()
         context.end()
+
+
+def clone_request(request: PyramidRequest) -> ContextManager[PyramidRequest]:
+    environ = {k: v for k, v in request.environ.items() if k == k.upper()}
+    if scheme := request.environ.get('wsgi.url_scheme'):
+        environ['wsgi.url_scheme'] = scheme
+    return open_pyramid_request(
+        request.registry,
+        request.path,
+        environ=environ,
+    )
 
 
 def get_object_fullname(o):

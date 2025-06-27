@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added function ``clone_request``.
+
 8.5 (2025-05-30)
 ================
 

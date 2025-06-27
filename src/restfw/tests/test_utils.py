@@ -8,7 +8,7 @@ import colander
 import pytest
 
 from .. import schemas
-from ..utils import create_validation_error
+from ..utils import create_validation_error, clone_request, open_pyramid_request
 
 
 class ObjSchema(schemas.MappingNode):
@@ -79,3 +79,16 @@ def test_create_validation_error():
         assert err.detail == {
             node_name: err_msg,
         }
+
+
+def test_clone_request(pyramid_request):
+    with open_pyramid_request(
+        pyramid_request.registry,
+        path='https://example.com/my/resource?foo=1',
+        headers={'X-My-Header': 'value', 'USER-AGENT': 'python'},
+    ) as request1:
+        with clone_request(request1) as request2:
+            assert request2.url == 'https://example.com/my/resource?foo=1'
+            assert request2.path == request1.path
+            request2.environ = request1.environ
+            assert request2.headers == request1.headers
