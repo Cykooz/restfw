@@ -51,12 +51,11 @@ class adapter_config:
         )
 
     def __call__(self, wrapped):
+        wrapper_name = wrapped.__name__
         is_class = isclass(wrapped)
         if is_class:
-            wrapper_name = wrapped.__class__.__name__
             func = wrapped.__init__
         else:
-            wrapper_name = wrapped.__name__
             func = wrapped
         func_sign = signature(func, eval_str=True)
         argument_types = []

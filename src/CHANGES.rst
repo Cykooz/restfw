@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Bug Fixes
+---------
+
+- Fixed error inside ``adapter_config``.
+
 8.7 (2025-09-04)
 ================
 
