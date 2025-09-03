@@ -15,6 +15,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added ``adapter_config`` decorator to register adapters.
+
 8.6 (2025-06-27)
 ================
 

@@ -4,7 +4,7 @@
 :Date: 26.08.2016
 """
 
-from typing import Dict
+from typing import Dict, Union
 
 from pyramid import httpexceptions
 from pyramid.traversal import resource_path
@@ -73,7 +73,7 @@ class ParametersError(httpexceptions.HTTPInternalServerError):
     title = 'Parameters Validation Error'
     explanation = 'The input parameter(s) has wrong value.'
 
-    def __init__(self, errors: Dict[str, str]):
+    def __init__(self, errors: Dict[str, Union[str, Dict]]):
         self.errors = errors.copy()
         super().__init__(self.errors)
 
