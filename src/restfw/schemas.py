@@ -149,7 +149,13 @@ class BaseNode(colander.SchemaNode):
             self.schema_type = lambda: Nullable(schema_type())
         super(BaseNode, self).__init__(*args, **kwargs)
         if nullable and self.validator is not None:
-            self.validator = NullableValidator(self.validator)
+            orig_validator = self.validator
+            if isinstance(orig_validator, colander.deferred):
+                self.validator = colander.deferred(
+                    lambda n, k: NullableValidator(orig_validator(n, k))
+                )
+            else:
+                self.validator = NullableValidator(orig_validator)
 
 
 class MappingNode(BaseNode):

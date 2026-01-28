@@ -18,6 +18,7 @@ from ..schemas import (
     IntegerNode,
     ResourceNode,
     StringNode,
+    NullableValidator,
 )
 
 
@@ -189,6 +190,21 @@ def test_deserialize_null_string():
     with pytest.raises(colander.Invalid) as ex:
         node.deserialize(colander.null)
     assert ex.value.msg == 'Required'
+
+
+def test_bind_nullable_node():
+    node = StringNode(nullable=True, validator=colander.Length(min=2))
+    assert isinstance(node.validator, NullableValidator)
+    assert isinstance(node.validator.validator, colander.Length)
+
+    node = StringNode(
+        nullable=True,
+        validator=colander.deferred(lambda n, k: colander.Length(min=2)),
+    )
+    assert isinstance(node.validator, colander.deferred)
+    bound_node = node.bind(request=None, context=None)
+    assert isinstance(bound_node.validator, NullableValidator)
+    assert isinstance(bound_node.validator.validator, colander.Length)
 
 
 def test_resource_node_serialize(pyramid_request):
