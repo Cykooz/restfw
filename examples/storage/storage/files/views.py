@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 13.01.2021
 """
+
 from pyramid.httpexceptions import HTTPNotFound
 
 from restfw import views
@@ -15,9 +16,20 @@ from .resources import File, Files
 @views.resource_view_config()
 class FileView(views.HalResourceView):
     resource: File
-    options_for_get = MethodOptions(None, schemas.FileSchema, permission='files.get')
-    options_for_put = MethodOptions(None, schemas.FileSchema, permission='files.edit')
-    options_for_delete = MethodOptions(None, None, permission='files.edit')
+    options_for_get = MethodOptions(
+        None,
+        schemas.FileSchema,
+        permission='files.get',
+    )
+    options_for_put = MethodOptions(
+        None,
+        permission='files.edit',
+    )
+    options_for_delete = MethodOptions(
+        None,
+        None,
+        permission='files.edit',
+    )
 
     def as_dict(self):
         return {
@@ -34,21 +46,21 @@ class FileView(views.HalResourceView):
 @views.resource_view_config()
 class FilesView(views.HalResourceWithEmbeddedView):
     resource: Files
-    options_for_get = MethodOptions(schemas.GetFilesSchema, schemas.FilesSchema,
-                                    permission='files.get')
+    options_for_get = MethodOptions(
+        schemas.GetFilesSchema,
+        schemas.FilesSchema,
+        permission='files.get',
+    )
 
     def get_embedded(self, params):
         paths = sorted(
-            path
-            for path in self.resource.dir_path.iterdir()
-            if path.is_file()
+            path for path in self.resource.dir_path.iterdir() if path.is_file()
         )
-        files = (
-            File(FileModel(path), parent=self.resource)
-            for path in paths
-        )
+        files = (File(FileModel(path), parent=self.resource) for path in paths)
         return iter_to_embedded_resources(
-            self.request, params, files,
+            self.request,
+            params,
+            files,
             parent=self.resource,
             embedded_name='files',
         )

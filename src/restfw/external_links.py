@@ -16,7 +16,7 @@ def get_external_links(resource, registry: Registry):
         yield name, fabric
 
 
-class external_link_config(object):
+class external_link_config:
     """A function, class or method :term:`decorator` which allows a
     developer to create fabric of external link registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.

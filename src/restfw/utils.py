@@ -130,7 +130,9 @@ def get_method_params(context, request: PyramidRequest) -> Union[dict, list]:
     request_method = 'get' if request_method == 'head' else request_method
 
     method_options: Optional[MethodOptions] = getattr(
-        context, 'options_for_%s' % request_method, None
+        context,
+        f'options_for_{request_method}',
+        None,
     )
     input_schema = method_options.input_schema if method_options else None
     return get_input_data(context, request, input_schema) if input_schema else {}

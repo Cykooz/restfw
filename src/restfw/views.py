@@ -12,7 +12,7 @@ from pyramid import httpexceptions
 from pyramid.config import Configurator
 from pyramid.interfaces import ILocation
 from pyramid.traversal import quote_path_segment
-from zope.interface import implementer
+from zope.interface import implementer, provider
 
 from . import interfaces, schemas
 from .errors import ParametersError
@@ -108,6 +108,7 @@ class resource_view_config:
 
 @resource_view_config()
 @implementer(interfaces.IResourceView)
+@provider(interfaces.IResourceViewClass)
 class ResourceView:
     resource: Resource
 
@@ -249,6 +250,22 @@ class ResourceView:
                 )
         _try_add_etag(self.request, result, context=context)
         return result
+
+    @classmethod
+    def get_output_schema_for_http_method(cls, method: str):
+        method_options = getattr(cls, f'options_for_{method}', None)
+        output_schema = method_options.output_schema if method_options else None
+        if output_schema is False:
+            if method not in ('put', 'patch', 'delete'):
+                # Get output_schema of the GET method
+                # if it is equal False for PUT/PATCH/DELETE methods.
+                raise RuntimeError(
+                    f'Output schema specified for {method.upper()} method in'
+                    f' {cls.__name__} view class can not be False.'
+                )
+            if method_options := cls.options_for_get:
+                output_schema = method_options.output_schema
+        return output_schema
 
 
 @resource_view_config()

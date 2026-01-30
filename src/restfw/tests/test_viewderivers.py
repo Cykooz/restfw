@@ -53,7 +53,7 @@ class DummyResource(Resource):
 @resource_view_config(DummyResource)
 class DummyResourceView(ResourceView):
     options_for_get = MethodOptions(None, DummySchema, permission='get')
-    options_for_put = MethodOptions(DummyEditSchema, DummySchema, permission='put')
+    options_for_put = MethodOptions(DummyEditSchema, permission='put')
 
     def as_dict(self) -> Json:
         return self.resource.model

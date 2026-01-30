@@ -112,7 +112,7 @@ def add_usage_examples_fabric_predicate(
     )
 
 
-class examples_config(object):
+class examples_config:
     """A function, class or method :term:`decorator` which allows a
     developer to create resource usage examples fabric registrations nearer to it
     definition than use :term:`imperative configuration` to do the same.

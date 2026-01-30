@@ -2,6 +2,7 @@
 :Authors: cykooz
 :Date: 13.01.2021
 """
+
 from restfw import views
 from restfw.interfaces import MethodOptions
 from restfw.schemas import GetEmbeddedSchema
@@ -14,8 +15,11 @@ from .resources import User, Users
 @views.resource_view_config()
 class UserView(views.HalResourceView):
     resource: User
-    options_for_get = MethodOptions(None, schemas.UserSchema,
-                                    permission='users.get')
+    options_for_get = MethodOptions(
+        None,
+        schemas.UserSchema,
+        permission='users.get',
+    )
 
     def as_dict(self):
         return {
@@ -26,8 +30,16 @@ class UserView(views.HalResourceView):
 @views.resource_view_config()
 class UsersView(views.HalResourceWithEmbeddedView):
     resource: Users
-    options_for_get = MethodOptions(GetEmbeddedSchema, schemas.UsersSchema, 'users.get')
-    options_for_post = MethodOptions(schemas.CreateUserSchema, schemas.UserSchema, 'users.edit')
+    options_for_get = MethodOptions(
+        GetEmbeddedSchema,
+        schemas.UsersSchema,
+        permission='users.get',
+    )
+    options_for_post = MethodOptions(
+        schemas.CreateUserSchema,
+        schemas.UserSchema,
+        permission='users.edit',
+    )
 
     def get_embedded(self, params: dict):
         users = [
@@ -35,8 +47,9 @@ class UsersView(views.HalResourceWithEmbeddedView):
             for model in UserModel.get_models(self.request.registry)
         ]
         return list_to_embedded_resources(
-            self.request, params, users,
+            self.request,
+            params,
+            users,
             parent=self.resource,
             embedded_name='users',
         )
-

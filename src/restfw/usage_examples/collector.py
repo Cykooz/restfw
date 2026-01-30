@@ -27,7 +27,7 @@ from ..typing import PyramidRequest
 from ..utils import get_object_fullname, open_pyramid_request
 
 
-class UsageExamplesCollector(object):
+class UsageExamplesCollector:
     """Collector uses to collect full information about all registered
     resource usage examples.
     """
@@ -198,14 +198,12 @@ class UsageExamplesCollector(object):
                 if method_func:
                     description = self._get_code_object_doc(method_func)
 
+            input_schema = method_options.input_schema
+            output_schema = view.get_output_schema_for_http_method(method)
             result[method.upper()] = structs.MethodInfo(
                 examples_info=self._get_examples_info(usage_examples, method),
-                input_schema=self._get_schema_info(
-                    method_options.input_schema, request, resource
-                ),
-                output_schema=self._get_schema_info(
-                    method_options.output_schema, request, resource
-                ),
+                input_schema=self._get_schema_info(input_schema, request, resource),
+                output_schema=self._get_schema_info(output_schema, request, resource),
                 allowed_principals=allowed_principals,
                 description=description,
             )
@@ -288,7 +286,7 @@ class UsageExamplesCollector(object):
         """Build SchemaInfo instance for given schema class."""
         serialized_schema = self._schema_serializer(schema_class, request, context)
         if not serialized_schema:
-            return
+            return None
         return structs.SchemaInfo(
             class_name=get_object_fullname(schema_class),
             serialized_schema=serialized_schema,

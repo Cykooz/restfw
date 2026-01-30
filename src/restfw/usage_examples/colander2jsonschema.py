@@ -155,7 +155,7 @@ def convert_regex_validator(schema_node, validator):
     return converted
 
 
-class ValidatorConversionDispatcher(object):
+class ValidatorConversionDispatcher:
     def __init__(self, *converters):
         self.converters = converters
 
@@ -191,7 +191,7 @@ class ValidatorConversionDispatcher(object):
         return converted
 
 
-class TypeConverter(object):
+class TypeConverter:
     type = ''
     convert_validator = lambda self, schema_node: OrderedDict()
 
@@ -374,7 +374,7 @@ class NullableTypeConverter(TypeConverter):
         return converted
 
 
-class TypeConversionDispatcher(object):
+class TypeConversionDispatcher:
     converters = {
         schemas.Nullable: NullableTypeConverter,
         colander.Boolean: BooleanTypeConverter,

@@ -62,7 +62,7 @@ def add_external_link_fabric(
     _optional = optional
     _templated = templated
 
-    class ExternalLinkFabric(object):
+    class ExternalLinkFabric:
         title = _title
         description = _description
         optional = _optional

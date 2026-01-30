@@ -13,7 +13,7 @@ from pyramid.interfaces import IRequest
 from pyramid.registry import Deferred
 from zope.interface import Interface, implementedBy
 from zope.interface.interfaces import IInterface
-from zope.interface.verify import verifyClass
+from zope.interface.verify import verifyClass, verifyObject
 
 from .. import interfaces
 from ..authorization import get_view_permission
@@ -32,6 +32,7 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
     dotted = config.maybe_dotted
     view_class, resource_class = dotted(view_class), dotted(resource_class)
     verifyClass(interfaces.IResourceView, view_class, tentative=True)
+    verifyObject(interfaces.IResourceViewClass, view_class, tentative=True)
 
     not_allowed_methods = []
     for http_method in ('get', 'post', 'put', 'patch', 'delete'):
@@ -41,6 +42,15 @@ def add_resource_view(config: Configurator, view_class, resource_class, **predic
         if method_options is None:
             not_allowed_methods.append(http_method.upper())
             continue
+
+        if (
+            http_method in ('get', 'post')
+            and getattr(method_options, 'output_schema', None) is False
+        ):
+            raise RuntimeError(
+                f'Output schema specified for {http_method.upper()} method in'
+                f' {view_class.__name__} view class can not be False.'
+            )
 
         permission = get_view_permission(http_method, method_options.permission)
         methods = ['head', 'get'] if http_method == 'get' else [http_method]
@@ -231,6 +241,7 @@ class MultiResourceView:
                 return view
             if all(predicate(resource, request) for predicate in predicates):
                 return view
+        return None
 
     def __call__(
         self, request: PyramidRequest, resource: IResource
@@ -238,3 +249,4 @@ class MultiResourceView:
         view_class = self.get_view_class(request, resource)
         if view_class:
             return view_class(resource, request)
+        return None

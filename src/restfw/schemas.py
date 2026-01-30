@@ -53,13 +53,14 @@ class Nullable(colander.SchemaType):
         return self.typ.deserialize(node, cstruct)
 
 
-class NullableValidator(object):
+class NullableValidator:
     def __init__(self, validator):
         self.validator = validator
 
     def __call__(self, node, value):
         if value is not None:
             return self.validator(node, value)
+        return None
 
 
 class EmptyString(colander.String):

@@ -32,7 +32,7 @@ def check_request_method_view(view: _View, info: IViewDeriverInfo):
     if info.exception_only:
         return view
     if info.options.get('name'):
-        # Do not wrap a custom named view for resource.
+        # Do not wrap a custom-named view for resource.
         return view
 
     def mapped_view(context, request: PyramidRequest):
@@ -57,7 +57,7 @@ def process_conditional_requests(view: _View, info: IViewDeriverInfo):
     if info.exception_only:
         return view
     if info.options.get('name'):
-        # Do not wrap a custom named view for resource.
+        # Do not wrap a custom-named view for resource.
         return view
     context_class = info.options.get('context')
     if not isclass(context_class) or not IResource.implementedBy(context_class):
@@ -92,7 +92,7 @@ def check_result_schema(view: _View, info: IViewDeriverInfo):
     if info.exception_only:
         return view
     if info.options.get('name'):
-        # Do not wrap a custom named view for resource.
+        # Do not wrap a custom-named view for resource.
         return view
     view_class = info.options.get('view')
     if not isclass(view_class) or not IResourceView.implementedBy(view_class):
@@ -106,10 +106,13 @@ def check_result_schema(view: _View, info: IViewDeriverInfo):
             and request.method not in {'HEAD', 'OPTIONS'}
         ):
             method = request.method.lower()
-            method_options = getattr(view_class, 'options_for_%s' % method, None)
-            output_schema = method_options.output_schema if method_options else None
+            try:
+                output_schema = view_class.get_output_schema_for_http_method(method)
+            except RuntimeError as e:
+                raise ResultValidationError(e.args[0])
             if output_schema is None:
                 return response
+
             try:
                 rendered = response.body
                 schema = output_schema().bind(request=request, context=context)

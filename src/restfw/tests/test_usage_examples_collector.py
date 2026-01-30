@@ -77,9 +77,7 @@ class DummyResource(HalResource):
 class DummyResourceView(views.HalResourceView):
     resource: DummyResource
     options_for_get = MethodOptions(None, DummySchema)
-    options_for_put = MethodOptions(
-        PutDummySchema, DummySchema, permission='dummy.edit'
-    )
+    options_for_put = MethodOptions(PutDummySchema, permission='dummy.edit')
 
     def as_dict(self) -> Json:
         return {'value': self.resource.value}

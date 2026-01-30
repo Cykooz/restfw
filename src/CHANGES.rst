@@ -17,6 +17,15 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added ability not to specify ``output_schema`` for PUT/PATCH/DELETE method
+  if this schema is the same as for GET method.
+
 8.7.3 (2026-01-28)
 ==================
 

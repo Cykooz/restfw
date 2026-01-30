@@ -24,7 +24,7 @@ def test_unicode():
             assert res == '{"key": "Значение"}'
 
 
-class SomeClass(object):
+class SomeClass:
     def __init__(self, v):
         self.v = v
 

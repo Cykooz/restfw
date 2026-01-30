@@ -59,7 +59,13 @@ class PostDummyHalResourceSchema(PutDummyHalResourceSchema):
 class DummyHalResourceView(views.HalResourceView):
     resource: DummyHalResource
     options_for_get = interfaces.MethodOptions(
-        schemas.GetResourceSchema, DummyHalResourceSchema
+        schemas.GetResourceSchema,
+        DummyHalResourceSchema,
+    )
+    options_for_put = interfaces.MethodOptions(PutDummyHalResourceSchema)
+    options_for_delete = interfaces.MethodOptions(
+        None,
+        None,
     )
 
     def as_dict(self) -> Json:
@@ -67,11 +73,6 @@ class DummyHalResourceView(views.HalResourceView):
             'title': self.resource.title,
             'description': self.resource.description,
         }
-
-    options_for_put = interfaces.MethodOptions(
-        PutDummyHalResourceSchema, DummyHalResourceSchema
-    )
-    options_for_delete = interfaces.MethodOptions(None, None)
 
 
 class DummyContainer(SimpleContainer):

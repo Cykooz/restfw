@@ -15,7 +15,10 @@ from .typing import PyramidRequest
 class MethodOptions:
     __slots__ = ('input_schema', 'output_schema', 'permission')
 
-    def __init__(self, input_schema, output_schema, permission=None):
+    def __init__(self, input_schema, output_schema=False, *, permission=None):
+        """If output_schema is False for the PUT and PATCH methods,
+        the output_schema value for the GET method will be used instead.
+        """
         self.input_schema = input_schema
         self.output_schema = output_schema
         self.permission = permission
@@ -70,6 +73,11 @@ class IResource(ILocation):
 
     def http_delete(request: PyramidRequest, params: dict):
         """Delete the resource. Returns None or some resource."""
+
+
+class IResourceViewClass(Interface):
+    def get_output_schema_for_http_method(method: str):
+        """Returns schema of a result for the given HTTP method."""
 
 
 class IResourceView(Interface):
