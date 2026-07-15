@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools == 80.9.0"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.dynamic]
+version = { attr = "version.__version__" }
+readme = { file = ["README.rst", "CHANGES.rst"] }
+
+
+[project]
+name = "restfw"
+dynamic = ["version", "readme"]
+description = "REST framework for Pyramid"
+authors = [
+    { name = "Kirill Kuzminykh", email = "cykooz@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Framework :: Pyramid",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.10"
+dependencies = [
+    "colander",
+    "pyramid>=2.0",
+    "WebOb>=1.8.1",
+    "zope.interface",
+    "lru-dict",
+    "venusian",
+    "WebOb",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/Cykooz/restfw"
+Repository = "https://github.com/Cykooz/restfw.git"
+
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "mock",
+    "asset",
+    "WebTest",
+    "cykooz.testing",
+    "requests",
+    "pendulum",
+]
+docs = [
+    "WebTest",
+    "sphinx>=4.0",
+    "jinja2",
+    "requests",
+    "cykooz.testing"
+]
+
+
+[project.scripts]
+restfw_test = "restfw.runtests:runtests [test]"
+
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["--pyargs", "--doctest-modules", "--doctest-ignore-import-errors", "-rN"]
+markers = ["now"]
+python_files = ["tests.py", "test_*.py"]
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "IGNORE_EXCEPTION_DETAIL",
+    "ALLOW_UNICODE",
+    "ELLIPSIS",
+]

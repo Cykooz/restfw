@@ -73,8 +73,8 @@ class Sub1DummyResource(HalResource):
 
 
 class Sub2DummyResource(HalResource):
-    def __init__(self, parent):
-        pass
+    def __init__(self, parent, registry):
+        self.sub_registry = registry
 
 
 class Sub23DummyResource(HalResource):
@@ -150,6 +150,7 @@ def test_add_sub_resource_fabric_directive(root):
     for v in [0, 1, 2]:
         sub2 = root[str(v)]['resource']['sub2']
         assert isinstance(sub2, Sub2DummyResource)
+        assert sub2.sub_registry is root.get_registry()
 
     for v in [0, 1]:
         with pytest.raises(KeyError):

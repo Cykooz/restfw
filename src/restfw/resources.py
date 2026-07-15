@@ -93,7 +93,7 @@ class sub_resource_config:
       @sub_resource_config('classes', parent=IUser)
       class UserClasses(Resource):
 
-        def __init__(self, parent):
+        def __init__(self, parent, registry):
             self.__parent__ = parent
 
 
@@ -101,12 +101,12 @@ class sub_resource_config:
       class UserRooms(Resource):
         __parent__: IUser
 
-        def __init__(self, parent):
+        def __init__(self, parent, registry):
             self.__parent__ = parent
 
 
       @sub_resource_config('logins')
-      def get_user_logins(parent: IUser):
+      def get_user_logins(parent: IUser, registry):
         return UserLogins(parent)
 
     Might replace the following call to the

@@ -17,6 +17,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support second argument ``registry`` for sub-resource adapters.
+
 8.8 (2026-01-30)
 ================
 

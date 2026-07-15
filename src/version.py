@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """Calculates the current version number.
 
-If possible, uses output of “git describe” modified to conform to the
-visioning scheme that setuptools uses (see PEP 440).  Releases must be
-labelled with annotated tags (signed tags are annotated) of the following
+If it is possible, use output of “git describe” modified to conform to the
+visioning scheme that setuptools uses (see PEP 440). Releases must be
+labeled with annotated tags (signed tags are annotated) in the following
 format:
 
    v<num>(.<num>)+[{a|b|c|rc}<num>(.<num>)*]
@@ -30,20 +30,17 @@ tarballs (as should version.py file).  To do this, run:
     echo include RELEASE-VERSION version.py >>MANIFEST.in
     echo RELEASE-VERSION >>.gitignore
 
-With that setup, a new release can be labelled by simply invoking:
+With that setup, a new release can be labeled by simply invoking:
 
     git tag -a v1.0
 """
-
-from __future__ import print_function
 
 import re
 import subprocess
 import sys
 from typing import Optional
 
-from pkg_resources import parse_version as Version
-
+from packaging.version import Version
 
 __author__ = (
     'Douglas Creager <dcreager@dcreager.net>',
@@ -107,12 +104,11 @@ def read_release_version() -> Optional[Version]:
             fd.close()
         if not re.search(_PEP440_VERSION_RE, ver):
             sys.stderr.write(
-                'version: release version (%s) is invalid, '
-                'will use it anyway\n' % ver
+                f'version: release version ({ver}) is invalid, will use it anyway\n'
             )
         return Version(ver)
     except Exception:
-        return
+        return None
 
 
 def write_release_version(version: Version):
@@ -195,3 +191,5 @@ def _increase_patch(version: Version, inc: int) -> Version:
 
 if __name__ == '__main__':
     main()
+else:
+    __version__ = get_version()

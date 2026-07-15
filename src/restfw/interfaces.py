@@ -7,6 +7,7 @@
 from typing import Any, Set, Tuple
 
 from pyramid.interfaces import ILocation
+from pyramid.registry import Registry
 from zope.interface import Attribute, Interface
 
 from .typing import PyramidRequest
@@ -136,7 +137,7 @@ class IRoot(IResource):
 
 
 class ISubResourceFabric(Interface):
-    def __call__(parent):
+    def __call__(parent, registry: Registry):
         """Returns instance of sub-resource of parent resource.
         :type parent: IResource
         :rtype: IResource or None

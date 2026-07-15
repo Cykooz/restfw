@@ -3,6 +3,9 @@
 :Date: 12.01.2021
 """
 
+import inspect
+from functools import partial
+
 from pyramid.config import Configurator
 from zope.interface.verify import verifyObject
 
@@ -37,6 +40,9 @@ def add_sub_resource_fabric(
     fabric, parent = dotted(fabric), dotted(parent)
     verifyObject(interfaces.ISubResourceFabric, fabric, tentative=True)
 
+    arg_names = list(inspect.signature(fabric).parameters.keys())
+    is_full_fabric = 'registry' in arg_names
+
     if not isinstance(parent, (tuple, list)):
         parent = (parent,)
 
@@ -51,6 +57,11 @@ def add_sub_resource_fabric(
     intr['add_link_into_embedded'] = add_link_into_embedded
 
     def register():
+        nonlocal fabric
+
+        if is_full_fabric:
+            fabric = partial(fabric, registry=config.registry)
+
         pred_list = config.get_predlist('sub_resource_fabric')
         order, preds, phash = pred_list.make(config, **predicates)
         derived_fabric = derive_fabric(fabric, preds)

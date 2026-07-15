@@ -10,6 +10,7 @@ def derive_fabric(fabric, predicates):
     def fabric_wrapper(resource):
         if all((predicate(resource) for predicate in predicates)):
             return fabric(resource)
+        return None
 
     if hasattr(fabric, '__name__'):
         update_wrapper(fabric_wrapper, fabric)

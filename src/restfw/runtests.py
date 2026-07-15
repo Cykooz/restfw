@@ -12,7 +12,7 @@ def runtests():
     from pathlib import Path
 
     root_dir_path = Path(__file__).parent / '..' / '..'
-    cfg_path = root_dir_path / 'src' / 'setup.cfg'
+    cfg_path = root_dir_path / 'src' / 'pyproject.toml'
 
     args = sys.argv[1:]
     if not args or args[0].startswith('-'):
