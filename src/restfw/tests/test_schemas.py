@@ -19,6 +19,7 @@ from ..schemas import (
     ResourceNode,
     StringNode,
     NullableValidator,
+    EmptyOr,
 )
 
 
@@ -237,3 +238,14 @@ def test_resource_node_deserialize(pyramid_request):
     with pytest.raises(colander.Invalid) as e:
         resource_node.deserialize('http://localhost/container/not_found')
     assert e.value.msg == 'Resource has not found'
+
+
+def test_empty_or_validator():
+    empty_url = EmptyOr(colander.url)
+    # No error
+    for value in ('', 0, False, None, [], {}):
+        empty_url(None, value)
+    empty_url(None, 'https://example.com')
+
+    with pytest.raises(colander.Invalid):
+        empty_url(None, 'not a url')

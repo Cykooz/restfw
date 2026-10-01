@@ -17,6 +17,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added ``EmptyOr`` validator.
+
 8.9 (2026-07-15)
 ================
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 :Authors: cykooz
 :Date: 26.08.2016
@@ -14,7 +13,6 @@ from zope.deprecation import deprecate
 from zope.interface.interfaces import IInterface
 
 from .external_links import get_external_links
-
 
 LISTING_CONF = {'max_limit': 500}
 
@@ -359,7 +357,7 @@ class LaconicNoneOf(colander.NoneOf):
 
 
 class ResourceInterface:
-    """Validator which succeeds if the type or interface of value passed to it
+    """Validator that succeeds if the type or interface of value passed to it
     is one of a fixed set of interfaces and classes."""
 
     def __init__(self, interface, *interfaces):
@@ -384,6 +382,18 @@ class ResourceInterface:
                 mapping={'val': value, 'choices': choices},
             )
             raise colander.Invalid(node, err)
+
+
+class EmptyOr:
+    """Validator that succeeds if the value is empty
+    or succeeds the validator that is given as the argument."""
+
+    def __init__(self, validator):
+        self.validator = validator
+
+    def __call__(self, node, value):
+        if value:
+            self.validator(node, value)
 
 
 # Schemas
@@ -427,7 +437,7 @@ class HalLinksSchema(MappingNode):
         for name, link_fabric in get_external_links(context, request.registry):
             if name and not node.get(name):
                 missing = colander.drop if link_fabric.optional else colander.required
-                title = link_fabric.title or ('Link to %s' % name)
+                title = link_fabric.title or f'Link to {name}'
                 child = HalLinkNode(
                     name=name,
                     title=title,
@@ -438,9 +448,7 @@ class HalLinksSchema(MappingNode):
 
         for name, _ in context.get_sub_resources(request.registry):
             if name and not node.get(name):
-                child = HalLinkNode(name=name, title='Link to {}'.format(name)).bind(
-                    **kw
-                )
+                child = HalLinkNode(name=name, title=f'Link to {name}').bind(**kw)
                 node.add(child)
 
 
