@@ -10,7 +10,8 @@ def runtests():
     import pytest
     from pathlib import Path
     from os import environ
-    cfg_path = str(Path(__file__).parent.parent / 'setup.cfg')
+
+    cfg_path = str(Path(__file__).parent.parent / 'pyproject.toml')
 
     args = sys.argv[1:]
     if not args or args[0].startswith('-'):

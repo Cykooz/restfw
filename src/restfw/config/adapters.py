@@ -3,8 +3,9 @@
 :Date: 03.09.2025
 """
 
+from collections.abc import Iterable
 from inspect import Parameter, isclass, signature
-from typing import Iterable, Type, TypeVar
+from typing import TypeVar
 
 import venusian
 from pyramid.config import Configurator
@@ -28,15 +29,15 @@ class adapter_config:
 
     def __init__(
         self,
-        required: Iterable[Type] | Type | None = None,
-        provided: Type | None = None,
-        must_implement: Iterable[Type[Interface]] | Type[Interface] | None = None,
+        required: Iterable[type] | type | None = None,
+        provided: type | None = None,
+        must_implement: Iterable[type[Interface]] | type[Interface] | None = None,
         name='',
         **kwargs,
     ):
         self.required = _into_list(required)
         self.provided = provided
-        self.must_implement: list[Type[Interface]] = _into_list(must_implement) or []
+        self.must_implement: list[type[Interface]] = _into_list(must_implement) or []
         self.name = name
         self.depth = kwargs.pop('_depth', 0)
         self.category = kwargs.pop('_category', 'pyramid')

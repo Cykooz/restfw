@@ -17,6 +17,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added decorator ``utility_config``.
+
 8.10 (2026-10-01)
 =================
 
