@@ -228,3 +228,11 @@ def test_resource_views(web_app, pyramid_request):
         'title': 'New title',
         'description': 'New description',
     }
+
+
+def test_nullable_embedded_resources(pyramid_request):
+    embedded = views.EmbeddedResources(allow_nullables=True, foo=None, bar=None)
+    assert embedded.__json__(pyramid_request) == {'foo': None, 'bar': None}
+
+    embedded.allow_nullables = False
+    assert embedded.__json__(pyramid_request) == {}

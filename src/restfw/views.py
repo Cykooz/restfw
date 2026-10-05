@@ -326,17 +326,26 @@ class HalResourceView(ResourceView):
 
 
 class EmbeddedResources:
-    __slots__ = ('paging_links', 'total_count', 'embedded')
+    __slots__ = ('allow_nullables', 'embedded', 'paging_links', 'total_count')
 
-    def __init__(self, paging_links=None, total_count=None, **kwargs):
+    def __init__(
+        self,
+        paging_links=None,
+        total_count=None,
+        allow_nullables=False,
+        **kwargs,
+    ):
         self.paging_links = paging_links or {}
         self.total_count = total_count
+        self.allow_nullables = allow_nullables
         self.embedded = kwargs
 
     def __json__(self, request: PyramidRequest):
         result = {}
         for key, resources in self.embedded.items():
             if resources is None:
+                if self.allow_nullables:
+                    result[key] = None
                 continue
             if not isinstance(resources, (dict, str)) and hasattr(
                 resources, '__iter__'

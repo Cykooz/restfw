@@ -17,6 +17,14 @@
 CHANGELOG
 *********
 
+Next release
+============
+
+Features
+--------
+
+- Added support of nullable resources for ``EmbeddedResources``.
+
 8.11 (2026-10-05)
 =================
 
